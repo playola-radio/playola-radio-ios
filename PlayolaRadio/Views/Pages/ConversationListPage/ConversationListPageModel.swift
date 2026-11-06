@@ -19,6 +19,8 @@ class ConversationListPageModel: ViewModel {
   var isLoading = true
   var presentedAlert: PlayolaAlert?
   private var conversationMutationVersion = 0
+  private var loadGeneration = 0
+  private var readConversationUpdatedAts: [String: Date] = [:]
   private var readConversationMutationVersions: [String: Int] = [:]
 
   var showsLoadingIndicator: Bool {
@@ -47,17 +49,25 @@ class ConversationListPageModel: ViewModel {
   private func loadConversations() async {
     guard let jwt = auth.jwt else { return }
 
+    loadGeneration += 1
+    let generation = loadGeneration
     isLoading = true
     let fetchMutationVersion = conversationMutationVersion
+    defer {
+      if generation == loadGeneration {
+        isLoading = false
+      }
+    }
 
     do {
       let fetchedConversations = try await api.getConversations(jwt, "open")
+      guard generation == loadGeneration else { return }
       conversations = fetchedConversations.map { fetchedConversation in
         guard
           readConversationMutationVersions[fetchedConversation.id, default: 0]
             > fetchMutationVersion,
-          let localConversation = conversations.first(where: { $0.id == fetchedConversation.id }),
-          fetchedConversation.conversation.updatedAt <= localConversation.conversation.updatedAt
+          let readConversationUpdatedAt = readConversationUpdatedAts[fetchedConversation.id],
+          fetchedConversation.conversation.updatedAt <= readConversationUpdatedAt
         else { return fetchedConversation }
         return AdminConversationResponse(
           conversation: fetchedConversation.conversation,
@@ -65,12 +75,11 @@ class ConversationListPageModel: ViewModel {
         )
       }
     } catch {
+      guard generation == loadGeneration else { return }
       if !Task.isCancelled {
         presentedAlert = .errorLoadingConversations
       }
     }
-
-    isLoading = false
   }
 
   func onConversationTapped(_ item: AdminConversationResponse) async {
@@ -98,6 +107,8 @@ class ConversationListPageModel: ViewModel {
           )
           conversationMutationVersion += 1
           readConversationMutationVersions[item.id] = conversationMutationVersion
+          readConversationUpdatedAts[item.id] =
+            messages.map(\.updatedAt).max() ?? item.conversation.updatedAt
         }
       }
     } catch {

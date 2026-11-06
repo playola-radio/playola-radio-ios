@@ -48,6 +48,29 @@ struct ConversationListPageTests {
     )
   }
 
+  private func makeAdminConversation(
+    id: String,
+    updatedAt: Date,
+    unreadCountFromOwner: Int
+  ) -> AdminConversationResponse {
+    AdminConversationResponse(
+      conversation: makeConversation(id: id, updatedAt: updatedAt),
+      unreadCountFromOwner: unreadCountFromOwner
+    )
+  }
+
+  private func makeMessage(id: String, conversationId: String, updatedAt: Date) -> Message {
+    Message(
+      id: id,
+      conversationId: conversationId,
+      senderId: "owner-1",
+      message: "New message",
+      createdAt: updatedAt,
+      updatedAt: updatedAt,
+      sender: nil
+    )
+  }
+
   @Test
   func testOnViewAppearedLoadsConversations() async {
     @Shared(.auth) var auth = Auth(
@@ -369,5 +392,111 @@ struct ConversationListPageTests {
     await refresh.value
 
     expectNoDifference(model.conversations, [conversationWithNewerMessage])
+  }
+
+  @Test
+  func testRefreshKeepsFetchedMessagesReadDuringFetch() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseFetch, releaseFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let oldConversation = makeAdminConversation(
+      id: "conv-1", updatedAt: Date(timeIntervalSince1970: 100), unreadCountFromOwner: 1
+    )
+    let refreshedConversation = makeAdminConversation(
+      id: "conv-1", updatedAt: Date(timeIntervalSince1970: 200), unreadCountFromOwner: 1
+    )
+    let fetchedMessage = makeMessage(
+      id: "message-1", conversationId: "conv-1", updatedAt: Date(timeIntervalSince1970: 200)
+    )
+
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in
+        fetchStartedContinuation.yield(())
+        var releaseFetchIterator = releaseFetch.makeAsyncIterator()
+        _ = await releaseFetchIterator.next()
+        return [refreshedConversation]
+      }
+      $0.api.getConversationMessages = { _, _ in [fetchedMessage] }
+      $0.api.markConversationRead = { _, _ in }
+    } operation: {
+      ConversationListPageModel()
+    }
+    model.conversations = [oldConversation]
+
+    let refresh = Task { await model.refresh() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    await model.onConversationTapped(oldConversation)
+    releaseFetchContinuation.yield(())
+    releaseFetchContinuation.finish()
+    await refresh.value
+
+    expectNoDifference(
+      model.conversations,
+      [
+        AdminConversationResponse(
+          conversation: refreshedConversation.conversation,
+          unreadCountFromOwner: 0
+        )
+      ]
+    )
+  }
+
+  @Test
+  func testOlderRefreshDoesNotReplaceNewerRefresh() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Int.self)
+    let (releaseOlderFetch, releaseOlderFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseNewerFetch, releaseNewerFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let fetchCount = LockIsolated(0)
+    let oldConversation = makeAdminConversation(
+      id: "conv-1", updatedAt: Date(timeIntervalSince1970: 100), unreadCountFromOwner: 1
+    )
+    let newerConversation = makeAdminConversation(
+      id: "conv-1", updatedAt: Date(timeIntervalSince1970: 200), unreadCountFromOwner: 1
+    )
+
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in
+        let requestNumber = fetchCount.withValue {
+          $0 += 1
+          return $0
+        }
+        fetchStartedContinuation.yield(requestNumber)
+        if requestNumber == 1 {
+          var releaseIterator = releaseOlderFetch.makeAsyncIterator()
+          _ = await releaseIterator.next()
+          return [oldConversation]
+        }
+        var releaseIterator = releaseNewerFetch.makeAsyncIterator()
+        _ = await releaseIterator.next()
+        return [newerConversation]
+      }
+      $0.api.getConversationMessages = { _, _ in [] }
+      $0.api.markConversationRead = { _, _ in }
+    } operation: {
+      ConversationListPageModel()
+    }
+    model.conversations = [oldConversation]
+
+    let olderRefresh = Task { await model.refresh() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    let newerRefresh = Task { await model.refresh() }
+    _ = await fetchStartedIterator.next()
+    await model.onConversationTapped(oldConversation)
+    releaseNewerFetchContinuation.yield(())
+    releaseNewerFetchContinuation.finish()
+    await newerRefresh.value
+    releaseOlderFetchContinuation.yield(())
+    releaseOlderFetchContinuation.finish()
+    await olderRefresh.value
+
+    expectNoDifference(model.conversations, [newerConversation])
+    expectNoDifference(model.isLoading, false)
   }
 }
