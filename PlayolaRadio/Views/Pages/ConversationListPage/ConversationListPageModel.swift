@@ -56,9 +56,13 @@ class ConversationListPageModel: ViewModel {
         guard
           readConversationMutationVersions[fetchedConversation.id, default: 0]
             > fetchMutationVersion,
-          let localConversation = conversations.first(where: { $0.id == fetchedConversation.id })
+          let localConversation = conversations.first(where: { $0.id == fetchedConversation.id }),
+          fetchedConversation.conversation.updatedAt <= localConversation.conversation.updatedAt
         else { return fetchedConversation }
-        return localConversation
+        return AdminConversationResponse(
+          conversation: fetchedConversation.conversation,
+          unreadCountFromOwner: 0
+        )
       }
     } catch {
       if !Task.isCancelled {

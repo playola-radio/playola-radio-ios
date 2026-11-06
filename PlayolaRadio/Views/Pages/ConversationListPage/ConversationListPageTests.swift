@@ -4,6 +4,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import Sharing
@@ -327,5 +328,46 @@ struct ConversationListPageTests {
     await refresh.value
 
     #expect(model.conversations.first?.unreadCountFromOwner == 0)
+  }
+
+  @Test
+  func testRefreshKeepsNewerUnreadMessagesAfterConversationReadDuringFetch() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseFetch, releaseFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let unreadConversation = AdminConversationResponse(
+      conversation: makeConversation(id: "conv-1", updatedAt: Date(timeIntervalSince1970: 100)),
+      unreadCountFromOwner: 1
+    )
+    let conversationWithNewerMessage = AdminConversationResponse(
+      conversation: makeConversation(id: "conv-1", updatedAt: Date(timeIntervalSince1970: 200)),
+      unreadCountFromOwner: 1
+    )
+
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in
+        fetchStartedContinuation.yield(())
+        var releaseFetchIterator = releaseFetch.makeAsyncIterator()
+        _ = await releaseFetchIterator.next()
+        return [conversationWithNewerMessage]
+      }
+      $0.api.getConversationMessages = { _, _ in [] }
+      $0.api.markConversationRead = { _, _ in }
+    } operation: {
+      ConversationListPageModel()
+    }
+    model.conversations = [unreadConversation]
+
+    let refresh = Task { await model.refresh() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    await model.onConversationTapped(unreadConversation)
+    releaseFetchContinuation.yield(())
+    releaseFetchContinuation.finish()
+    await refresh.value
+
+    expectNoDifference(model.conversations, [conversationWithNewerMessage])
   }
 }
