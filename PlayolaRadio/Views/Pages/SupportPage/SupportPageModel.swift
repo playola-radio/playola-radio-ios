@@ -13,6 +13,7 @@ class SupportPageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
+  @ObservationIgnored @Dependency(\.toast) var toast
 
   var conversation: Conversation?
   var messages: [Message] = []
@@ -53,7 +54,9 @@ class SupportPageModel: ViewModel {
         await markAsRead()
       }
     } catch {
-      presentedAlert = .errorLoadingConversation
+      if !Task.isCancelled {
+        await toast.show(PlayolaToast(message: loadErrorMessage, buttonTitle: "OK"))
+      }
     }
 
     isLoading = false
@@ -134,6 +137,7 @@ class SupportPageModel: ViewModel {
 
   var navigationTitle: String { "Contact Us" }
   var messageFieldPlaceholder: String { "Message" }
+  var loadErrorMessage: String { "The conversation couldn't load." }
 }
 
 extension PlayolaAlert {

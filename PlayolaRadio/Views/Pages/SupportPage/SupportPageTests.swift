@@ -690,4 +690,53 @@ struct SupportPageTests {
     expectNoDifference(model.newMessage, "Second message")
     expectNoDifference(model.presentedAlert, .errorSendingMessage)
   }
+
+  @Test
+  func testOnViewAppearedShowsToastWhenLoadFails() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in throw APIError.dataNotValid }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value.map(\.message), ["The conversation couldn't load."])
+  }
+
+  @Test
+  func testOnViewAppearedShowsNoErrorWhenLoadCancelled() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let (loadStarted, loadStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseLoad, releaseLoadContinuation) = AsyncStream.makeStream(of: Void.self)
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        loadStartedContinuation.yield(())
+        var releaseLoadIterator = releaseLoad.makeAsyncIterator()
+        _ = await releaseLoadIterator.next()
+        throw CancellationError()
+      }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    let load = Task { await model.onViewAppeared() }
+    var loadStartedIterator = loadStarted.makeAsyncIterator()
+    _ = await loadStartedIterator.next()
+    load.cancel()
+    releaseLoadContinuation.yield(())
+    releaseLoadContinuation.finish()
+    await load.value
+
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value.map(\.message), [])
+  }
 }
