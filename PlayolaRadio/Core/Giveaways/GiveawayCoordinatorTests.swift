@@ -823,6 +823,7 @@ extension GiveawayCoordinatorTests {
     releaseEventFetchContinuation.finish()
     await clearActive.value
 
+    expectNoDifference(activeGiveaway?.id, "e1")
     expectNoDifference(participations["e1"], lostParticipation())
   }
 

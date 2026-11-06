@@ -239,13 +239,14 @@ struct SeriesListPageModelTests {
   @Test
   func testOlderLoadFinishingFirstKeepsLoadingUntilNewerLoadFinishes() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date(timeIntervalSince1970: 1_000_000)
     let (loadStarted, loadStartedContinuation) = AsyncStream.makeStream(of: Void.self)
     let (releaseOlderLoad, releaseOlderLoadContinuation) = AsyncStream.makeStream(of: Void.self)
     let (releaseNewerLoad, releaseNewerLoadContinuation) = AsyncStream.makeStream(of: Void.self)
     let loadCount = LockIsolated(0)
 
     let model = withDependencies {
-      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.date.now = now
       $0.api.getAirings = { _, _ in
         let isOlderLoad = loadCount.withValue {
           $0 += 1
@@ -255,7 +256,7 @@ struct SeriesListPageModelTests {
         var releaseIterator =
           (isOlderLoad ? releaseOlderLoad : releaseNewerLoad).makeAsyncIterator()
         _ = await releaseIterator.next()
-        return []
+        return isOlderLoad ? [Self.upcomingAiring(showId: "older-show", now: now)] : []
       }
     } operation: {
       SeriesListPageModel()
@@ -271,6 +272,7 @@ struct SeriesListPageModelTests {
     await olderLoad.value
 
     expectNoDifference(model.isLoading, true)
+    expectNoDifference(model.shows.map(\.show.id), [])
 
     releaseNewerLoadContinuation.yield(())
     releaseNewerLoadContinuation.finish()
