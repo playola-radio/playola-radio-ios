@@ -124,4 +124,55 @@ struct LiveStationsPollerTests {
 
     expectNoDifference(liveStations, [Self.accountALiveStation])
   }
+
+  @Test
+  func testAuthIdentityTreatsEmptyUserIdAsMissingAcrossDifferentTokens() {
+    let first = AuthIdentity(jwt: "first-token", userId: "")
+    let second = AuthIdentity(jwt: "second-token", userId: "")
+
+    #expect(!first.isSameAccount(as: second))
+  }
+
+  @Test
+  func testCancelledPollDoesNotOverwriteRestartedPollResponse() async {
+    @Shared(.auth) var auth = Auth(jwt: "account-a-jwt")
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+    let (firstFetchStarted, firstFetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseFirstFetch, releaseFirstFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let firstStation = Self.accountALiveStation
+    let secondStation = LiveStationInfo(
+      stationId: "newer-station",
+      liveStatus: .voicetracking,
+      station: .mockWith(id: "newer-station")
+    )
+    let fetchCount = LockIsolated(0)
+    let poller = withDependencies {
+      $0.api.fetchLiveStations = { _ in
+        let isFirstFetch = fetchCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        if isFirstFetch {
+          firstFetchStartedContinuation.yield(())
+          var iterator = releaseFirstFetch.makeAsyncIterator()
+          _ = await iterator.next()
+          return [firstStation]
+        }
+        return [secondStation]
+      }
+    } operation: {
+      LiveStationsPoller()
+    }
+
+    let firstFetch = Task { await poller.fetchLiveStations() }
+    var firstFetchStartedIterator = firstFetchStarted.makeAsyncIterator()
+    _ = await firstFetchStartedIterator.next()
+    firstFetch.cancel()
+    await poller.fetchLiveStations()
+    releaseFirstFetchContinuation.yield(())
+    releaseFirstFetchContinuation.finish()
+    await firstFetch.value
+
+    expectNoDifference(liveStations, [secondStation])
+  }
 }

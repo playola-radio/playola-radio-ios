@@ -40,7 +40,7 @@ struct AuthIdentity: Equatable, Sendable {
   /// Token rotation does not change the signed-in account. A missing user id deliberately does not
   /// match a different token because that session cannot be safely identified across refreshes.
   func isSameAccount(as other: AuthIdentity) -> Bool {
-    self == other || (userId != nil && userId == other.userId)
+    self == other || (userId?.isEmpty == false && userId == other.userId)
   }
 }
 

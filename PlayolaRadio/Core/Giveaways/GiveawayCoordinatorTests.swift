@@ -911,7 +911,50 @@ extension GiveawayCoordinatorTests {
     releaseContinuation.finish()
     await tap.value
 
-    #expect(participations["e1"] != nil)
+    expectNoDifference(participations["e1"]?.tapNumber, 7)
+    expectNoDifference(
+      participations["e1"]?.status,
+      GiveawayParticipationStatus.resolvedWon(submissionCompleted: false))
+  }
+
+  @Test func revealFromOlderFeedStillPublishesWhenNewerSameEventDetailFetchFails() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    let (olderDetailFetchStarted, olderDetailFetchStartedContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let (releaseOlderDetailFetch, releaseOlderDetailFetchContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let event = openEvent(id: "e1")
+    let detailFetchCount = LockIsolated(0)
+    let coordinator = withDependencies {
+      $0.api.giveawayEventsFeed = { _ in [event] }
+      $0.api.giveawayEvent = { _, _ in
+        let isOlderDetailFetch = detailFetchCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        if isOlderDetailFetch {
+          olderDetailFetchStartedContinuation.yield(())
+          var iterator = releaseOlderDetailFetch.makeAsyncIterator()
+          _ = await iterator.next()
+          return event
+        }
+        throw BoomError()
+      }
+    } operation: {
+      GiveawayCoordinator()
+    }
+
+    let olderReconcile = Task { await coordinator.reconcile() }
+    var olderDetailFetchStartedIterator = olderDetailFetchStarted.makeAsyncIterator()
+    _ = await olderDetailFetchStartedIterator.next()
+    await coordinator.reconcile()
+    releaseOlderDetailFetchContinuation.yield(())
+    releaseOlderDetailFetchContinuation.finish()
+    await olderReconcile.value
+
+    expectNoDifference(activeGiveaway?.id, "e1")
   }
 
   @Test func revealFromOlderFeedFinishingLastDoesNotReplaceNewerEvent() async {

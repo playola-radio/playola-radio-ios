@@ -202,7 +202,11 @@ final class GiveawayCoordinator {
     let generation = reconciliationGeneration
     do {
       let event = try await api.giveawayEvent(jwt, eventId)
-      guard auth.identity.isSameAccount(as: identity), generation == reconciliationGeneration else {
+      guard auth.identity.isSameAccount(as: identity),
+        generation == reconciliationGeneration
+          || Self.selectEvent(from: lastFeed.filter { $0.stationId == expectedStationId })?.id
+            == eventId
+      else {
         return
       }
       guard currentPlayolaStationId == expectedStationId else {

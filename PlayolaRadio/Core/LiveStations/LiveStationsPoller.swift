@@ -43,7 +43,7 @@ final class LiveStationsPoller {
 
     do {
       let stations = try await api.fetchLiveStations(jwtToken)
-      guard auth.identity.isSameAccount(as: identity) else { return }
+      guard !Task.isCancelled, auth.identity.isSameAccount(as: identity) else { return }
       $liveStations.withLock { $0 = stations }
     } catch {
       // Silently fail, keep existing data

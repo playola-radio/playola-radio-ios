@@ -813,6 +813,37 @@ struct SupportPageTests {
   }
 
   @Test
+  func testOnViewAppearedDoesNotShowToastWhenCancelledDuringErrorReporting() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let (errorReportingStarted, errorReportingStartedContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let (releaseErrorReporting, releaseErrorReportingContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, _ in
+        errorReportingStartedContinuation.yield(())
+        var iterator = releaseErrorReporting.makeAsyncIterator()
+        _ = await iterator.next()
+      }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    let load = Task { await model.onViewAppeared() }
+    var errorReportingStartedIterator = errorReportingStarted.makeAsyncIterator()
+    _ = await errorReportingStartedIterator.next()
+    load.cancel()
+    releaseErrorReportingContinuation.yield(())
+    releaseErrorReportingContinuation.finish()
+    await load.value
+
+    expectNoDifference(shownToasts.value.map(\.message), [])
+  }
+
+  @Test
   func testSendButtonAccessibilityLabel() {
     let model = SupportPageModel()
 

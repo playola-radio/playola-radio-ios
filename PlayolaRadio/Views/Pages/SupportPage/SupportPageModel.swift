@@ -66,6 +66,7 @@ class SupportPageModel: ViewModel {
           await errorReporting.reportError(error, tags)
         }
         guard generation == loadGeneration else { return }
+        guard !Task.isCancelled else { return }
         await toast.show(PlayolaToast(message: loadErrorMessage, buttonTitle: "OK"))
       }
     }
