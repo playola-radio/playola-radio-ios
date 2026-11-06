@@ -880,6 +880,35 @@ struct GiveawayCoordinatorTests {
     expectNoDifference(participations["e1"], nil)
   }
 
+  @Test func tapPersistsResponseWhenSameAccountRefreshesTokenDuringRequest() async {
+    let user = LoggedInUser(id: "account-a", firstName: "A", email: "a@example.com")
+    @Shared(.auth) var auth = Auth(currentUser: user, jwt: "token-before")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    let (started, startedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (release, releaseContinuation) = AsyncStream.makeStream(of: Void.self)
+    let coordinator = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 1_000_000)
+      $0.api.tapGiveawayEvent = { _, _ in
+        startedContinuation.yield(())
+        var iterator = release.makeAsyncIterator()
+        _ = await iterator.next()
+        return GiveawayTapResponse(tapNumber: 7, isWinner: true, status: .open)
+      }
+    } operation: {
+      GiveawayCoordinator()
+    }
+
+    let tap = Task { try? await coordinator.tap(event: openEvent()) }
+    var startedIterator = started.makeAsyncIterator()
+    _ = await startedIterator.next()
+    $auth.withLock { $0 = Auth(currentUser: user, jwt: "token-after") }
+    releaseContinuation.yield(())
+    releaseContinuation.finish()
+    await tap.value
+
+    #expect(participations["e1"] != nil)
+  }
+
   @Test func revealFromOlderFeedFinishingLastDoesNotReplaceNewerEvent() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")

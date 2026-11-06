@@ -95,4 +95,33 @@ struct LiveStationsPollerTests {
 
     expectNoDifference(liveStations, [])
   }
+
+  @Test
+  func testFetchLiveStationsPublishesResponseWhenSameAccountRefreshesTokenDuringFetch() async {
+    let user = LoggedInUser(id: "account-a", firstName: "A", email: "a@example.com")
+    @Shared(.auth) var auth = Auth(currentUser: user, jwt: "token-before")
+    @Shared(.liveStations) var liveStations: [LiveStationInfo] = []
+    let (started, startedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (release, releaseContinuation) = AsyncStream.makeStream(of: Void.self)
+    let poller = withDependencies {
+      $0.api.fetchLiveStations = { _ in
+        startedContinuation.yield(())
+        var iterator = release.makeAsyncIterator()
+        _ = await iterator.next()
+        return [Self.accountALiveStation]
+      }
+    } operation: {
+      LiveStationsPoller()
+    }
+
+    let fetch = Task { await poller.fetchLiveStations() }
+    var startedIterator = started.makeAsyncIterator()
+    _ = await startedIterator.next()
+    $auth.withLock { $0 = Auth(currentUser: user, jwt: "token-after") }
+    releaseContinuation.yield(())
+    releaseContinuation.finish()
+    await fetch.value
+
+    expectNoDifference(liveStations, [Self.accountALiveStation])
+  }
 }

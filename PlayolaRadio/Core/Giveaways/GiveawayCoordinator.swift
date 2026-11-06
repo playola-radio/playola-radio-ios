@@ -105,7 +105,7 @@ final class GiveawayCoordinator {
       log("reconcile: feed FETCH FAILED (\(error)) — keeping last state")
       return  // transient failure: keep last known state, retry next poll
     }
-    guard auth.identity == identity, fetchGeneration == feedGeneration else {
+    guard auth.identity.isSameAccount(as: identity), fetchGeneration == feedGeneration else {
       log("reconcile: feed superseded (account changed or newer fetch) — discarding")
       return
     }
@@ -152,17 +152,18 @@ final class GiveawayCoordinator {
   /// Stays silent on the expected `.notOpenYet` race; rethrows any genuine failure for the caller.
   func tap(event: GiveawayEvent) async throws {
     guard let jwt = auth.jwt else { return }
-    guard participations[event.id] == nil, !inFlightTapIds.contains(event.id) else { return }
     let identity = auth.identity
+    guard participations[event.id] == nil, !inFlightTapIds.contains(event.id) else { return }
     inFlightTapIds.insert(event.id)
     defer { inFlightTapIds.remove(event.id) }
     do {
       let response = try await api.tapGiveawayEvent(jwt, event.id)
-      guard auth.identity == identity else { return }
+      guard auth.identity.isSameAccount(as: identity) else { return }
       persistOutcome(event: event, response: response)
     } catch GiveawayTapError.notOpenYet {
       log("tap: not-open-yet for \(event.id) — silent (expected race)")
     } catch {
+      guard auth.identity.isSameAccount(as: identity) else { return }
       log("tap: unexpected failure for \(event.id) — \(error)")
       throw error
     }
@@ -196,7 +197,9 @@ final class GiveawayCoordinator {
     let feedCount = acceptedFeedCount
     do {
       let event = try await api.giveawayEvent(jwt, eventId)
-      guard auth.identity == identity, feedCount == acceptedFeedCount else { return }
+      guard auth.identity.isSameAccount(as: identity), feedCount == acceptedFeedCount else {
+        return
+      }
       guard currentPlayolaStationId == expectedStationId else {
         log("reveal: station changed before publish — skipping \(eventId)")
         return
@@ -233,7 +236,7 @@ final class GiveawayCoordinator {
     let identity = auth.identity
     let feedCount = acceptedFeedCount
     guard let fresh = try? await api.giveawayEvent(jwt, event.id) else { return }
-    guard auth.identity == identity, feedCount == acceptedFeedCount,
+    guard auth.identity.isSameAccount(as: identity), feedCount == acceptedFeedCount,
       currentPlayolaStationId == stationId
     else { return }
     if fresh.status != .open {
@@ -250,7 +253,9 @@ final class GiveawayCoordinator {
     guard case .resolvedLost = participations[eventId]?.status else { return }
     let identity = auth.identity
     guard let result = try? await api.giveawayEventMyResult(jwt, eventId) else { return }
-    guard auth.identity == identity, result.isResolved, result.isWinner else { return }
+    guard auth.identity.isSameAccount(as: identity), result.isResolved, result.isWinner else {
+      return
+    }
     $participations.withLock {
       // Re-check inside the lock: a push or a claim may have changed the state during the GET, and we
       // must not reset a now-won/claimed participation back to an unsubmitted win.
@@ -275,7 +280,7 @@ final class GiveawayCoordinator {
     let cutoff = now.addingTimeInterval(-Self.lossReconcileWindow)
     let recentLossIds = losses.compactMap { $0.tappedAt >= cutoff ? $0.id : nil }
     for eventId in recentLossIds {
-      guard auth.identity == identity else { return }
+      guard auth.identity.isSameAccount(as: identity) else { return }
       await reconcileResolvedLoss(jwt: jwt, eventId: eventId)
     }
   }
@@ -318,7 +323,9 @@ final class GiveawayCoordinator {
 
   private func armRevealIfNeeded(jwt: String, item: GiveawayEvent, stationId: String) {
     let identity = auth.identity
-    guard armedEventId != item.id || armedIdentity != identity else { return }
+    guard armedEventId != item.id || !(armedIdentity?.isSameAccount(as: identity) ?? false) else {
+      return
+    }
     cancelArmedReveal()
     armedEventId = item.id
     armedIdentity = identity
@@ -345,7 +352,7 @@ final class GiveawayCoordinator {
       return
     }
     guard gen == generation else { return }  // superseded by a newer arm
-    guard auth.identity == identity, currentPlayolaStationId == stationId else {
+    guard auth.identity.isSameAccount(as: identity), currentPlayolaStationId == stationId else {
       armedEventId = nil
       return
     }
@@ -370,7 +377,7 @@ final class GiveawayCoordinator {
       log("arm: \(eventId) stale after sleep (gen/station changed) — skipping")
       return
     }
-    guard auth.identity == identity else {
+    guard auth.identity.isSameAccount(as: identity) else {
       armedEventId = nil
       return
     }

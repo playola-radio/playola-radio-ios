@@ -36,6 +36,12 @@ struct Auth: Codable {
 struct AuthIdentity: Equatable, Sendable {
   let jwt: String?
   let userId: String?
+
+  /// Token rotation does not change the signed-in account. A missing user id deliberately does not
+  /// match a different token because that session cannot be safely identified across refreshes.
+  func isSameAccount(as other: AuthIdentity) -> Bool {
+    self == other || (userId != nil && userId == other.userId)
+  }
 }
 
 extension Auth {
