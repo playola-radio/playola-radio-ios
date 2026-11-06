@@ -921,6 +921,44 @@ struct GiveawayCoordinatorTests {
     expectNoDifference(activeGiveaway?.id, "e2")
   }
 
+  @Test func revealFromOlderFeedStillPublishesWhenNewerFeedFails() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    let (eventFetchStarted, eventFetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseEventFetch, releaseEventFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let event = openEvent(id: "e1")
+    let feedCount = LockIsolated(0)
+    let coordinator = withDependencies {
+      $0.api.giveawayEventsFeed = { _ in
+        let isOlderFeed = feedCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        guard isOlderFeed else { throw URLError(.notConnectedToInternet) }
+        return [event]
+      }
+      $0.api.giveawayEvent = { _, _ in
+        eventFetchStartedContinuation.yield(())
+        var releaseEventFetchIterator = releaseEventFetch.makeAsyncIterator()
+        _ = await releaseEventFetchIterator.next()
+        return event
+      }
+    } operation: {
+      GiveawayCoordinator()
+    }
+
+    let olderReconcile = Task { await coordinator.reconcile() }
+    var eventFetchStartedIterator = eventFetchStarted.makeAsyncIterator()
+    _ = await eventFetchStartedIterator.next()
+    await coordinator.reconcile()
+    releaseEventFetchContinuation.yield(())
+    releaseEventFetchContinuation.finish()
+    await olderReconcile.value
+
+    expectNoDifference(activeGiveaway?.id, "e1")
+  }
+
   @Test func closeCheckFromOlderFeedFinishingLastDoesNotClearNewerEvent() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
