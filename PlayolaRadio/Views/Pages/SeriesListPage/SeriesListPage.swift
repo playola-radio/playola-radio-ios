@@ -42,7 +42,6 @@ struct SeriesListPage: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbarBackground(.hidden, for: .navigationBar)
     .onAppear { Task { await model.viewAppeared() } }
-    .playolaAlert($model.presentedAlert)
   }
 }
 
