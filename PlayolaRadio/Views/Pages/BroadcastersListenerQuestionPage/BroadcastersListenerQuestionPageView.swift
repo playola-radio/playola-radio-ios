@@ -15,7 +15,7 @@ struct BroadcastersListenerQuestionPageView: View {
         .edgesIgnoringSafeArea(.all)
 
       VStack(spacing: 0) {
-        if !model.questions.isEmpty {
+        model.questionPresentation.filterPills {
           filterPills
         }
         questionsList
@@ -106,15 +106,15 @@ struct BroadcastersListenerQuestionPageView: View {
 
   private var questionsList: some View {
     List {
-      if model.showsLoadingIndicator {
-        ProgressView()
-          .tint(.textPrimary)
-          .fillingListRow(height: listHeight)
-      } else if model.questions.isEmpty {
-        emptyState
-      } else if model.filteredQuestions.isEmpty {
-        filteredEmptyState
-      }
+      model.questionPresentation.listContent(
+        loading: {
+          ProgressView()
+            .tint(.textPrimary)
+            .fillingListRow(height: listHeight)
+        },
+        empty: { emptyState },
+        filteredEmpty: { filteredEmptyState }
+      )
 
       ForEach(model.filteredQuestions) { question in
         ListenerQuestionRow(

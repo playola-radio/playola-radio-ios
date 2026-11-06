@@ -18,6 +18,8 @@ class ConversationListPageModel: ViewModel {
   var conversations: [AdminConversationResponse] = []
   var isLoading = true
   var presentedAlert: PlayolaAlert?
+  private var conversationMutationVersion = 0
+  private var readConversationMutationVersions: [String: Int] = [:]
 
   var showsLoadingIndicator: Bool {
     isLoading && conversations.isEmpty
@@ -46,9 +48,18 @@ class ConversationListPageModel: ViewModel {
     guard let jwt = auth.jwt else { return }
 
     isLoading = true
+    let fetchMutationVersion = conversationMutationVersion
 
     do {
-      conversations = try await api.getConversations(jwt, "open")
+      let fetchedConversations = try await api.getConversations(jwt, "open")
+      conversations = fetchedConversations.map { fetchedConversation in
+        guard
+          readConversationMutationVersions[fetchedConversation.id, default: 0]
+            > fetchMutationVersion,
+          let localConversation = conversations.first(where: { $0.id == fetchedConversation.id })
+        else { return fetchedConversation }
+        return localConversation
+      }
     } catch {
       if !Task.isCancelled {
         presentedAlert = .errorLoadingConversations
@@ -81,6 +92,8 @@ class ConversationListPageModel: ViewModel {
             conversation: item.conversation,
             unreadCountFromOwner: 0
           )
+          conversationMutationVersion += 1
+          readConversationMutationVersions[item.id] = conversationMutationVersion
         }
       }
     } catch {
