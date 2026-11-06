@@ -245,7 +245,7 @@ final class GiveawayCoordinator {
       currentPlayolaStationId == stationId
     else { return }
     if fresh.status != .open {
-      reconciliationGeneration += 1
+      if armedEventId == event.id { cancelArmedReveal() } else { reconciliationGeneration += 1 }
       $activeGiveaway.withLock { $0 = nil }
       log("active event \(event.id) is now \(fresh.status.rawValue) → cleared")
       await reconcileResolvedLoss(jwt: jwt, eventId: event.id)

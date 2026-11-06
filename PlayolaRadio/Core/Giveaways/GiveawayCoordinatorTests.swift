@@ -574,6 +574,10 @@ struct GiveawayCoordinatorTests {
 
   // MARK: - Overlapping feed fetches
 
+}
+
+extension GiveawayCoordinatorTests {
+
   @Test func reconcileOlderFeedFinishingLastDoesNotRestoreExpiredUpcomingBadge() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
@@ -1062,6 +1066,54 @@ struct GiveawayCoordinatorTests {
     await olderReconcile.value
 
     expectNoDifference(activeGiveaway?.id, "e2")
+  }
+
+  @Test func closeCheckCancelsAnOlderArmForTheSameEvent() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openEvent(id: "e1")
+    let (armStarted, armStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseArm, releaseArmContinuation) = AsyncStream.makeStream(of: Void.self)
+    let event = openEvent(id: "e1")
+    let feedCount = LockIsolated(0)
+    let coordinator = withDependencies {
+      $0.api.giveawayEventsFeed = { _ in
+        let isOlderFeed = feedCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        return isOlderFeed
+          ? [
+            GiveawayEvent(
+              id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+              status: .scheduled)
+          ]
+          : []
+      }
+      $0.api.giveawayEvent = { _, _ in
+        let isArm = feedCount.value == 1
+        if isArm {
+          armStartedContinuation.yield(())
+          var releaseArmIterator = releaseArm.makeAsyncIterator()
+          _ = await releaseArmIterator.next()
+          return event
+        }
+        return GiveawayEvent(
+          id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .closed)
+      }
+    } operation: {
+      GiveawayCoordinator()
+    }
+
+    await coordinator.reconcile()
+    var armStartedIterator = armStarted.makeAsyncIterator()
+    _ = await armStartedIterator.next()
+    await coordinator.reconcile()
+    releaseArmContinuation.yield(())
+    releaseArmContinuation.finish()
+    await Task.megaYield()
+
+    expectNoDifference(activeGiveaway, nil)
   }
 
   @Test func armRearmsForNewAccountWhileOldArmIsWaiting() async {
