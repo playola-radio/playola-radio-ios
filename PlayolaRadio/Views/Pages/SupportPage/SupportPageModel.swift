@@ -13,6 +13,8 @@ class SupportPageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
+  @ObservationIgnored @Dependency(\.toast) var toast
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   var conversation: Conversation?
   var messages: [Message] = []
@@ -20,6 +22,8 @@ class SupportPageModel: ViewModel {
   var isLoading = true
   var isSending = false
   var presentedAlert: PlayolaAlert?
+  @ObservationIgnored private var completedSendCount = 0
+  @ObservationIgnored private var loadGeneration = 0
 
   var hasExistingMessages: Bool {
     !messages.isEmpty
@@ -35,6 +39,9 @@ class SupportPageModel: ViewModel {
 
   func onViewAppeared() async {
     guard let jwt = auth.jwt else { return }
+
+    loadGeneration += 1
+    let generation = loadGeneration
 
     if conversation != nil {
       await refreshMessages()
@@ -52,7 +59,16 @@ class SupportPageModel: ViewModel {
         await markAsRead()
       }
     } catch {
-      presentedAlert = .errorLoadingConversation
+      if !Task.isCancelled {
+        if !NetworkErrorClassifier.isNetworkError(error) {
+          var tags = NetworkErrorClassifier.errorTags(for: error)
+          tags["endpoint"] = "getSupportConversation"
+          await errorReporting.reportError(error, tags)
+        }
+        guard generation == loadGeneration else { return }
+        guard !Task.isCancelled else { return }
+        await toast.show(PlayolaToast(message: loadErrorMessage, buttonTitle: "OK"))
+      }
     }
 
     isLoading = false
@@ -91,9 +107,14 @@ class SupportPageModel: ViewModel {
         throw APIError.dataNotValid
       }
       let message = try await api.sendConversationMessage(jwt, conversationId, messageText)
-      messages.append(message)
+      completedSendCount += 1
+      if !messages.contains(where: { $0.id == message.id }) {
+        messages.append(message)
+      }
     } catch {
-      newMessage = messageText
+      if newMessage.isEmpty {
+        newMessage = messageText
+      }
       presentedAlert = .errorSendingMessage
     }
 
@@ -106,7 +127,13 @@ class SupportPageModel: ViewModel {
     else { return }
 
     do {
-      messages = try await api.getConversationMessages(jwt, conversationId)
+      var fetchedMessages: [Message]
+      var sendCountBeforeFetch: Int
+      repeat {
+        sendCountBeforeFetch = completedSendCount
+        fetchedMessages = try await api.getConversationMessages(jwt, conversationId)
+      } while completedSendCount != sendCountBeforeFetch
+      messages = fetchedMessages
       await markAsRead()
     } catch {
       // Silently fail on refresh
@@ -122,6 +149,8 @@ class SupportPageModel: ViewModel {
 
   var navigationTitle: String { "Contact Us" }
   var messageFieldPlaceholder: String { "Message" }
+  var sendButtonAccessibilityLabel: String { "Send message" }
+  var loadErrorMessage: String { "The conversation couldn't load." }
 }
 
 extension PlayolaAlert {

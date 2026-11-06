@@ -109,6 +109,7 @@ struct ChatView: View {
           }
         }
         .disabled(!model.canSend)
+        .accessibilityLabel(model.sendButtonAccessibilityLabel)
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 12)

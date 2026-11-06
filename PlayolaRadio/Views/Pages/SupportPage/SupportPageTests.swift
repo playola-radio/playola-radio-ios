@@ -6,6 +6,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import Sharing
@@ -558,5 +559,294 @@ struct SupportPageTests {
 
     await model.handleScenePhaseChange(.inactive)
     #expect(!getConversationMessagesCalled.value)
+  }
+
+  @Test
+  func testRefreshFinishingAfterSendKeepsSentMessage() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let oldMessage = makeMessage(
+      id: "old-msg", conversationId: "conv-1", senderId: "support-1", text: "Old")
+    let sentMessage = makeMessage(
+      id: "sent-msg", conversationId: "conv-1", senderId: "user-1", text: "Hi")
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseFetch, releaseFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let hasSent = LockIsolated(false)
+    let fetchCount = LockIsolated(0)
+
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in
+        let isFirstFetch = fetchCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        let response = hasSent.value ? [oldMessage, sentMessage] : [oldMessage]
+        guard isFirstFetch else { return response }
+        fetchStartedContinuation.yield(())
+        var releaseFetchIterator = releaseFetch.makeAsyncIterator()
+        _ = await releaseFetchIterator.next()
+        return response
+      }
+      $0.api.sendConversationMessage = { _, _, _ in
+        hasSent.setValue(true)
+        return sentMessage
+      }
+      $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+    model.messages = [oldMessage]
+
+    let refresh = Task { await model.refreshMessages() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    model.newMessage = "Hi"
+    await model.sendMessage()
+    releaseFetchContinuation.yield(())
+    releaseFetchContinuation.finish()
+    await refresh.value
+
+    expectNoDifference(model.messages.map(\.id), ["old-msg", "sent-msg"])
+  }
+
+  @Test
+  func testSendFinishingAfterRefreshDoesNotDuplicateSentMessage() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let oldMessage = makeMessage(
+      id: "old-msg", conversationId: "conv-1", senderId: "support-1", text: "Old")
+    let sentMessage = makeMessage(
+      id: "sent-msg", conversationId: "conv-1", senderId: "user-1", text: "Hi")
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseFetch, releaseFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (sendStarted, sendStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseSend, releaseSendContinuation) = AsyncStream.makeStream(of: Void.self)
+
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in
+        fetchStartedContinuation.yield(())
+        var releaseFetchIterator = releaseFetch.makeAsyncIterator()
+        _ = await releaseFetchIterator.next()
+        return [oldMessage, sentMessage]
+      }
+      $0.api.sendConversationMessage = { _, _, _ in
+        sendStartedContinuation.yield(())
+        var releaseSendIterator = releaseSend.makeAsyncIterator()
+        _ = await releaseSendIterator.next()
+        return sentMessage
+      }
+      $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+    model.messages = [oldMessage]
+
+    let refresh = Task { await model.refreshMessages() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    model.newMessage = "Hi"
+    let send = Task { await model.sendMessage() }
+    var sendStartedIterator = sendStarted.makeAsyncIterator()
+    _ = await sendStartedIterator.next()
+    releaseFetchContinuation.yield(())
+    releaseFetchContinuation.finish()
+    await refresh.value
+    releaseSendContinuation.yield(())
+    releaseSendContinuation.finish()
+    await send.value
+
+    expectNoDifference(model.messages.map(\.id), ["old-msg", "sent-msg"])
+  }
+
+  @Test
+  func testFailedSendKeepsTextTypedDuringSend() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let (sendStarted, sendStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseSend, releaseSendContinuation) = AsyncStream.makeStream(of: Void.self)
+
+    let model = withDependencies {
+      $0.api.sendConversationMessage = { _, _, _ in
+        sendStartedContinuation.yield(())
+        var releaseSendIterator = releaseSend.makeAsyncIterator()
+        _ = await releaseSendIterator.next()
+        throw APIError.dataNotValid
+      }
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+    model.newMessage = "First message"
+
+    let send = Task { await model.sendMessage() }
+    var sendStartedIterator = sendStarted.makeAsyncIterator()
+    _ = await sendStartedIterator.next()
+    model.newMessage = "Second message"
+    releaseSendContinuation.yield(())
+    releaseSendContinuation.finish()
+    await send.value
+
+    expectNoDifference(model.newMessage, "Second message")
+    expectNoDifference(model.presentedAlert, .errorSendingMessage)
+  }
+
+  @Test
+  func testOnViewAppearedShowsToastWhenLoadFails() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in throw APIError.dataNotValid }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value.map(\.message), ["The conversation couldn't load."])
+  }
+
+  @Test
+  func testOnViewAppearedReportsNonNetworkLoadFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    expectNoDifference(reportCount.value, 1)
+  }
+
+  @Test
+  func testOnViewAppearedDoesNotReportNetworkLoadFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  @Test
+  func testOlderLoadFailureDoesNotShowToastAfterNewerLoadSucceedsDuringErrorReporting() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let (errorReportingStarted, errorReportingStartedContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let (releaseErrorReporting, releaseErrorReportingContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let loadCount = LockIsolated(0)
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        let isOlderLoad = loadCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        if isOlderLoad { throw APIError.dataNotValid }
+        return SupportConversationResponse(conversation: nil, unreadCount: 0)
+      }
+      $0.errorReporting.reportError = { _, _ in
+        errorReportingStartedContinuation.yield(())
+        var releaseIterator = releaseErrorReporting.makeAsyncIterator()
+        _ = await releaseIterator.next()
+      }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    let olderLoad = Task { await model.onViewAppeared() }
+    var errorReportingStartedIterator = errorReportingStarted.makeAsyncIterator()
+    _ = await errorReportingStartedIterator.next()
+    await model.onViewAppeared()
+    releaseErrorReportingContinuation.yield(())
+    releaseErrorReportingContinuation.finish()
+    await olderLoad.value
+
+    expectNoDifference(shownToasts.value.map(\.message), [])
+  }
+
+  @Test
+  func testOnViewAppearedShowsNoErrorWhenLoadCancelled() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let (loadStarted, loadStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseLoad, releaseLoadContinuation) = AsyncStream.makeStream(of: Void.self)
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        loadStartedContinuation.yield(())
+        var releaseLoadIterator = releaseLoad.makeAsyncIterator()
+        _ = await releaseLoadIterator.next()
+        throw CancellationError()
+      }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    let load = Task { await model.onViewAppeared() }
+    var loadStartedIterator = loadStarted.makeAsyncIterator()
+    _ = await loadStartedIterator.next()
+    load.cancel()
+    releaseLoadContinuation.yield(())
+    releaseLoadContinuation.finish()
+    await load.value
+
+    expectNoDifference(model.presentedAlert, nil)
+    expectNoDifference(shownToasts.value.map(\.message), [])
+  }
+
+  @Test
+  func testOnViewAppearedDoesNotShowToastWhenCancelledDuringErrorReporting() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let (errorReportingStarted, errorReportingStartedContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let (releaseErrorReporting, releaseErrorReportingContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, _ in
+        errorReportingStartedContinuation.yield(())
+        var iterator = releaseErrorReporting.makeAsyncIterator()
+        _ = await iterator.next()
+      }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    let load = Task { await model.onViewAppeared() }
+    var errorReportingStartedIterator = errorReportingStarted.makeAsyncIterator()
+    _ = await errorReportingStartedIterator.next()
+    load.cancel()
+    releaseErrorReportingContinuation.yield(())
+    releaseErrorReportingContinuation.finish()
+    await load.value
+
+    expectNoDifference(shownToasts.value.map(\.message), [])
+  }
+
+  @Test
+  func testSendButtonAccessibilityLabel() {
+    let model = SupportPageModel()
+
+    expectNoDifference(model.sendButtonAccessibilityLabel, "Send message")
   }
 }
