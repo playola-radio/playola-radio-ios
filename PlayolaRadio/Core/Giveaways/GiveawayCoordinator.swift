@@ -35,6 +35,8 @@ final class GiveawayCoordinator {
   @ObservationIgnored private var inFlightTapIds: Set<String> = []
   /// Bumped whenever an arm is cancelled/replaced; a timer callback ignores itself if stale.
   @ObservationIgnored private var generation = 0
+  /// Bumped per feed fetch so an older response that lands last can't overwrite a newer one.
+  @ObservationIgnored private var feedGeneration = 0
 
   static let feedPollInterval: Duration = .seconds(30)
   /// How far back a `.resolvedLost` participation is still re-checked for a last-tapper promotion on
@@ -89,12 +91,19 @@ final class GiveawayCoordinator {
       $upcomingGiveaways.withLock { $0 = [] }
       return
     }
+    let identity = auth.identity
+    feedGeneration += 1
+    let fetchGeneration = feedGeneration
     let feed: [GiveawayEvent]
     do {
       feed = try await api.giveawayEventsFeed(jwt)
     } catch {
       log("reconcile: feed FETCH FAILED (\(error)) — keeping last state")
       return  // transient failure: keep last known state, retry next poll
+    }
+    guard auth.identity == identity, fetchGeneration == feedGeneration else {
+      log("reconcile: feed superseded (account changed or newer fetch) — discarding")
+      return
     }
     lastFeed = feed
     // Publish the all-stations "coming up" projection unconditionally — the badges must show in the
@@ -139,10 +148,12 @@ final class GiveawayCoordinator {
   func tap(event: GiveawayEvent) async throws {
     guard let jwt = auth.jwt else { return }
     guard participations[event.id] == nil, !inFlightTapIds.contains(event.id) else { return }
+    let identity = auth.identity
     inFlightTapIds.insert(event.id)
     defer { inFlightTapIds.remove(event.id) }
     do {
       let response = try await api.tapGiveawayEvent(jwt, event.id)
+      guard auth.identity == identity else { return }
       persistOutcome(event: event, response: response)
     } catch GiveawayTapError.notOpenYet {
       log("tap: not-open-yet for \(event.id) — silent (expected race)")
@@ -176,8 +187,10 @@ final class GiveawayCoordinator {
 
   /// GET the authoritative event (reconciles open on demand) and publish it for the overlay.
   func revealEvent(jwt: String, eventId: String, expectedStationId: String) async {
+    let identity = auth.identity
     do {
       let event = try await api.giveawayEvent(jwt, eventId)
+      guard auth.identity == identity else { return }
       guard currentPlayolaStationId == expectedStationId else {
         log("reveal: station changed before publish — skipping \(eventId)")
         return
@@ -211,8 +224,9 @@ final class GiveawayCoordinator {
   /// A transient GET failure keeps it (the next poll retries). On close, run the loss backstop so a
   /// last-tapper promotion is caught for the in-app user without waiting on the push.
   func clearActiveIfNoLongerOpen(jwt: String, event: GiveawayEvent, stationId: String) async {
+    let identity = auth.identity
     guard let fresh = try? await api.giveawayEvent(jwt, event.id) else { return }
-    guard currentPlayolaStationId == stationId else { return }
+    guard auth.identity == identity, currentPlayolaStationId == stationId else { return }
     if fresh.status != .open {
       $activeGiveaway.withLock { $0 = nil }
       log("active event \(event.id) is now \(fresh.status.rawValue) → cleared")
@@ -225,8 +239,9 @@ final class GiveawayCoordinator {
   /// No-op on a still-open contest, a confirmed loss, or a transient failure.
   func reconcileResolvedLoss(jwt: String, eventId: String) async {
     guard case .resolvedLost = participations[eventId]?.status else { return }
+    let identity = auth.identity
     guard let result = try? await api.giveawayEventMyResult(jwt, eventId) else { return }
-    guard result.isResolved, result.isWinner else { return }
+    guard auth.identity == identity, result.isResolved, result.isWinner else { return }
     $participations.withLock {
       // Re-check inside the lock: a push or a claim may have changed the state during the GET, and we
       // must not reset a now-won/claimed participation back to an unsubmitted win.
@@ -242,6 +257,7 @@ final class GiveawayCoordinator {
   /// recent `.resolvedLost` once. Bounded by `lossReconcileWindow` so old losses aren't polled forever.
   func reconcileRecentResolvedLosses() async {
     guard let jwt = auth.jwt else { return }
+    let identity = auth.identity
     let losses = participations.values.filter {
       if case .resolvedLost = $0.status { return true }
       return false
@@ -250,6 +266,7 @@ final class GiveawayCoordinator {
     let cutoff = now.addingTimeInterval(-Self.lossReconcileWindow)
     let recentLossIds = losses.compactMap { $0.tappedAt >= cutoff ? $0.id : nil }
     for eventId in recentLossIds {
+      guard auth.identity == identity else { return }
       await reconcileResolvedLoss(jwt: jwt, eventId: eventId)
     }
   }
@@ -296,15 +313,16 @@ final class GiveawayCoordinator {
     armedEventId = item.id
     generation += 1
     let gen = generation
+    let identity = auth.identity
     revealTask = Task { [weak self] in
       await self?.armAndReveal(
-        jwt: jwt, eventId: item.id, stationId: stationId, generation: gen)
+        jwt: jwt, eventId: item.id, stationId: stationId, generation: gen, identity: identity)
     }
   }
 
-  private func armAndReveal(jwt: String, eventId: String, stationId: String, generation gen: Int)
-    async
-  {
+  private func armAndReveal(
+    jwt: String, eventId: String, stationId: String, generation gen: Int, identity: AuthIdentity
+  ) async {
     let rttClock = ContinuousClock()
     let start = rttClock.now
     let event: GiveawayEvent
@@ -317,7 +335,7 @@ final class GiveawayCoordinator {
       return
     }
     guard gen == generation else { return }  // superseded by a newer arm
-    guard currentPlayolaStationId == stationId else {
+    guard auth.identity == identity, currentPlayolaStationId == stationId else {
       armedEventId = nil
       return
     }
@@ -340,6 +358,10 @@ final class GiveawayCoordinator {
     try? await clock.sleep(for: delay)
     guard gen == generation, currentPlayolaStationId == stationId else {
       log("arm: \(eventId) stale after sleep (gen/station changed) — skipping")
+      return
+    }
+    guard auth.identity == identity else {
+      armedEventId = nil
       return
     }
     // Reveal the button the instant we reach opensAt, straight from the event we already hold — no
