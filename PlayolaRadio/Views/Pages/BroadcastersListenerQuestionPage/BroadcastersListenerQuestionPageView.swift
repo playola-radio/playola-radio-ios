@@ -7,26 +7,18 @@ import SwiftUI
 
 struct BroadcastersListenerQuestionPageView: View {
   @Bindable var model: BroadcastersListenerQuestionPageModel
+  @State private var listHeight: CGFloat = 0
 
   var body: some View {
     ZStack {
       Color.background
         .edgesIgnoringSafeArea(.all)
 
-      if model.isLoading {
-        ProgressView()
-          .tint(.textPrimary)
-      } else if model.questions.isEmpty {
-        emptyState
-      } else {
-        VStack(spacing: 0) {
+      VStack(spacing: 0) {
+        model.questionPresentation.filterPills {
           filterPills
-          if model.filteredQuestions.isEmpty {
-            filteredEmptyState
-          } else {
-            questionsList
-          }
         }
+        questionsList
       }
     }
     .navigationTitle(model.navigationTitle)
@@ -88,6 +80,7 @@ struct BroadcastersListenerQuestionPageView: View {
         .multilineTextAlignment(.center)
     }
     .padding()
+    .fillingListRow(height: listHeight)
   }
 
   private var filteredEmptyState: some View {
@@ -106,13 +99,23 @@ struct BroadcastersListenerQuestionPageView: View {
         .multilineTextAlignment(.center)
     }
     .padding()
-    .frame(maxHeight: .infinity)
+    .fillingListRow(height: listHeight)
   }
 
   // MARK: - Questions List
 
   private var questionsList: some View {
     List {
+      model.questionPresentation.listContent(
+        loading: {
+          ProgressView()
+            .tint(.textPrimary)
+            .fillingListRow(height: listHeight)
+        },
+        empty: { emptyState },
+        filteredEmpty: { filteredEmptyState }
+      )
+
       ForEach(model.filteredQuestions) { question in
         ListenerQuestionRow(
           question: question,
@@ -145,6 +148,52 @@ struct BroadcastersListenerQuestionPageView: View {
     .scrollContentBackground(.hidden)
     .refreshable {
       await model.refreshPulledDown()
+    }
+    .onGeometryChange(for: CGFloat.self) {
+      $0.size.height
+    } action: {
+      listHeight = $0
+    }
+  }
+}
+
+extension View {
+  // Centers non-row content (spinner, empty states) in the list's visible height so the list can
+  // stay in the view tree, and keep its `.refreshable`, in every state.
+  fileprivate func fillingListRow(height: CGFloat) -> some View {
+    frame(maxWidth: .infinity, minHeight: height)
+      .listRowInsets(EdgeInsets())
+      .listRowBackground(Color.clear)
+      .listRowSeparator(.hidden)
+  }
+}
+
+extension ListenerQuestionPresentation {
+  @ViewBuilder
+  fileprivate func filterPills<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+    switch self {
+    case .loading, .empty:
+      EmptyView()
+    case .filteredEmpty, .questions:
+      content()
+    }
+  }
+
+  @ViewBuilder
+  fileprivate func listContent<Loading: View, Empty: View, FilteredEmpty: View>(
+    loading: () -> Loading,
+    empty: () -> Empty,
+    filteredEmpty: () -> FilteredEmpty
+  ) -> some View {
+    switch self {
+    case .loading:
+      loading()
+    case .empty:
+      empty()
+    case .filteredEmpty:
+      filteredEmpty()
+    case .questions:
+      EmptyView()
     }
   }
 }

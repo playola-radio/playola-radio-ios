@@ -23,6 +23,13 @@ enum ListenerQuestionFilter: CaseIterable, Equatable {
   }
 }
 
+enum ListenerQuestionPresentation {
+  case loading
+  case empty
+  case filteredEmpty
+  case questions
+}
+
 @MainActor
 @Observable
 class BroadcastersListenerQuestionPageModel: ViewModel {
@@ -68,6 +75,13 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
   var isLoading = false
   var presentedAlert: PlayolaAlert?
   var selectedFilter: ListenerQuestionFilter = .pending
+  private var questionMutationVersion = 0
+  private var declinedQuestionMutationVersions: [String: Int] = [:]
+  private var hasLoadedQuestions = false
+
+  var showsLoadingIndicator: Bool {
+    isLoading && !hasLoadedQuestions
+  }
 
   var filteredQuestions: IdentifiedArrayOf<ListenerQuestion> {
     switch selectedFilter {
@@ -77,6 +91,18 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
       return questions.filter { $0.status == .answered }
     case .all:
       return questions.filter { $0.status != .declined }
+    }
+  }
+
+  var questionPresentation: ListenerQuestionPresentation {
+    if showsLoadingIndicator {
+      .loading
+    } else if questions.isEmpty {
+      .empty
+    } else if filteredQuestions.isEmpty {
+      .filteredEmpty
+    } else {
+      .questions
     }
   }
 
@@ -159,6 +185,8 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
     do {
       let updatedQuestion = try await api.declineListenerQuestion(jwt, stationId, question.id)
       questions[id: question.id] = updatedQuestion
+      questionMutationVersion += 1
+      declinedQuestionMutationVersions[question.id] = questionMutationVersion
     } catch {
       presentedAlert = .declineQuestionError(error.localizedDescription)
     }
@@ -190,10 +218,21 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
     isLoading = true
     defer { isLoading = false }
 
+    let fetchMutationVersion = questionMutationVersion
+
     do {
       let fetchedQuestions = try await api.getListenerQuestions(jwt, stationId)
-      questions = IdentifiedArray(uniqueElements: fetchedQuestions)
+      questions = IdentifiedArray(
+        uniqueElements: fetchedQuestions.map { fetchedQuestion in
+          guard
+            declinedQuestionMutationVersions[fetchedQuestion.id, default: 0] > fetchMutationVersion,
+            let localQuestion = questions[id: fetchedQuestion.id]
+          else { return fetchedQuestion }
+          return localQuestion
+        })
+      hasLoadedQuestions = true
     } catch {
+      guard !Task.isCancelled else { return }
       presentedAlert = .fetchQuestionsError(error.localizedDescription)
     }
   }

@@ -216,6 +216,87 @@ struct BroadcastersListenerQuestionPageTests {
     #expect(fetchCalled.value)
   }
 
+  @Test
+  func testRefreshPulledDownDoesNotShowAlertWhenCancelled() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
+
+    let (requestStarted, requestStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseRequest, _) = AsyncStream.makeStream(of: Void.self)
+
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in
+        requestStartedContinuation.yield(())
+        var releaseIterator = releaseRequest.makeAsyncIterator()
+        _ = await releaseIterator.next()
+        throw TestError.fetchFailed
+      }
+    } operation: {
+      BroadcastersListenerQuestionPageModel(stationId: testStationId)
+    }
+
+    let refresh = Task { await model.refreshPulledDown() }
+    var requestStartedIterator = requestStarted.makeAsyncIterator()
+    _ = await requestStartedIterator.next()
+    refresh.cancel()
+    await refresh.value
+
+    #expect(model.presentedAlert == nil)
+    #expect(!model.isLoading)
+  }
+
+  @Test
+  func testShowsLoadingIndicatorWhileLoadingWithNoQuestions() {
+    let model = makeModel()
+
+    model.isLoading = true
+
+    #expect(model.showsLoadingIndicator)
+  }
+
+  @Test(arguments: [[], [ListenerQuestion.mockWith(id: "q1")]])
+  func testHidesLoadingIndicatorWhileRefreshingAfterFirstLoad(
+    firstLoadQuestions: [ListenerQuestion]
+  ) async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
+
+    let (requestStarted, requestStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseRequest, releaseRequestContinuation) = AsyncStream.makeStream(of: Void.self)
+    let fetchCount = LockIsolated(0)
+
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in
+        fetchCount.withValue { $0 += 1 }
+        guard fetchCount.value > 1 else { return firstLoadQuestions }
+        requestStartedContinuation.yield(())
+        var releaseIterator = releaseRequest.makeAsyncIterator()
+        _ = await releaseIterator.next()
+        return firstLoadQuestions
+      }
+    } operation: {
+      BroadcastersListenerQuestionPageModel(stationId: testStationId)
+    }
+    await model.refreshPulledDown()
+
+    let refresh = Task { await model.refreshPulledDown() }
+    var requestStartedIterator = requestStarted.makeAsyncIterator()
+    _ = await requestStartedIterator.next()
+
+    #expect(model.isLoading)
+    #expect(!model.showsLoadingIndicator)
+
+    releaseRequestContinuation.yield(())
+    await refresh.value
+  }
+
+  @Test
+  func testHidesLoadingIndicatorAfterLoadingWithNoQuestions() {
+    let model = makeModel()
+
+    model.isLoading = false
+
+    #expect(!model.showsLoadingIndicator)
+  }
+
   // MARK: - Expand/Collapse Tests
 
   @Test
@@ -568,6 +649,41 @@ struct BroadcastersListenerQuestionPageTests {
     await model.declineQuestionSwiped(model.questions[0])
 
     #expect(model.questions[id: "q1"]?.status == .declined)
+  }
+
+  @Test
+  func testRefreshPreservesQuestionDeclinedDuringFetch() async {
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseFetch, releaseFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let pendingQuestion = ListenerQuestion.mockWith(
+      id: "q1", stationId: testStationId, status: .pending)
+    let declinedQuestion = ListenerQuestion.mockWith(
+      id: "q1", stationId: testStationId, status: .declined)
+
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
+
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in
+        fetchStartedContinuation.yield(())
+        var releaseFetchIterator = releaseFetch.makeAsyncIterator()
+        _ = await releaseFetchIterator.next()
+        return [pendingQuestion]
+      }
+      $0.api.declineListenerQuestion = { _, _, _ in declinedQuestion }
+    } operation: {
+      BroadcastersListenerQuestionPageModel(stationId: testStationId)
+    }
+    model.questions = IdentifiedArray(uniqueElements: [pendingQuestion])
+
+    let refresh = Task { await model.refreshPulledDown() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    await model.declineQuestionSwiped(pendingQuestion)
+    releaseFetchContinuation.yield(())
+    releaseFetchContinuation.finish()
+    await refresh.value
+
+    #expect(model.questions[id: pendingQuestion.id]?.status == .declined)
   }
 
   @Test

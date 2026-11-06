@@ -88,6 +88,80 @@ struct ConversationListPageTests {
   }
 
   @Test
+  func testShowsLoadingIndicatorWhileLoadingWithNoConversations() {
+    let model = ConversationListPageModel()
+
+    model.isLoading = true
+
+    #expect(model.showsLoadingIndicator)
+  }
+
+  @Test
+  func testHidesLoadingIndicatorAfterLoadingWithNoConversations() {
+    let model = ConversationListPageModel()
+
+    model.isLoading = false
+
+    #expect(!model.showsLoadingIndicator)
+  }
+
+  @Test
+  func testHidesLoadingIndicatorWhileRefreshingExistingConversations() {
+    let model = ConversationListPageModel()
+    model.conversations = [
+      AdminConversationResponse(
+        conversation: makeConversation(id: "conv-1"), unreadCountFromOwner: 0)
+    ]
+
+    model.isLoading = true
+
+    #expect(!model.showsLoadingIndicator)
+  }
+
+  @Test
+  func testRefreshDoesNotShowAlertWhenCancelled() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    let (requestStarted, requestStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseRequest, _) = AsyncStream.makeStream(of: Void.self)
+
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in
+        requestStartedContinuation.yield(())
+        var releaseIterator = releaseRequest.makeAsyncIterator()
+        _ = await releaseIterator.next()
+        throw URLError(.cancelled)
+      }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    let refresh = Task { await model.refresh() }
+    var requestStartedIterator = requestStarted.makeAsyncIterator()
+    _ = await requestStartedIterator.next()
+    refresh.cancel()
+    await refresh.value
+
+    #expect(model.presentedAlert == nil)
+    #expect(!model.isLoading)
+  }
+
+  @Test
+  func testRefreshShowsAlertOnError() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in throw URLError(.notConnectedToInternet) }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    await model.refresh()
+
+    #expect(model.presentedAlert != nil)
+  }
+
+  @Test
   func testSortedConversationsPlacesUnreadFirst() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(
@@ -217,6 +291,41 @@ struct ConversationListPageTests {
 
     #expect(markAsReadCalled.value == true)
     #expect(markedConversationId.value == "conv-1")
+    #expect(model.conversations.first?.unreadCountFromOwner == 0)
+  }
+
+  @Test
+  func testRefreshPreservesConversationReadDuringFetch() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseFetch, releaseFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let unreadConversation = AdminConversationResponse(
+      conversation: makeConversation(id: "conv-1"), unreadCountFromOwner: 1)
+
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in
+        fetchStartedContinuation.yield(())
+        var releaseFetchIterator = releaseFetch.makeAsyncIterator()
+        _ = await releaseFetchIterator.next()
+        return [unreadConversation]
+      }
+      $0.api.getConversationMessages = { _, _ in [] }
+      $0.api.markConversationRead = { _, _ in }
+    } operation: {
+      ConversationListPageModel()
+    }
+    model.conversations = [unreadConversation]
+
+    let refresh = Task { await model.refresh() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    await model.onConversationTapped(unreadConversation)
+    releaseFetchContinuation.yield(())
+    releaseFetchContinuation.finish()
+    await refresh.value
+
     #expect(model.conversations.first?.unreadCountFromOwner == 0)
   }
 }
