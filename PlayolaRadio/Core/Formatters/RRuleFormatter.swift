@@ -63,12 +63,8 @@ enum RRuleFormatter {
   }
 
   private static func parseDays(_ byDay: String) -> [String] {
-    let days = byDay.split(separator: ",").map { String($0).uppercased() }
-    return days.sorted { day1, day2 in
-      let index1 = dayOrder.firstIndex(of: day1) ?? Int.max
-      let index2 = dayOrder.firstIndex(of: day2) ?? Int.max
-      return index1 < index2
-    }
+    let days = Set(byDay.split(separator: ",").map { String($0).uppercased() })
+    return dayOrder.filter { days.contains($0) }
   }
 
   private static func formatDays(_ days: [String]) -> String {

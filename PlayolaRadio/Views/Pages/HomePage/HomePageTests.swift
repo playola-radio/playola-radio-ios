@@ -1210,6 +1210,52 @@ struct HomePageTests {
   }
 }
 
+// MARK: - Question Airing Share Airtime Tests
+
+@MainActor
+extension HomePageTests {
+  @Test
+  func testQuestionAiringShareMessageUsesActualAirtime() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator =
+      MainContainerNavigationCoordinator()
+
+    let futureDate = Date().addingTimeInterval(5 * 24 * 60 * 60)
+    let airing = ListenerQuestionAiring.mockWith(
+      airtime: futureDate,
+      station: .mockWith(curatorName: "Jason Eady")
+    )
+
+    await withDependencies {
+      $0.api.getAirings = { _, _ in [] }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+      $0.api.getMyListenerQuestionAirings = { _ in [airing] }
+    } operation: {
+      let model = HomePageModel()
+      await model.viewAppeared()
+
+      let tileParagraph = model.questionAiringTileModel.paragraph ?? ""
+      let airtimeText = String(
+        tileParagraph
+          .replacingOccurrences(of: "Jason Eady picked your message! It will air on ", with: "")
+          .dropLast()
+      )
+
+      await model.questionAiringTileModel.buttonAction?()
+
+      if case .share(let shareModel) = navigationCoordinator.presentedSheet {
+        expectNoDifference(
+          shareModel.items[0],
+          "I'm going to be on Jason Eady's radio station \(airtimeText). Here's a link to download the app!"
+        )
+        #expect(!shareModel.items[0].contains("tomorrow at 6pm"))
+      } else {
+        Issue.record("Expected share sheet to be presented")
+      }
+    }
+  }
+}
+
 // MARK: - Prize Claim Ordering Tests
 
 @MainActor

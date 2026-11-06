@@ -18,6 +18,12 @@ class ConversationListPageModel: ViewModel {
   var conversations: [AdminConversationResponse] = []
   var isLoading = true
   var presentedAlert: PlayolaAlert?
+  private var loadGeneration = 0
+  private var completedReadCount = 0
+
+  var showsLoadingIndicator: Bool {
+    isLoading && conversations.isEmpty
+  }
 
   /// Conversations sorted with unread first, then by most recent
   var sortedConversations: [AdminConversationResponse] {
@@ -41,15 +47,30 @@ class ConversationListPageModel: ViewModel {
   private func loadConversations() async {
     guard let jwt = auth.jwt else { return }
 
+    loadGeneration += 1
+    let generation = loadGeneration
     isLoading = true
-
-    do {
-      conversations = try await api.getConversations(jwt, "open")
-    } catch {
-      presentedAlert = .errorLoadingConversations
+    defer {
+      if generation == loadGeneration {
+        isLoading = false
+      }
     }
 
-    isLoading = false
+    do {
+      var fetchedConversations: [AdminConversationResponse]
+      var readCountBeforeFetch: Int
+      repeat {
+        readCountBeforeFetch = completedReadCount
+        fetchedConversations = try await api.getConversations(jwt, "open")
+        guard generation == loadGeneration else { return }
+      } while completedReadCount != readCountBeforeFetch
+      conversations = fetchedConversations
+    } catch {
+      guard generation == loadGeneration else { return }
+      if !Task.isCancelled {
+        presentedAlert = .errorLoadingConversations
+      }
+    }
   }
 
   func onConversationTapped(_ item: AdminConversationResponse) async {
@@ -69,10 +90,11 @@ class ConversationListPageModel: ViewModel {
       // Mark as read if there are unread messages
       if item.unreadCountFromOwner > 0 {
         try? await api.markConversationRead(jwt, item.conversation.id)
+        completedReadCount += 1
         // Update local state
         if let index = conversations.firstIndex(where: { $0.id == item.id }) {
           conversations[index] = AdminConversationResponse(
-            conversation: item.conversation,
+            conversation: conversations[index].conversation,
             unreadCountFromOwner: 0
           )
         }
