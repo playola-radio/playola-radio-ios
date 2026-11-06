@@ -436,4 +436,46 @@ struct ConversationListPageTests {
     expectNoDifference(model.conversations, [newerConversation])
     expectNoDifference(model.isLoading, false)
   }
+
+  @Test
+  func testOlderRefreshFinishingFirstKeepsLoadingUntilNewerRefreshFinishes() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseOlderFetch, releaseOlderFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseNewerFetch, releaseNewerFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let fetchCount = LockIsolated(0)
+
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in
+        let isOlderFetch = fetchCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        fetchStartedContinuation.yield(())
+        var releaseIterator =
+          (isOlderFetch ? releaseOlderFetch : releaseNewerFetch).makeAsyncIterator()
+        _ = await releaseIterator.next()
+        return []
+      }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    let olderRefresh = Task { await model.refresh() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    let newerRefresh = Task { await model.refresh() }
+    _ = await fetchStartedIterator.next()
+    releaseOlderFetchContinuation.yield(())
+    releaseOlderFetchContinuation.finish()
+    await olderRefresh.value
+
+    expectNoDifference(model.isLoading, true)
+
+    releaseNewerFetchContinuation.yield(())
+    releaseNewerFetchContinuation.finish()
+    await newerRefresh.value
+
+    expectNoDifference(model.isLoading, false)
+  }
 }
