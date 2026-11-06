@@ -14,6 +14,7 @@ class SupportPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
   @ObservationIgnored @Dependency(\.toast) var toast
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   var conversation: Conversation?
   var messages: [Message] = []
@@ -55,6 +56,11 @@ class SupportPageModel: ViewModel {
       }
     } catch {
       if !Task.isCancelled {
+        if !NetworkErrorClassifier.isNetworkError(error) {
+          var tags = NetworkErrorClassifier.errorTags(for: error)
+          tags["endpoint"] = "getSupportConversation"
+          await errorReporting.reportError(error, tags)
+        }
         await toast.show(PlayolaToast(message: loadErrorMessage, buttonTitle: "OK"))
       }
     }

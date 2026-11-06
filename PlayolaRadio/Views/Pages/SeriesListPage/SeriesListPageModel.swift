@@ -17,6 +17,7 @@ class SeriesListPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
   @ObservationIgnored @Dependency(\.toast) var toast
   @ObservationIgnored @Shared(.auth) var auth
 
@@ -59,6 +60,11 @@ class SeriesListPageModel: ViewModel {
       shows = groupAiringsByShow(airings)
     } catch {
       guard generation == loadGeneration else { return }
+      if !NetworkErrorClassifier.isNetworkError(error) {
+        var tags = NetworkErrorClassifier.errorTags(for: error)
+        tags["endpoint"] = "getAirings"
+        await errorReporting.reportError(error, tags)
+      }
       await toast.show(PlayolaToast(message: loadErrorMessage, buttonTitle: "OK"))
     }
   }

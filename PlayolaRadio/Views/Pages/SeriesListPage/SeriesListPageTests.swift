@@ -17,6 +17,38 @@ import Testing
 @MainActor
 struct SeriesListPageModelTests {
   @Test
+  func testViewAppearedReportsNonNetworkLoadFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+
+    await withDependencies {
+      $0.api.getAirings = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      let model = SeriesListPageModel()
+      await model.viewAppeared()
+    }
+
+    expectNoDifference(reportCount.value, 1)
+  }
+
+  @Test
+  func testViewAppearedDoesNotReportNetworkLoadFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+
+    await withDependencies {
+      $0.api.getAirings = { _, _ in throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      let model = SeriesListPageModel()
+      await model.viewAppeared()
+    }
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  @Test
   func testViewAppearedCallsGetAiringsAPI() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let apiCalled = LockIsolated(false)

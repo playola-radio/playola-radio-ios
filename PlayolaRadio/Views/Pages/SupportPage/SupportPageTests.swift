@@ -710,6 +710,38 @@ struct SupportPageTests {
   }
 
   @Test
+  func testOnViewAppearedReportsNonNetworkLoadFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    expectNoDifference(reportCount.value, 1)
+  }
+
+  @Test
+  func testOnViewAppearedDoesNotReportNetworkLoadFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  @Test
   func testOnViewAppearedShowsNoErrorWhenLoadCancelled() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let shownToasts = LockIsolated<[PlayolaToast]>([])
