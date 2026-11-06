@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 import ConcurrencyExtras
 import CustomDump
 import Dependencies
@@ -478,9 +479,9 @@ struct GiveawayCoordinatorTests {
 
   // MARK: - Loss Backstop
 
-  private func lostParticipation() -> GiveawayParticipation {
+  private func lostParticipation(id: String = "e1") -> GiveawayParticipation {
     GiveawayParticipation(
-      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, tapNumber: 5,
+      id: id, stationId: "s1", prizeName: "Two tickets", winningNumber: 9, tapNumber: 5,
       status: .resolvedLost(toastShown: true), tappedAt: Date(timeIntervalSince1970: 100))
   }
 
@@ -877,6 +878,161 @@ struct GiveawayCoordinatorTests {
     await tap.value
 
     expectNoDifference(participations["e1"], nil)
+  }
+
+  @Test func revealFromOlderFeedFinishingLastDoesNotReplaceNewerEvent() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+    let (olderEventFetchStarted, olderEventFetchStartedContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let (releaseOlderEventFetch, releaseOlderEventFetchContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let olderEvent = openEvent(id: "e1")
+    let newerEvent = openEvent(id: "e2")
+    let feedCount = LockIsolated(0)
+    let coordinator = withDependencies {
+      $0.api.giveawayEventsFeed = { _ in
+        let isOlderFeed = feedCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        return [isOlderFeed ? olderEvent : newerEvent]
+      }
+      $0.api.giveawayEvent = { _, id in
+        guard id == olderEvent.id else { return newerEvent }
+        olderEventFetchStartedContinuation.yield(())
+        var releaseOlderEventFetchIterator = releaseOlderEventFetch.makeAsyncIterator()
+        _ = await releaseOlderEventFetchIterator.next()
+        return olderEvent
+      }
+    } operation: {
+      GiveawayCoordinator()
+    }
+
+    let olderReconcile = Task { await coordinator.reconcile() }
+    var olderEventFetchStartedIterator = olderEventFetchStarted.makeAsyncIterator()
+    _ = await olderEventFetchStartedIterator.next()
+    await coordinator.reconcile()
+    releaseOlderEventFetchContinuation.yield(())
+    releaseOlderEventFetchContinuation.finish()
+    await olderReconcile.value
+
+    expectNoDifference(activeGiveaway?.id, "e2")
+  }
+
+  @Test func closeCheckFromOlderFeedFinishingLastDoesNotClearNewerEvent() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openEvent(id: "e1")
+    let (closeCheckStarted, closeCheckStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseCloseCheck, releaseCloseCheckContinuation) = AsyncStream.makeStream(of: Void.self)
+    let newerEvent = openEvent(id: "e2")
+    let feedCount = LockIsolated(0)
+    let coordinator = withDependencies {
+      $0.api.giveawayEventsFeed = { _ in
+        let isOlderFeed = feedCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        return isOlderFeed ? [] : [newerEvent]
+      }
+      $0.api.giveawayEvent = { _, id in
+        guard id == "e1" else { return newerEvent }
+        closeCheckStartedContinuation.yield(())
+        var releaseCloseCheckIterator = releaseCloseCheck.makeAsyncIterator()
+        _ = await releaseCloseCheckIterator.next()
+        return GiveawayEvent(
+          id: id, stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .closed)
+      }
+    } operation: {
+      GiveawayCoordinator()
+    }
+
+    let olderReconcile = Task { await coordinator.reconcile() }
+    var closeCheckStartedIterator = closeCheckStarted.makeAsyncIterator()
+    _ = await closeCheckStartedIterator.next()
+    await coordinator.reconcile()
+    releaseCloseCheckContinuation.yield(())
+    releaseCloseCheckContinuation.finish()
+    await olderReconcile.value
+
+    expectNoDifference(activeGiveaway?.id, "e2")
+  }
+
+  @Test func armRearmsForNewAccountWhileOldArmIsWaiting() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "account-a-jwt")
+      @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+      @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+      let clock = TestClock()
+      let coordinator = withDependencies {
+        $0.continuousClock = clock
+        $0.api.giveawayEventsFeed = { _ in
+          [
+            GiveawayEvent(
+              id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+              status: .scheduled, opensAt: Date(timeIntervalSince1970: 1060))
+          ]
+        }
+        $0.api.giveawayEvent = { _, id in
+          GiveawayEvent(
+            id: id, stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+            status: .scheduled, opensAt: Date(timeIntervalSince1970: 1060),
+            serverTime: Date(timeIntervalSince1970: 1000))
+        }
+      } operation: {
+        GiveawayCoordinator()
+      }
+
+      await coordinator.reconcile()
+      await Task.megaYield()
+      $auth.withLock { $0 = Auth(jwt: "account-b-jwt") }
+      await coordinator.reconcile()
+      await Task.megaYield()
+      await clock.advance(by: .seconds(60))
+      await Task.megaYield()
+
+      expectNoDifference(activeGiveaway?.id, "e1")
+    }
+  }
+
+  @Test func recentLossesStopCheckingWhenAccountSwitchesBetweenChecks() async {
+    @Shared(.auth) var auth = Auth(jwt: "account-a-jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e1": lostParticipation(id: "e1"), "e2": lostParticipation(id: "e2"),
+    ]
+    let (resultFetchStarted, resultFetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseResultFetch, releaseResultFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let resultFetchCount = LockIsolated(0)
+    let coordinator = withDependencies {
+      $0.date.now = Date(timeIntervalSince1970: 200)
+      $0.api.giveawayEventMyResult = { _, _ in
+        let isFirstFetch = resultFetchCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        if isFirstFetch {
+          resultFetchStartedContinuation.yield(())
+          var releaseResultFetchIterator = releaseResultFetch.makeAsyncIterator()
+          _ = await releaseResultFetchIterator.next()
+        }
+        return GiveawayMyResult(tapNumber: 5, isWinner: true, status: .closed, winningNumber: 9)
+      }
+    } operation: {
+      GiveawayCoordinator()
+    }
+
+    let reconcileLosses = Task { await coordinator.reconcileRecentResolvedLosses() }
+    var resultFetchStartedIterator = resultFetchStarted.makeAsyncIterator()
+    _ = await resultFetchStartedIterator.next()
+    $auth.withLock { $0 = Auth(jwt: "account-b-jwt") }
+    releaseResultFetchContinuation.yield(())
+    releaseResultFetchContinuation.finish()
+    await reconcileLosses.value
+
+    expectNoDifference(
+      participations, ["e1": lostParticipation(id: "e1"), "e2": lostParticipation(id: "e2")])
   }
 }
 

@@ -30,6 +30,7 @@ final class GiveawayCoordinator {
   @ObservationIgnored private var lastFeed: [GiveawayEvent] = []
   @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
   @ObservationIgnored private var armedEventId: String?
+  @ObservationIgnored private var armedIdentity: AuthIdentity?
   @ObservationIgnored private var hasObservedStation = false
   @ObservationIgnored private var lastObservedStationId: String?
   @ObservationIgnored private var inFlightTapIds: Set<String> = []
@@ -188,9 +189,10 @@ final class GiveawayCoordinator {
   /// GET the authoritative event (reconciles open on demand) and publish it for the overlay.
   func revealEvent(jwt: String, eventId: String, expectedStationId: String) async {
     let identity = auth.identity
+    let fetchGeneration = feedGeneration
     do {
       let event = try await api.giveawayEvent(jwt, eventId)
-      guard auth.identity == identity else { return }
+      guard auth.identity == identity, fetchGeneration == feedGeneration else { return }
       guard currentPlayolaStationId == expectedStationId else {
         log("reveal: station changed before publish — skipping \(eventId)")
         return
@@ -225,8 +227,11 @@ final class GiveawayCoordinator {
   /// last-tapper promotion is caught for the in-app user without waiting on the push.
   func clearActiveIfNoLongerOpen(jwt: String, event: GiveawayEvent, stationId: String) async {
     let identity = auth.identity
+    let fetchGeneration = feedGeneration
     guard let fresh = try? await api.giveawayEvent(jwt, event.id) else { return }
-    guard auth.identity == identity, currentPlayolaStationId == stationId else { return }
+    guard auth.identity == identity, fetchGeneration == feedGeneration,
+      currentPlayolaStationId == stationId
+    else { return }
     if fresh.status != .open {
       $activeGiveaway.withLock { $0 = nil }
       log("active event \(event.id) is now \(fresh.status.rawValue) → cleared")
@@ -308,12 +313,13 @@ final class GiveawayCoordinator {
   }
 
   private func armRevealIfNeeded(jwt: String, item: GiveawayEvent, stationId: String) {
-    guard armedEventId != item.id else { return }
+    let identity = auth.identity
+    guard armedEventId != item.id || armedIdentity != identity else { return }
     cancelArmedReveal()
     armedEventId = item.id
+    armedIdentity = identity
     generation += 1
     let gen = generation
-    let identity = auth.identity
     revealTask = Task { [weak self] in
       await self?.armAndReveal(
         jwt: jwt, eventId: item.id, stationId: stationId, generation: gen, identity: identity)
