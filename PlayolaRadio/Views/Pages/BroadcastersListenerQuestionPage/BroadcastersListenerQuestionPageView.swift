@@ -168,6 +168,36 @@ extension View {
   }
 }
 
+extension ListenerQuestionPresentation {
+  @ViewBuilder
+  fileprivate func filterPills<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+    switch self {
+    case .loading, .empty:
+      EmptyView()
+    case .filteredEmpty, .questions:
+      content()
+    }
+  }
+
+  @ViewBuilder
+  fileprivate func listContent<Loading: View, Empty: View, FilteredEmpty: View>(
+    loading: () -> Loading,
+    empty: () -> Empty,
+    filteredEmpty: () -> FilteredEmpty
+  ) -> some View {
+    switch self {
+    case .loading:
+      loading()
+    case .empty:
+      empty()
+    case .filteredEmpty:
+      filteredEmpty()
+    case .questions:
+      EmptyView()
+    }
+  }
+}
+
 // MARK: - Listener Question Row
 
 struct ListenerQuestionRow: View {

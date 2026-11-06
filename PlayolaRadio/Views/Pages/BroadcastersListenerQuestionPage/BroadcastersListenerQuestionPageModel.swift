@@ -28,34 +28,6 @@ enum ListenerQuestionPresentation {
   case empty
   case filteredEmpty
   case questions
-
-  @ViewBuilder
-  func filterPills<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-    switch self {
-    case .loading, .empty:
-      EmptyView()
-    case .filteredEmpty, .questions:
-      content()
-    }
-  }
-
-  @ViewBuilder
-  func listContent<Loading: View, Empty: View, FilteredEmpty: View>(
-    loading: () -> Loading,
-    empty: () -> Empty,
-    filteredEmpty: () -> FilteredEmpty
-  ) -> some View {
-    switch self {
-    case .loading:
-      loading()
-    case .empty:
-      empty()
-    case .filteredEmpty:
-      filteredEmpty()
-    case .questions:
-      EmptyView()
-    }
-  }
 }
 
 @MainActor
