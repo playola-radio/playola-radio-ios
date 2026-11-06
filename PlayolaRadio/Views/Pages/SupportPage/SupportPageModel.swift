@@ -97,7 +97,9 @@ class SupportPageModel: ViewModel {
         messages.append(message)
       }
     } catch {
-      newMessage = messageText
+      if newMessage.isEmpty {
+        newMessage = messageText
+      }
       presentedAlert = .errorSendingMessage
     }
 

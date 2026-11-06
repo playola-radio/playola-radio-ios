@@ -659,4 +659,35 @@ struct SupportPageTests {
 
     expectNoDifference(model.messages.map(\.id), ["old-msg", "sent-msg"])
   }
+
+  @Test
+  func testFailedSendKeepsTextTypedDuringSend() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let (sendStarted, sendStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseSend, releaseSendContinuation) = AsyncStream.makeStream(of: Void.self)
+
+    let model = withDependencies {
+      $0.api.sendConversationMessage = { _, _, _ in
+        sendStartedContinuation.yield(())
+        var releaseSendIterator = releaseSend.makeAsyncIterator()
+        _ = await releaseSendIterator.next()
+        throw APIError.dataNotValid
+      }
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+    model.newMessage = "First message"
+
+    let send = Task { await model.sendMessage() }
+    var sendStartedIterator = sendStarted.makeAsyncIterator()
+    _ = await sendStartedIterator.next()
+    model.newMessage = "Second message"
+    releaseSendContinuation.yield(())
+    releaseSendContinuation.finish()
+    await send.value
+
+    expectNoDifference(model.newMessage, "Second message")
+    expectNoDifference(model.presentedAlert, .errorSendingMessage)
+  }
 }
