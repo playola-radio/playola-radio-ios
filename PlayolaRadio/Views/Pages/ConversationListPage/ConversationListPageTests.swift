@@ -123,7 +123,7 @@ struct ConversationListPageTests {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
 
     let (requestStarted, requestStartedContinuation) = AsyncStream.makeStream(of: Void.self)
-    let (releaseRequest, releaseRequestContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseRequest, _) = AsyncStream.makeStream(of: Void.self)
 
     let model = withDependencies {
       $0.api.getConversations = { _, _ in
@@ -140,8 +140,6 @@ struct ConversationListPageTests {
     var requestStartedIterator = requestStarted.makeAsyncIterator()
     _ = await requestStartedIterator.next()
     refresh.cancel()
-    releaseRequestContinuation.yield(())
-    releaseRequestContinuation.finish()
     await refresh.value
 
     #expect(model.presentedAlert == nil)

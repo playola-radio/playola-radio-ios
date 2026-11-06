@@ -77,9 +77,10 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
   var selectedFilter: ListenerQuestionFilter = .pending
   private var questionMutationVersion = 0
   private var declinedQuestionMutationVersions: [String: Int] = [:]
+  private var hasLoadedQuestions = false
 
   var showsLoadingIndicator: Bool {
-    isLoading && questions.isEmpty
+    isLoading && !hasLoadedQuestions
   }
 
   var filteredQuestions: IdentifiedArrayOf<ListenerQuestion> {
@@ -229,6 +230,7 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
           else { return fetchedQuestion }
           return localQuestion
         })
+      hasLoadedQuestions = true
     } catch {
       guard !Task.isCancelled else { return }
       presentedAlert = .fetchQuestionsError(error.localizedDescription)

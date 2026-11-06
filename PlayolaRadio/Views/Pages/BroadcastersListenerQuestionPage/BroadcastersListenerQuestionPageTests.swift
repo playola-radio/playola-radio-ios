@@ -221,7 +221,7 @@ struct BroadcastersListenerQuestionPageTests {
     @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
 
     let (requestStarted, requestStartedContinuation) = AsyncStream.makeStream(of: Void.self)
-    let (releaseRequest, releaseRequestContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseRequest, _) = AsyncStream.makeStream(of: Void.self)
 
     let model = withDependencies {
       $0.api.getListenerQuestions = { _, _ in
@@ -238,8 +238,6 @@ struct BroadcastersListenerQuestionPageTests {
     var requestStartedIterator = requestStarted.makeAsyncIterator()
     _ = await requestStartedIterator.next()
     refresh.cancel()
-    releaseRequestContinuation.yield(())
-    releaseRequestContinuation.finish()
     await refresh.value
 
     #expect(model.presentedAlert == nil)
@@ -255,13 +253,39 @@ struct BroadcastersListenerQuestionPageTests {
     #expect(model.showsLoadingIndicator)
   }
 
-  @Test
-  func testHidesLoadingIndicatorWhileRefreshingExistingQuestions() {
-    let model = makeModelWithQuestions()
+  @Test(arguments: [[], [ListenerQuestion.mockWith(id: "q1")]])
+  func testHidesLoadingIndicatorWhileRefreshingAfterFirstLoad(
+    firstLoadQuestions: [ListenerQuestion]
+  ) async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
 
-    model.isLoading = true
+    let (requestStarted, requestStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseRequest, releaseRequestContinuation) = AsyncStream.makeStream(of: Void.self)
+    let fetchCount = LockIsolated(0)
 
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in
+        fetchCount.withValue { $0 += 1 }
+        guard fetchCount.value > 1 else { return firstLoadQuestions }
+        requestStartedContinuation.yield(())
+        var releaseIterator = releaseRequest.makeAsyncIterator()
+        _ = await releaseIterator.next()
+        return firstLoadQuestions
+      }
+    } operation: {
+      BroadcastersListenerQuestionPageModel(stationId: testStationId)
+    }
+    await model.refreshPulledDown()
+
+    let refresh = Task { await model.refreshPulledDown() }
+    var requestStartedIterator = requestStarted.makeAsyncIterator()
+    _ = await requestStartedIterator.next()
+
+    #expect(model.isLoading)
     #expect(!model.showsLoadingIndicator)
+
+    releaseRequestContinuation.yield(())
+    await refresh.value
   }
 
   @Test
