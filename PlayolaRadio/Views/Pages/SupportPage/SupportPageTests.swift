@@ -739,4 +739,11 @@ struct SupportPageTests {
     expectNoDifference(model.presentedAlert, nil)
     expectNoDifference(shownToasts.value.map(\.message), [])
   }
+
+  @Test
+  func testSendButtonAccessibilityLabel() {
+    let model = SupportPageModel()
+
+    expectNoDifference(model.sendButtonAccessibilityLabel, "Send message")
+  }
 }

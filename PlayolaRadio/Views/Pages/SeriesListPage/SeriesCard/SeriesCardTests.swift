@@ -128,10 +128,12 @@ struct SeriesCardModelTests {
   func testRemindMeTappedSetsIsSubscribingDuringRequest() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let wasSubscribingDuringCall = LockIsolated(false)
+    let modelUnderTest = LockIsolated<SeriesCardModel?>(nil)
 
     await withDependencies {
       $0.api.subscribeToStationNotifications = { _, stationId in
-        wasSubscribingDuringCall.setValue(true)
+        let isSubscribing = await MainActor.run { modelUnderTest.value?.isSubscribing ?? false }
+        wasSubscribingDuringCall.setValue(isSubscribing)
         return self.mockSubscription(stationId: stationId)
       }
     } operation: {
@@ -139,6 +141,7 @@ struct SeriesCardModelTests {
         showWithAirings: mockShowWithAirings(stationId: "station-123"),
         subscriptionStatus: .notSubscribed
       )
+      modelUnderTest.setValue(model)
 
       await model.remindMeTapped()
 

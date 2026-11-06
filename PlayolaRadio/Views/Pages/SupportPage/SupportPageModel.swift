@@ -137,6 +137,7 @@ class SupportPageModel: ViewModel {
 
   var navigationTitle: String { "Contact Us" }
   var messageFieldPlaceholder: String { "Message" }
+  var sendButtonAccessibilityLabel: String { "Send message" }
   var loadErrorMessage: String { "The conversation couldn't load." }
 }
 
