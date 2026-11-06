@@ -216,6 +216,43 @@ struct BroadcastersListenerQuestionPageTests {
     #expect(fetchCalled.value)
   }
 
+  @Test
+  func testRefreshPulledDownDoesNotShowAlertWhenCancelled() async {
+    @Shared(.auth) var auth = Auth(currentUser: nil, jwt: testJwt)
+
+    let model = withDependencies {
+      $0.api.getListenerQuestions = { _, _ in
+        throw TestError.fetchFailed
+      }
+    } operation: {
+      BroadcastersListenerQuestionPageModel(stationId: testStationId)
+    }
+
+    let refresh = Task { await model.refreshPulledDown() }
+    refresh.cancel()
+    await refresh.value
+
+    #expect(model.presentedAlert == nil)
+  }
+
+  @Test
+  func testShowsLoadingIndicatorWhileLoadingWithNoQuestions() {
+    let model = makeModel()
+
+    model.isLoading = true
+
+    #expect(model.showsLoadingIndicator)
+  }
+
+  @Test
+  func testHidesLoadingIndicatorWhileRefreshingExistingQuestions() {
+    let model = makeModelWithQuestions()
+
+    model.isLoading = true
+
+    #expect(!model.showsLoadingIndicator)
+  }
+
   // MARK: - Expand/Collapse Tests
 
   @Test

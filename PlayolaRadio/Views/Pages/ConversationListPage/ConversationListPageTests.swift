@@ -88,6 +88,60 @@ struct ConversationListPageTests {
   }
 
   @Test
+  func testShowsLoadingIndicatorWhileLoadingWithNoConversations() {
+    let model = ConversationListPageModel()
+
+    model.isLoading = true
+
+    #expect(model.showsLoadingIndicator)
+  }
+
+  @Test
+  func testHidesLoadingIndicatorWhileRefreshingExistingConversations() {
+    let model = ConversationListPageModel()
+    model.conversations = [
+      AdminConversationResponse(
+        conversation: makeConversation(id: "conv-1"), unreadCountFromOwner: 0)
+    ]
+
+    model.isLoading = true
+
+    #expect(!model.showsLoadingIndicator)
+  }
+
+  @Test
+  func testRefreshDoesNotShowAlertWhenCancelled() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in throw URLError(.cancelled) }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    let refresh = Task { await model.refresh() }
+    refresh.cancel()
+    await refresh.value
+
+    #expect(model.presentedAlert == nil)
+  }
+
+  @Test
+  func testRefreshShowsAlertOnError() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in throw URLError(.notConnectedToInternet) }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    await model.refresh()
+
+    #expect(model.presentedAlert != nil)
+  }
+
+  @Test
   func testSortedConversationsPlacesUnreadFirst() async {
     @Shared(.auth) var auth = Auth(
       currentUser: LoggedInUser(

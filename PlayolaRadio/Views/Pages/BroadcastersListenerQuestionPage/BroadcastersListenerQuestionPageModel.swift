@@ -69,6 +69,10 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   var selectedFilter: ListenerQuestionFilter = .pending
 
+  var showsLoadingIndicator: Bool {
+    isLoading && questions.isEmpty
+  }
+
   var filteredQuestions: IdentifiedArrayOf<ListenerQuestion> {
     switch selectedFilter {
     case .pending:
@@ -194,6 +198,7 @@ class BroadcastersListenerQuestionPageModel: ViewModel {
       let fetchedQuestions = try await api.getListenerQuestions(jwt, stationId)
       questions = IdentifiedArray(uniqueElements: fetchedQuestions)
     } catch {
+      guard !Task.isCancelled else { return }
       presentedAlert = .fetchQuestionsError(error.localizedDescription)
     }
   }

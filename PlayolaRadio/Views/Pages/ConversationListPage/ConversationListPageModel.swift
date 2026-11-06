@@ -19,6 +19,10 @@ class ConversationListPageModel: ViewModel {
   var isLoading = true
   var presentedAlert: PlayolaAlert?
 
+  var showsLoadingIndicator: Bool {
+    isLoading && conversations.isEmpty
+  }
+
   /// Conversations sorted with unread first, then by most recent
   var sortedConversations: [AdminConversationResponse] {
     conversations.sorted { first, second in
@@ -46,7 +50,9 @@ class ConversationListPageModel: ViewModel {
     do {
       conversations = try await api.getConversations(jwt, "open")
     } catch {
-      presentedAlert = .errorLoadingConversations
+      if !Task.isCancelled {
+        presentedAlert = .errorLoadingConversations
+      }
     }
 
     isLoading = false

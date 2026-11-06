@@ -12,7 +12,7 @@ struct ConversationListPageView: View {
     ZStack {
       Color.black.ignoresSafeArea()
 
-      if model.isLoading {
+      if model.showsLoadingIndicator {
         ProgressView()
           .tint(.white)
       } else if model.sortedConversations.isEmpty {
