@@ -18,10 +18,8 @@ class ConversationListPageModel: ViewModel {
   var conversations: [AdminConversationResponse] = []
   var isLoading = true
   var presentedAlert: PlayolaAlert?
-  private var conversationMutationVersion = 0
   private var loadGeneration = 0
-  private var readConversationUpdatedAts: [String: Date] = [:]
-  private var readConversationMutationVersions: [String: Int] = [:]
+  private var completedReadCount = 0
 
   var showsLoadingIndicator: Bool {
     isLoading && conversations.isEmpty
@@ -52,7 +50,6 @@ class ConversationListPageModel: ViewModel {
     loadGeneration += 1
     let generation = loadGeneration
     isLoading = true
-    let fetchMutationVersion = conversationMutationVersion
     defer {
       if generation == loadGeneration {
         isLoading = false
@@ -60,20 +57,14 @@ class ConversationListPageModel: ViewModel {
     }
 
     do {
-      let fetchedConversations = try await api.getConversations(jwt, "open")
-      guard generation == loadGeneration else { return }
-      conversations = fetchedConversations.map { fetchedConversation in
-        guard
-          readConversationMutationVersions[fetchedConversation.id, default: 0]
-            > fetchMutationVersion,
-          let readConversationUpdatedAt = readConversationUpdatedAts[fetchedConversation.id],
-          fetchedConversation.conversation.updatedAt <= readConversationUpdatedAt
-        else { return fetchedConversation }
-        return AdminConversationResponse(
-          conversation: fetchedConversation.conversation,
-          unreadCountFromOwner: 0
-        )
-      }
+      var fetchedConversations: [AdminConversationResponse]
+      var readCountBeforeFetch: Int
+      repeat {
+        readCountBeforeFetch = completedReadCount
+        fetchedConversations = try await api.getConversations(jwt, "open")
+        guard generation == loadGeneration else { return }
+      } while completedReadCount != readCountBeforeFetch
+      conversations = fetchedConversations
     } catch {
       guard generation == loadGeneration else { return }
       if !Task.isCancelled {
@@ -99,16 +90,13 @@ class ConversationListPageModel: ViewModel {
       // Mark as read if there are unread messages
       if item.unreadCountFromOwner > 0 {
         try? await api.markConversationRead(jwt, item.conversation.id)
+        completedReadCount += 1
         // Update local state
         if let index = conversations.firstIndex(where: { $0.id == item.id }) {
           conversations[index] = AdminConversationResponse(
-            conversation: item.conversation,
+            conversation: conversations[index].conversation,
             unreadCountFromOwner: 0
           )
-          conversationMutationVersion += 1
-          readConversationMutationVersions[item.id] = conversationMutationVersion
-          readConversationUpdatedAts[item.id] =
-            messages.map(\.updatedAt).max() ?? item.conversation.updatedAt
         }
       }
     } catch {
