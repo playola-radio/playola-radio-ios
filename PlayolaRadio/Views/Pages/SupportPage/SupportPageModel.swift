@@ -20,6 +20,7 @@ class SupportPageModel: ViewModel {
   var isLoading = true
   var isSending = false
   var presentedAlert: PlayolaAlert?
+  @ObservationIgnored private var completedSendCount = 0
 
   var hasExistingMessages: Bool {
     !messages.isEmpty
@@ -91,7 +92,10 @@ class SupportPageModel: ViewModel {
         throw APIError.dataNotValid
       }
       let message = try await api.sendConversationMessage(jwt, conversationId, messageText)
-      messages.append(message)
+      completedSendCount += 1
+      if !messages.contains(where: { $0.id == message.id }) {
+        messages.append(message)
+      }
     } catch {
       newMessage = messageText
       presentedAlert = .errorSendingMessage
@@ -106,7 +110,13 @@ class SupportPageModel: ViewModel {
     else { return }
 
     do {
-      messages = try await api.getConversationMessages(jwt, conversationId)
+      var fetchedMessages: [Message]
+      var sendCountBeforeFetch: Int
+      repeat {
+        sendCountBeforeFetch = completedSendCount
+        fetchedMessages = try await api.getConversationMessages(jwt, conversationId)
+      } while completedSendCount != sendCountBeforeFetch
+      messages = fetchedMessages
       await markAsRead()
     } catch {
       // Silently fail on refresh

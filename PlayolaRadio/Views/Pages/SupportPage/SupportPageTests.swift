@@ -6,6 +6,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import Sharing
@@ -558,5 +559,104 @@ struct SupportPageTests {
 
     await model.handleScenePhaseChange(.inactive)
     #expect(!getConversationMessagesCalled.value)
+  }
+
+  @Test
+  func testRefreshFinishingAfterSendKeepsSentMessage() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let oldMessage = makeMessage(
+      id: "old-msg", conversationId: "conv-1", senderId: "support-1", text: "Old")
+    let sentMessage = makeMessage(
+      id: "sent-msg", conversationId: "conv-1", senderId: "user-1", text: "Hi")
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseFetch, releaseFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let hasSent = LockIsolated(false)
+    let fetchCount = LockIsolated(0)
+
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in
+        let isFirstFetch = fetchCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        let response = hasSent.value ? [oldMessage, sentMessage] : [oldMessage]
+        guard isFirstFetch else { return response }
+        fetchStartedContinuation.yield(())
+        var releaseFetchIterator = releaseFetch.makeAsyncIterator()
+        _ = await releaseFetchIterator.next()
+        return response
+      }
+      $0.api.sendConversationMessage = { _, _, _ in
+        hasSent.setValue(true)
+        return sentMessage
+      }
+      $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+    model.messages = [oldMessage]
+
+    let refresh = Task { await model.refreshMessages() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    model.newMessage = "Hi"
+    await model.sendMessage()
+    releaseFetchContinuation.yield(())
+    releaseFetchContinuation.finish()
+    await refresh.value
+
+    expectNoDifference(model.messages.map(\.id), ["old-msg", "sent-msg"])
+  }
+
+  @Test
+  func testSendFinishingAfterRefreshDoesNotDuplicateSentMessage() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let oldMessage = makeMessage(
+      id: "old-msg", conversationId: "conv-1", senderId: "support-1", text: "Old")
+    let sentMessage = makeMessage(
+      id: "sent-msg", conversationId: "conv-1", senderId: "user-1", text: "Hi")
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseFetch, releaseFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (sendStarted, sendStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseSend, releaseSendContinuation) = AsyncStream.makeStream(of: Void.self)
+
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in
+        fetchStartedContinuation.yield(())
+        var releaseFetchIterator = releaseFetch.makeAsyncIterator()
+        _ = await releaseFetchIterator.next()
+        return [oldMessage, sentMessage]
+      }
+      $0.api.sendConversationMessage = { _, _, _ in
+        sendStartedContinuation.yield(())
+        var releaseSendIterator = releaseSend.makeAsyncIterator()
+        _ = await releaseSendIterator.next()
+        return sentMessage
+      }
+      $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+    model.messages = [oldMessage]
+
+    let refresh = Task { await model.refreshMessages() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    model.newMessage = "Hi"
+    let send = Task { await model.sendMessage() }
+    var sendStartedIterator = sendStarted.makeAsyncIterator()
+    _ = await sendStartedIterator.next()
+    releaseFetchContinuation.yield(())
+    releaseFetchContinuation.finish()
+    await refresh.value
+    releaseSendContinuation.yield(())
+    releaseSendContinuation.finish()
+    await send.value
+
+    expectNoDifference(model.messages.map(\.id), ["old-msg", "sent-msg"])
   }
 }
