@@ -65,6 +65,7 @@ class SeriesListPageModel: ViewModel {
         tags["endpoint"] = "getAirings"
         await errorReporting.reportError(error, tags)
       }
+      guard generation == loadGeneration else { return }
       await toast.show(PlayolaToast(message: loadErrorMessage, buttonTitle: "OK"))
     }
   }

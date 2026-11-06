@@ -742,6 +742,46 @@ struct SupportPageTests {
   }
 
   @Test
+  func testOlderLoadFailureDoesNotShowToastAfterNewerLoadSucceedsDuringErrorReporting() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let (errorReportingStarted, errorReportingStartedContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let (releaseErrorReporting, releaseErrorReportingContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let loadCount = LockIsolated(0)
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        let isOlderLoad = loadCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        if isOlderLoad { throw APIError.dataNotValid }
+        return SupportConversationResponse(conversation: nil, unreadCount: 0)
+      }
+      $0.errorReporting.reportError = { _, _ in
+        errorReportingStartedContinuation.yield(())
+        var releaseIterator = releaseErrorReporting.makeAsyncIterator()
+        _ = await releaseIterator.next()
+      }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SupportPageModel()
+    }
+
+    let olderLoad = Task { await model.onViewAppeared() }
+    var errorReportingStartedIterator = errorReportingStarted.makeAsyncIterator()
+    _ = await errorReportingStartedIterator.next()
+    await model.onViewAppeared()
+    releaseErrorReportingContinuation.yield(())
+    releaseErrorReportingContinuation.finish()
+    await olderLoad.value
+
+    expectNoDifference(shownToasts.value.map(\.message), [])
+  }
+
+  @Test
   func testOnViewAppearedShowsNoErrorWhenLoadCancelled() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let shownToasts = LockIsolated<[PlayolaToast]>([])

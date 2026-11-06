@@ -23,6 +23,7 @@ class SupportPageModel: ViewModel {
   var isSending = false
   var presentedAlert: PlayolaAlert?
   @ObservationIgnored private var completedSendCount = 0
+  @ObservationIgnored private var loadGeneration = 0
 
   var hasExistingMessages: Bool {
     !messages.isEmpty
@@ -38,6 +39,9 @@ class SupportPageModel: ViewModel {
 
   func onViewAppeared() async {
     guard let jwt = auth.jwt else { return }
+
+    loadGeneration += 1
+    let generation = loadGeneration
 
     if conversation != nil {
       await refreshMessages()
@@ -61,6 +65,7 @@ class SupportPageModel: ViewModel {
           tags["endpoint"] = "getSupportConversation"
           await errorReporting.reportError(error, tags)
         }
+        guard generation == loadGeneration else { return }
         await toast.show(PlayolaToast(message: loadErrorMessage, buttonTitle: "OK"))
       }
     }
