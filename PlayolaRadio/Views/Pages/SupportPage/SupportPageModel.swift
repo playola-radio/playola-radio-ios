@@ -42,10 +42,12 @@ class SupportPageModel: ViewModel {
 
     loadGeneration += 1
     let generation = loadGeneration
+    defer {
+      if generation == loadGeneration { isLoading = false }
+    }
 
     if conversation != nil {
       await refreshMessages()
-      isLoading = false
       return
     }
 
@@ -71,7 +73,6 @@ class SupportPageModel: ViewModel {
       }
     }
 
-    isLoading = false
   }
 
   func observeRefreshNotifications() async {

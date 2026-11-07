@@ -813,7 +813,7 @@ struct SupportPageTests {
   }
 
   @Test
-  func testOnViewAppearedDoesNotShowToastWhenCancelledDuringErrorReporting() async {
+  func testOnViewAppearedStopsLoadingWhenCancelledDuringErrorReporting() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let shownToasts = LockIsolated<[PlayolaToast]>([])
     let (errorReportingStarted, errorReportingStartedContinuation) = AsyncStream.makeStream(
@@ -840,6 +840,7 @@ struct SupportPageTests {
     releaseErrorReportingContinuation.finish()
     await load.value
 
+    expectNoDifference(model.isLoading, false)
     expectNoDifference(shownToasts.value.map(\.message), [])
   }
 
