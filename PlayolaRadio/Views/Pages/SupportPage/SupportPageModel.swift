@@ -115,6 +115,8 @@ class SupportPageModel: ViewModel {
     } catch {
       if newMessage.isEmpty {
         newMessage = messageText
+      } else {
+        newMessage = messageText + "\n" + newMessage
       }
       presentedAlert = .errorSendingMessage
     }

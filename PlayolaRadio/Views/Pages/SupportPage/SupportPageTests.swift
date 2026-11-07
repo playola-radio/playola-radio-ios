@@ -661,7 +661,7 @@ struct SupportPageTests {
   }
 
   @Test
-  func testFailedSendKeepsTextTypedDuringSend() async {
+  func testFailedSendRestoresFailedTextAboveTextTypedDuringSend() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let (sendStarted, sendStartedContinuation) = AsyncStream.makeStream(of: Void.self)
     let (releaseSend, releaseSendContinuation) = AsyncStream.makeStream(of: Void.self)
@@ -687,7 +687,7 @@ struct SupportPageTests {
     releaseSendContinuation.finish()
     await send.value
 
-    expectNoDifference(model.newMessage, "Second message")
+    expectNoDifference(model.newMessage, "First message\nSecond message")
     expectNoDifference(model.presentedAlert, .errorSendingMessage)
   }
 
