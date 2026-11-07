@@ -46,7 +46,7 @@ class SupportPageModel: ViewModel {
       if generation == loadGeneration { isLoading = false }
     }
 
-    let hasExistingConversation = conversation != nil
+    var endpoint = conversation == nil ? "getSupportConversation" : "getConversationMessages"
 
     do {
       if let conversation {
@@ -56,6 +56,7 @@ class SupportPageModel: ViewModel {
         let response = try await api.getSupportConversation(jwt)
         if let existing = response.conversation {
           conversation = existing
+          endpoint = "getConversationMessages"
           try await loadMessages(jwt: jwt, conversationId: existing.id)
         }
       }
@@ -63,8 +64,7 @@ class SupportPageModel: ViewModel {
       if !Task.isCancelled {
         if !NetworkErrorClassifier.isNetworkError(error) {
           var tags = NetworkErrorClassifier.errorTags(for: error)
-          tags["endpoint"] =
-            hasExistingConversation ? "getConversationMessages" : "getSupportConversation"
+          tags["endpoint"] = endpoint
           await errorReporting.reportError(error, tags)
         }
         guard generation == loadGeneration else { return }

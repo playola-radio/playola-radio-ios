@@ -726,6 +726,26 @@ struct SupportPageTests {
   }
 
   @Test
+  func testOnViewAppearedTagsMessagesEndpointWhenMessagesLoadFails() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let conversation = makeConversation(id: "conv-1")
+    let reportedTags = LockIsolated<[String: String]>([:])
+    let model = withDependencies {
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: conversation, unreadCount: 0)
+      }
+      $0.api.getConversationMessages = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in reportedTags.setValue(tags) }
+    } operation: {
+      SupportPageModel()
+    }
+
+    await model.onViewAppeared()
+
+    expectNoDifference(reportedTags.value["endpoint"], "getConversationMessages")
+  }
+
+  @Test
   func testOnViewAppearedWithExistingConversationShowsToastWhenLoadFails() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let reportCount = LockIsolated(0)
