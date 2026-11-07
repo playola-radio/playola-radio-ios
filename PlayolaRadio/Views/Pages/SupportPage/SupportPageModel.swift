@@ -46,25 +46,25 @@ class SupportPageModel: ViewModel {
       if generation == loadGeneration { isLoading = false }
     }
 
-    if conversation != nil {
-      await refreshMessages()
-      return
-    }
-
-    isLoading = true
+    let hasExistingConversation = conversation != nil
 
     do {
-      let response = try await api.getSupportConversation(jwt)
-      if let existing = response.conversation {
-        conversation = existing
-        messages = try await api.getConversationMessages(jwt, existing.id)
-        await markAsRead()
+      if let conversation {
+        try await loadMessages(jwt: jwt, conversationId: conversation.id)
+      } else {
+        isLoading = true
+        let response = try await api.getSupportConversation(jwt)
+        if let existing = response.conversation {
+          conversation = existing
+          try await loadMessages(jwt: jwt, conversationId: existing.id)
+        }
       }
     } catch {
       if !Task.isCancelled {
         if !NetworkErrorClassifier.isNetworkError(error) {
           var tags = NetworkErrorClassifier.errorTags(for: error)
-          tags["endpoint"] = "getSupportConversation"
+          tags["endpoint"] =
+            hasExistingConversation ? "getConversationMessages" : "getSupportConversation"
           await errorReporting.reportError(error, tags)
         }
         guard generation == loadGeneration else { return }
@@ -130,22 +130,31 @@ class SupportPageModel: ViewModel {
     else { return }
 
     do {
-      var fetchedMessages: [Message]
-      var sendCountBeforeFetch: Int
-      repeat {
-        sendCountBeforeFetch = completedSendCount
-        fetchedMessages = try await api.getConversationMessages(jwt, conversationId)
-      } while completedSendCount != sendCountBeforeFetch
-      messages = fetchedMessages
-      await markAsRead()
+      try await loadMessages(jwt: jwt, conversationId: conversationId)
     } catch {
-      // Silently fail on refresh
+      guard !Task.isCancelled, !(error is CancellationError) else { return }
+      if !NetworkErrorClassifier.isNetworkError(error) {
+        var tags = NetworkErrorClassifier.errorTags(for: error)
+        tags["endpoint"] = "getConversationMessages"
+        await errorReporting.reportError(error, tags)
+      }
     }
   }
 
   func handleScenePhaseChange(_ phase: ScenePhase) async {
     guard phase == .active else { return }
     await refreshMessages()
+  }
+
+  private func loadMessages(jwt: String, conversationId: String) async throws {
+    var fetchedMessages: [Message]
+    var sendCountBeforeFetch: Int
+    repeat {
+      sendCountBeforeFetch = completedSendCount
+      fetchedMessages = try await api.getConversationMessages(jwt, conversationId)
+    } while completedSendCount != sendCountBeforeFetch
+    messages = fetchedMessages
+    await markAsRead()
   }
 
   // MARK: - View Helpers

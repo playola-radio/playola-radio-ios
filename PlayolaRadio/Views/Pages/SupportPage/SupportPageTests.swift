@@ -726,6 +726,47 @@ struct SupportPageTests {
   }
 
   @Test
+  func testOnViewAppearedWithExistingConversationShowsToastWhenLoadFails() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+
+    await model.onViewAppeared()
+
+    expectNoDifference(shownToasts.value.map(\.message), ["The conversation couldn't load."])
+    expectNoDifference(reportCount.value, 1)
+    expectNoDifference(model.isLoading, false)
+  }
+
+  @Test
+  func testBackgroundRefreshReportsFailureWithoutToast() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+
+    await model.handleScenePhaseChange(.active)
+
+    expectNoDifference(reportCount.value, 1)
+    expectNoDifference(shownToasts.value.map(\.message), [])
+  }
+
+  @Test
   func testOnViewAppearedDoesNotReportNetworkLoadFailure() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let reportCount = LockIsolated(0)
