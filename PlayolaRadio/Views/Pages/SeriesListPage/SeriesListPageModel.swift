@@ -17,13 +17,15 @@ class SeriesListPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.toast) var toast
   @ObservationIgnored @Shared(.auth) var auth
 
   // MARK: - State
 
   var shows: [ShowWithAirings] = []
   var isLoading = false
-  var presentedAlert: PlayolaAlert?
+  @ObservationIgnored private var loadGeneration = 0
 
   // MARK: - Init
 
@@ -40,18 +42,30 @@ class SeriesListPageModel: ViewModel {
   // MARK: - View Helpers
 
   var navigationTitle: String { "Radio Shows" }
+  var loadErrorMessage: String { "The radio shows couldn't load." }
 
   private func loadShows() async {
     guard let jwtToken = auth.jwt else { return }
 
+    loadGeneration += 1
+    let generation = loadGeneration
     isLoading = true
-    defer { isLoading = false }
+    defer {
+      if generation == loadGeneration { isLoading = false }
+    }
 
     do {
       let airings = try await api.getAirings(jwtToken, nil)
+      guard generation == loadGeneration else { return }
       shows = groupAiringsByShow(airings)
     } catch {
-      presentedAlert = .loadShowsErrorAlert
+      if !NetworkErrorClassifier.isNetworkError(error) {
+        var tags = NetworkErrorClassifier.errorTags(for: error)
+        tags["endpoint"] = "getAirings"
+        await errorReporting.reportError(error, tags)
+      }
+      guard generation == loadGeneration else { return }
+      await toast.show(PlayolaToast(message: loadErrorMessage, buttonTitle: "OK"))
     }
   }
 
@@ -114,16 +128,5 @@ struct ShowWithAirings: Identifiable {
     let upcoming = airings.filter { $0.airtime > now }
     self.nextAiring = upcoming.sorted { $0.airtime < $1.airtime }.first
     self.upcomingAiringsCount = upcoming.count
-  }
-}
-
-// MARK: - Alerts
-
-extension PlayolaAlert {
-  static var loadShowsErrorAlert: PlayolaAlert {
-    PlayolaAlert(
-      title: "Error",
-      message: "Unable to load shows. Please try again later.",
-      dismissButton: .cancel(Text("OK")))
   }
 }

@@ -139,6 +139,7 @@ class MainContainerModel: ViewModel {
     // but it is best-effort by design, and a slow config endpoint must not
     // stall station loading for up to the 60s request timeout.
     Task { await loadClientConfig() }
+    observeToasts()
 
     if let userId = auth.currentUser?.id {
       await analytics.identify(userId)
@@ -170,8 +171,6 @@ class MainContainerModel: ViewModel {
     // what happens when we use the Shared nowPlaying value.  In the future we should figure out
     // how to get this to work with the nowPlaying shared state.
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
-
-    observeToasts()
 
     await loadListeningTracker()
     await loadAirings()

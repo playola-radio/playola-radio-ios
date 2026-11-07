@@ -13,6 +13,8 @@ class SupportPageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.pushNotifications) var pushNotifications
+  @ObservationIgnored @Dependency(\.toast) var toast
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   var conversation: Conversation?
   var messages: [Message] = []
@@ -20,6 +22,8 @@ class SupportPageModel: ViewModel {
   var isLoading = true
   var isSending = false
   var presentedAlert: PlayolaAlert?
+  @ObservationIgnored private var completedSendCount = 0
+  @ObservationIgnored private var loadGeneration = 0
 
   var hasExistingMessages: Bool {
     !messages.isEmpty
@@ -36,26 +40,39 @@ class SupportPageModel: ViewModel {
   func onViewAppeared() async {
     guard let jwt = auth.jwt else { return }
 
-    if conversation != nil {
-      await refreshMessages()
-      isLoading = false
-      return
+    loadGeneration += 1
+    let generation = loadGeneration
+    defer {
+      if generation == loadGeneration { isLoading = false }
     }
 
-    isLoading = true
+    var endpoint = conversation == nil ? "getSupportConversation" : "getConversationMessages"
 
     do {
-      let response = try await api.getSupportConversation(jwt)
-      if let existing = response.conversation {
-        conversation = existing
-        messages = try await api.getConversationMessages(jwt, existing.id)
-        await markAsRead()
+      if let conversation {
+        try await loadMessages(jwt: jwt, conversationId: conversation.id)
+      } else {
+        isLoading = true
+        let response = try await api.getSupportConversation(jwt)
+        if let existing = response.conversation {
+          conversation = existing
+          endpoint = "getConversationMessages"
+          try await loadMessages(jwt: jwt, conversationId: existing.id)
+        }
       }
     } catch {
-      presentedAlert = .errorLoadingConversation
+      if !Task.isCancelled {
+        if !NetworkErrorClassifier.isNetworkError(error) {
+          var tags = NetworkErrorClassifier.errorTags(for: error)
+          tags["endpoint"] = endpoint
+          await errorReporting.reportError(error, tags)
+        }
+        guard generation == loadGeneration else { return }
+        guard !Task.isCancelled else { return }
+        await toast.show(PlayolaToast(message: loadErrorMessage, buttonTitle: "OK"))
+      }
     }
 
-    isLoading = false
   }
 
   func observeRefreshNotifications() async {
@@ -91,9 +108,16 @@ class SupportPageModel: ViewModel {
         throw APIError.dataNotValid
       }
       let message = try await api.sendConversationMessage(jwt, conversationId, messageText)
-      messages.append(message)
+      completedSendCount += 1
+      if !messages.contains(where: { $0.id == message.id }) {
+        messages.append(message)
+      }
     } catch {
-      newMessage = messageText
+      if newMessage.isEmpty {
+        newMessage = messageText
+      } else {
+        newMessage = messageText + "\n" + newMessage
+      }
       presentedAlert = .errorSendingMessage
     }
 
@@ -106,10 +130,14 @@ class SupportPageModel: ViewModel {
     else { return }
 
     do {
-      messages = try await api.getConversationMessages(jwt, conversationId)
-      await markAsRead()
+      try await loadMessages(jwt: jwt, conversationId: conversationId)
     } catch {
-      // Silently fail on refresh
+      guard !Task.isCancelled, !(error is CancellationError) else { return }
+      if !NetworkErrorClassifier.isNetworkError(error) {
+        var tags = NetworkErrorClassifier.errorTags(for: error)
+        tags["endpoint"] = "getConversationMessages"
+        await errorReporting.reportError(error, tags)
+      }
     }
   }
 
@@ -118,10 +146,23 @@ class SupportPageModel: ViewModel {
     await refreshMessages()
   }
 
+  private func loadMessages(jwt: String, conversationId: String) async throws {
+    var fetchedMessages: [Message]
+    var sendCountBeforeFetch: Int
+    repeat {
+      sendCountBeforeFetch = completedSendCount
+      fetchedMessages = try await api.getConversationMessages(jwt, conversationId)
+    } while completedSendCount != sendCountBeforeFetch
+    messages = fetchedMessages
+    await markAsRead()
+  }
+
   // MARK: - View Helpers
 
   var navigationTitle: String { "Contact Us" }
   var messageFieldPlaceholder: String { "Message" }
+  var sendButtonAccessibilityLabel: String { "Send message" }
+  var loadErrorMessage: String { "The conversation couldn't load." }
 }
 
 extension PlayolaAlert {

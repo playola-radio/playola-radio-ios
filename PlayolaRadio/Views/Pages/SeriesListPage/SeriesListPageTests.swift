@@ -4,6 +4,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -15,6 +16,38 @@ import Testing
 @Suite(.freshSharedState)
 @MainActor
 struct SeriesListPageModelTests {
+  @Test
+  func testViewAppearedReportsNonNetworkLoadFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+
+    await withDependencies {
+      $0.api.getAirings = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      let model = SeriesListPageModel()
+      await model.viewAppeared()
+    }
+
+    expectNoDifference(reportCount.value, 1)
+  }
+
+  @Test
+  func testViewAppearedDoesNotReportNetworkLoadFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+
+    await withDependencies {
+      $0.api.getAirings = { _, _ in throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      let model = SeriesListPageModel()
+      await model.viewAppeared()
+    }
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
   @Test
   func testViewAppearedCallsGetAiringsAPI() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -80,19 +113,21 @@ struct SeriesListPageModelTests {
   }
 
   @Test
-  func testViewAppearedShowsAlertOnError() async {
+  func testViewAppearedShowsToastOnError() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
 
     await withDependencies {
       $0.api.getAirings = { _, _ in
         throw APIError.dataNotValid
       }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
     } operation: {
       let model = SeriesListPageModel()
 
       await model.viewAppeared()
 
-      #expect(model.presentedAlert != nil)
+      expectNoDifference(shownToasts.value.map(\.message), ["The radio shows couldn't load."])
     }
   }
 
@@ -157,5 +192,192 @@ struct SeriesListPageModelTests {
       #expect(showGroup?.airings.contains { $0.id == "upcoming-airing" } ?? false)
       #expect(!(showGroup?.airings.contains { $0.id == "ended-airing" } ?? true))
     }
+  }
+
+  @Test
+  func testOlderLoadFinishingLastDoesNotReplaceNewerShows() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    let (loadStarted, loadStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseOlderLoad, releaseOlderLoadContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseNewerLoad, releaseNewerLoadContinuation) = AsyncStream.makeStream(of: Void.self)
+    let loadCount = LockIsolated(0)
+
+    let model = withDependencies {
+      $0.date.now = now
+      $0.api.getAirings = { _, _ in
+        let isOlderLoad = loadCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        loadStartedContinuation.yield(())
+        var releaseIterator =
+          (isOlderLoad ? releaseOlderLoad : releaseNewerLoad).makeAsyncIterator()
+        _ = await releaseIterator.next()
+        return [Self.upcomingAiring(showId: isOlderLoad ? "older-show" : "newer-show", now: now)]
+      }
+    } operation: {
+      SeriesListPageModel()
+    }
+
+    let olderLoad = Task { await model.viewAppeared() }
+    var loadStartedIterator = loadStarted.makeAsyncIterator()
+    _ = await loadStartedIterator.next()
+    let newerLoad = Task { await model.viewAppeared() }
+    _ = await loadStartedIterator.next()
+    releaseNewerLoadContinuation.yield(())
+    releaseNewerLoadContinuation.finish()
+    await newerLoad.value
+    releaseOlderLoadContinuation.yield(())
+    releaseOlderLoadContinuation.finish()
+    await olderLoad.value
+
+    expectNoDifference(model.shows.map(\.show.id), ["newer-show"])
+    expectNoDifference(model.isLoading, false)
+  }
+
+  @Test
+  func testOlderLoadFinishingFirstKeepsLoadingUntilNewerLoadFinishes() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    let (loadStarted, loadStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseOlderLoad, releaseOlderLoadContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseNewerLoad, releaseNewerLoadContinuation) = AsyncStream.makeStream(of: Void.self)
+    let loadCount = LockIsolated(0)
+
+    let model = withDependencies {
+      $0.date.now = now
+      $0.api.getAirings = { _, _ in
+        let isOlderLoad = loadCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        loadStartedContinuation.yield(())
+        var releaseIterator =
+          (isOlderLoad ? releaseOlderLoad : releaseNewerLoad).makeAsyncIterator()
+        _ = await releaseIterator.next()
+        return isOlderLoad ? [Self.upcomingAiring(showId: "older-show", now: now)] : []
+      }
+    } operation: {
+      SeriesListPageModel()
+    }
+
+    let olderLoad = Task { await model.viewAppeared() }
+    var loadStartedIterator = loadStarted.makeAsyncIterator()
+    _ = await loadStartedIterator.next()
+    let newerLoad = Task { await model.viewAppeared() }
+    _ = await loadStartedIterator.next()
+    releaseOlderLoadContinuation.yield(())
+    releaseOlderLoadContinuation.finish()
+    await olderLoad.value
+
+    expectNoDifference(model.isLoading, true)
+    expectNoDifference(model.shows.map(\.show.id), [])
+
+    releaseNewerLoadContinuation.yield(())
+    releaseNewerLoadContinuation.finish()
+    await newerLoad.value
+
+    expectNoDifference(model.isLoading, false)
+  }
+
+  @Test
+  func testOlderLoadFailingLastStillReportsError() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    let (loadStarted, loadStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseOlderLoad, releaseOlderLoadContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseNewerLoad, releaseNewerLoadContinuation) = AsyncStream.makeStream(of: Void.self)
+    let loadCount = LockIsolated(0)
+    let reportCount = LockIsolated(0)
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+
+    let model = withDependencies {
+      $0.date.now = now
+      $0.api.getAirings = { _, _ in
+        let isOlderLoad = loadCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        loadStartedContinuation.yield(())
+        var releaseIterator =
+          (isOlderLoad ? releaseOlderLoad : releaseNewerLoad).makeAsyncIterator()
+        _ = await releaseIterator.next()
+        if isOlderLoad { throw APIError.dataNotValid }
+        return [Self.upcomingAiring(showId: "newer-show", now: now)]
+      }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SeriesListPageModel()
+    }
+
+    let olderLoad = Task { await model.viewAppeared() }
+    var loadStartedIterator = loadStarted.makeAsyncIterator()
+    _ = await loadStartedIterator.next()
+    let newerLoad = Task { await model.viewAppeared() }
+    _ = await loadStartedIterator.next()
+    releaseNewerLoadContinuation.yield(())
+    releaseNewerLoadContinuation.finish()
+    await newerLoad.value
+    releaseOlderLoadContinuation.yield(())
+    releaseOlderLoadContinuation.finish()
+    await olderLoad.value
+
+    expectNoDifference(model.shows.map(\.show.id), ["newer-show"])
+    expectNoDifference(reportCount.value, 1)
+    expectNoDifference(shownToasts.value.map(\.message), [])
+  }
+
+  @Test
+  func testOlderLoadFailureDoesNotShowToastAfterNewerLoadSucceedsDuringErrorReporting() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let now = Date(timeIntervalSince1970: 1_000_000)
+    let (errorReportingStarted, errorReportingStartedContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let (releaseErrorReporting, releaseErrorReportingContinuation) = AsyncStream.makeStream(
+      of: Void.self)
+    let loadCount = LockIsolated(0)
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+
+    let model = withDependencies {
+      $0.date.now = now
+      $0.api.getAirings = { _, _ in
+        let isOlderLoad = loadCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        if isOlderLoad { throw APIError.dataNotValid }
+        return [Self.upcomingAiring(showId: "newer-show", now: now)]
+      }
+      $0.errorReporting.reportError = { _, _ in
+        errorReportingStartedContinuation.yield(())
+        var releaseIterator = releaseErrorReporting.makeAsyncIterator()
+        _ = await releaseIterator.next()
+      }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    } operation: {
+      SeriesListPageModel()
+    }
+
+    let olderLoad = Task { await model.viewAppeared() }
+    var errorReportingStartedIterator = errorReportingStarted.makeAsyncIterator()
+    _ = await errorReportingStartedIterator.next()
+    await model.viewAppeared()
+    releaseErrorReportingContinuation.yield(())
+    releaseErrorReportingContinuation.finish()
+    await olderLoad.value
+
+    expectNoDifference(model.shows.map(\.show.id), ["newer-show"])
+    expectNoDifference(shownToasts.value.map(\.message), [])
+  }
+
+  nonisolated private static func upcomingAiring(showId: String, now: Date) -> Airing {
+    Airing.mockWith(
+      id: "airing-\(showId)",
+      airtime: now.addingTimeInterval(3600),
+      episode: .mockWith(
+        id: "ep-\(showId)", durationMS: 3_600_000, show: .mockWith(id: showId, title: showId))
+    )
   }
 }
