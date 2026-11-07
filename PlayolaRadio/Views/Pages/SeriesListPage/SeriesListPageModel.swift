@@ -59,7 +59,6 @@ class SeriesListPageModel: ViewModel {
       guard generation == loadGeneration else { return }
       shows = groupAiringsByShow(airings)
     } catch {
-      guard generation == loadGeneration else { return }
       if !NetworkErrorClassifier.isNetworkError(error) {
         var tags = NetworkErrorClassifier.errorTags(for: error)
         tags["endpoint"] = "getAirings"

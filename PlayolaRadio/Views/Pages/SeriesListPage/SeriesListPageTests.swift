@@ -282,13 +282,14 @@ struct SeriesListPageModelTests {
   }
 
   @Test
-  func testOlderLoadFailingLastShowsNoToast() async {
+  func testOlderLoadFailingLastStillReportsError() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let now = Date(timeIntervalSince1970: 1_000_000)
     let (loadStarted, loadStartedContinuation) = AsyncStream.makeStream(of: Void.self)
     let (releaseOlderLoad, releaseOlderLoadContinuation) = AsyncStream.makeStream(of: Void.self)
     let (releaseNewerLoad, releaseNewerLoadContinuation) = AsyncStream.makeStream(of: Void.self)
     let loadCount = LockIsolated(0)
+    let reportCount = LockIsolated(0)
     let shownToasts = LockIsolated<[PlayolaToast]>([])
 
     let model = withDependencies {
@@ -305,6 +306,7 @@ struct SeriesListPageModelTests {
         if isOlderLoad { throw APIError.dataNotValid }
         return [Self.upcomingAiring(showId: "newer-show", now: now)]
       }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
       $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
     } operation: {
       SeriesListPageModel()
@@ -323,6 +325,7 @@ struct SeriesListPageModelTests {
     await olderLoad.value
 
     expectNoDifference(model.shows.map(\.show.id), ["newer-show"])
+    expectNoDifference(reportCount.value, 1)
     expectNoDifference(shownToasts.value.map(\.message), [])
   }
 
