@@ -40,6 +40,10 @@ final class GiveawayCoordinator {
   @ObservationIgnored private var feedGeneration = 0
   /// The newest successfully applied feed request.
   @ObservationIgnored private var appliedFeedGeneration = 0
+  /// Bumped per reveal fetch so each response can be ordered by when its request started.
+  @ObservationIgnored private var revealSequence = 0
+  /// The newest successfully applied reveal request.
+  @ObservationIgnored private var appliedRevealSequence = 0
   /// Bumped only when reconciliation changes or rules out the active giveaway. An empty opening-gap
   /// feed must not invalidate a pending authoritative reveal.
   @ObservationIgnored private var reconciliationGeneration = 0
@@ -203,12 +207,15 @@ final class GiveawayCoordinator {
   func revealEvent(jwt: String, eventId: String, expectedStationId: String) async {
     let identity = auth.identity
     let generation = reconciliationGeneration
+    revealSequence += 1
+    let sequence = revealSequence
     do {
       let event = try await api.giveawayEvent(jwt, eventId)
       guard auth.identity.isSameAccount(as: identity),
         generation == reconciliationGeneration
           || Self.selectEvent(from: lastFeed.filter { $0.stationId == expectedStationId })?.id
-            == eventId
+            == eventId,
+        sequence > appliedRevealSequence
       else {
         return
       }
@@ -216,6 +223,7 @@ final class GiveawayCoordinator {
         log("reveal: station changed before publish — skipping \(eventId)")
         return
       }
+      appliedRevealSequence = sequence
       $activeGiveaway.withLock { $0 = event }
       if event.status == .open {
         removeUpcomingEntry(stationId: event.stationId, revealedEventId: event.id)
