@@ -256,15 +256,13 @@ final class GiveawayCoordinator {
     let identity = auth.identity
     let generation = reconciliationGeneration
     guard let fresh = try? await api.giveawayEvent(jwt, event.id) else { return }
-    guard auth.identity.isSameAccount(as: identity), generation == reconciliationGeneration,
-      currentPlayolaStationId == stationId
-    else { return }
-    if fresh.status != .open {
+    guard auth.identity.isSameAccount(as: identity), fresh.status != .open else { return }
+    if generation == reconciliationGeneration, currentPlayolaStationId == stationId {
       if armedEventId == event.id { cancelArmedReveal() } else { reconciliationGeneration += 1 }
       $activeGiveaway.withLock { $0 = nil }
       log("active event \(event.id) is now \(fresh.status.rawValue) → cleared")
-      await reconcileResolvedLoss(jwt: jwt, eventId: event.id)
     }
+    await reconcileResolvedLoss(jwt: jwt, eventId: event.id)
   }
 
   /// Backstop for the last-tapper promotion: when a contest the user provisionally lost has closed,

@@ -1191,6 +1191,54 @@ extension GiveawayCoordinatorTests {
     expectNoDifference(activeGiveaway?.id, "e2")
   }
 
+  @Test func closeCheckStillPromotesWinnerWhenNewerFeedSelectsAnotherEvent() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openEvent(id: "e1")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [
+      "e1": lostParticipation()
+    ]
+    let (closeCheckStarted, closeCheckStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseCloseCheck, releaseCloseCheckContinuation) = AsyncStream.makeStream(of: Void.self)
+    let newerEvent = openEvent(id: "e2")
+    let feedCount = LockIsolated(0)
+    let coordinator = withDependencies {
+      $0.api.giveawayEventsFeed = { _ in
+        let isOlderFeed = feedCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        return isOlderFeed ? [] : [newerEvent]
+      }
+      $0.api.giveawayEvent = { _, id in
+        guard id == "e1" else { return newerEvent }
+        closeCheckStartedContinuation.yield(())
+        var releaseCloseCheckIterator = releaseCloseCheck.makeAsyncIterator()
+        _ = await releaseCloseCheckIterator.next()
+        return GiveawayEvent(
+          id: id, stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .closed)
+      }
+      $0.api.giveawayEventMyResult = { _, _ in
+        GiveawayMyResult(tapNumber: 5, isWinner: true, status: .closed, winningNumber: 9)
+      }
+    } operation: {
+      GiveawayCoordinator()
+    }
+
+    let olderReconcile = Task { await coordinator.reconcile() }
+    var closeCheckStartedIterator = closeCheckStarted.makeAsyncIterator()
+    _ = await closeCheckStartedIterator.next()
+    await coordinator.reconcile()
+    releaseCloseCheckContinuation.yield(())
+    releaseCloseCheckContinuation.finish()
+    await olderReconcile.value
+
+    expectNoDifference(
+      participations["e1"]?.status,
+      GiveawayParticipationStatus.resolvedWon(submissionCompleted: false))
+    expectNoDifference(activeGiveaway?.id, "e2")
+  }
+
   @Test func closeCheckCancelsAnOlderArmForTheSameEvent() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
