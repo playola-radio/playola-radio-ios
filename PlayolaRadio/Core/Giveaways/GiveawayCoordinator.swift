@@ -36,8 +36,10 @@ final class GiveawayCoordinator {
   @ObservationIgnored private var inFlightTapIds: Set<String> = []
   /// Bumped whenever an arm is cancelled/replaced; a timer callback ignores itself if stale.
   @ObservationIgnored private var generation = 0
-  /// Bumped per feed fetch so an older response that lands last can't overwrite a newer one.
+  /// Bumped per feed fetch so each response can be ordered by when its request started.
   @ObservationIgnored private var feedGeneration = 0
+  /// The newest successfully applied feed request.
+  @ObservationIgnored private var appliedFeedGeneration = 0
   /// Bumped only when reconciliation changes or rules out the active giveaway. An empty opening-gap
   /// feed must not invalidate a pending authoritative reveal.
   @ObservationIgnored private var reconciliationGeneration = 0
@@ -106,10 +108,11 @@ final class GiveawayCoordinator {
       log("reconcile: feed FETCH FAILED (\(error)) — keeping last state")
       return  // transient failure: keep last known state, retry next poll
     }
-    guard auth.identity.isSameAccount(as: identity), fetchGeneration == feedGeneration else {
-      log("reconcile: feed superseded (account changed or newer fetch) — discarding")
+    guard auth.identity.isSameAccount(as: identity), fetchGeneration > appliedFeedGeneration else {
+      log("reconcile: feed superseded (account changed or newer feed applied) — discarding")
       return
     }
+    appliedFeedGeneration = fetchGeneration
     lastFeed = feed
     // Publish the all-stations "coming up" projection unconditionally — the badges must show in the
     // station list / Home even when nothing is playing, so this runs ahead of the now-playing guard.

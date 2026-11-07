@@ -578,6 +578,43 @@ struct GiveawayCoordinatorTests {
 
 extension GiveawayCoordinatorTests {
 
+  @Test func reconcileAppliesOlderFeedWhenNewerFeedFails() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
+    @Shared(.upcomingGiveaways) var upcomingGiveaways: IdentifiedArrayOf<UpcomingGiveawayInfo> = []
+    let (olderFeedStarted, olderFeedStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseOlderFeed, releaseOlderFeedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let feedCount = LockIsolated(0)
+    let upcomingEvent = GiveawayEvent(
+      id: "e1", stationId: "s2", prizeName: "P", winningNumber: 9, status: .scheduled,
+      opensAt: Date(timeIntervalSince1970: 2000))
+    let coordinator = withDependencies {
+      $0.api.giveawayEventsFeed = { _ in
+        let isOlderFeed = feedCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        if !isOlderFeed { throw BoomError() }
+        olderFeedStartedContinuation.yield(())
+        var releaseOlderFeedIterator = releaseOlderFeed.makeAsyncIterator()
+        _ = await releaseOlderFeedIterator.next()
+        return [upcomingEvent]
+      }
+    } operation: {
+      GiveawayCoordinator()
+    }
+
+    let olderReconcile = Task { await coordinator.reconcile() }
+    var olderFeedStartedIterator = olderFeedStarted.makeAsyncIterator()
+    _ = await olderFeedStartedIterator.next()
+    await coordinator.reconcile()
+    releaseOlderFeedContinuation.yield(())
+    releaseOlderFeedContinuation.finish()
+    await olderReconcile.value
+
+    expectNoDifference(upcomingGiveaways.map(\.event.id), ["e1"])
+  }
+
   @Test func reconcileOlderFeedFinishingLastDoesNotRestoreExpiredUpcomingBadge() async {
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = nil
