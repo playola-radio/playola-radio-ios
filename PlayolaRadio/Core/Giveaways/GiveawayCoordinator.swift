@@ -257,7 +257,9 @@ final class GiveawayCoordinator {
     let generation = reconciliationGeneration
     guard let fresh = try? await api.giveawayEvent(jwt, event.id) else { return }
     guard auth.identity.isSameAccount(as: identity), fresh.status != .open else { return }
-    if generation == reconciliationGeneration, currentPlayolaStationId == stationId {
+    if currentPlayolaStationId == stationId,
+      generation == reconciliationGeneration || activeGiveaway?.id == event.id
+    {
       if armedEventId == event.id { cancelArmedReveal() } else { reconciliationGeneration += 1 }
       $activeGiveaway.withLock { $0 = nil }
       log("active event \(event.id) is now \(fresh.status.rawValue) → cleared")
