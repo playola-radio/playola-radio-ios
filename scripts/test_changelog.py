@@ -1,4 +1,5 @@
 import contextlib
+import datetime
 import io
 import os
 import tempfile
@@ -91,10 +92,15 @@ class CollectTests(ChangelogTestCase):
     def testReadmeIsNeverCollected(self):
         self.assertEqual(changelog.collect(self.root).fragments, [])
 
-    def testHiddenFilesAreIgnored(self):
+    def testHiddenNonMarkdownFilesAreIgnored(self):
         self.write("changelog.d/.DS_Store", "binary junk")
 
         self.assertEqual(changelog.collect(self.root).fragments, [])
+
+    def testHiddenMarkdownFileIsStillCollected(self):
+        self.write("changelog.d/.hidden.md", "")
+
+        self.assert_collect_error("changelog.d/.hidden.md:1: no notes")
 
     def testEmptyFragmentIsAnError(self):
         self.write("changelog.d/empty.md", "")
@@ -131,6 +137,16 @@ class CollectTests(ChangelogTestCase):
 
         self.assert_collect_error("changelog.d/bare.md:2: unexpected line")
 
+    def testTextBetweenCommentsIsAnError(self):
+        self.write("changelog.d/comment.md", "### Changes\n<!-- a --> lost text <!-- b -->\n- Note\n")
+
+        self.assert_collect_error("changelog.d/comment.md:2: unexpected line")
+
+    def testInvalidUtf8IsAnError(self):
+        (self.root / "changelog.d/binary.md").write_bytes(b"### Changes\n- \xff\n")
+
+        self.assert_collect_error("changelog.d/binary.md: not valid UTF-8")
+
     def testUnclosedCommentIsAnError(self):
         self.write("changelog.d/comment.md", "### Changes\n<!-- starts here\n- Note\n")
 
@@ -157,6 +173,14 @@ class CollectTests(ChangelogTestCase):
         )
 
         self.assert_collect_error("CHANGELOG.md:10: unexpected line")
+
+    def testNonVersionHeadingUnderUnreleasedIsAnError(self):
+        self.write(
+            "CHANGELOG.md",
+            PREAMBLE + "## [Unreleased]\n\n### Changes\n\n- Note\n## Ops\n- Hidden\n\n" + HISTORY,
+        )
+
+        self.assert_collect_error("CHANGELOG.md:10: unknown heading '## Ops'")
 
     def testMissingUnreleasedHeadingIsAnError(self):
         self.write("CHANGELOG.md", PREAMBLE + HISTORY)
@@ -278,10 +302,12 @@ class MainTests(ChangelogTestCase):
     def testRollPrintsNotesAndRewritesChangelog(self):
         self.write("changelog.d/note.md", "### Changes\n- Note\n")
 
-        code, stdout, _ = self.run_main("roll", "--version", "7.5.0", "--date", "2026-11-07")
+        code, stdout, _ = self.run_main("roll", "--version", "7.5.0")
 
         self.assertEqual((code, stdout), (0, "- Note\n"))
-        self.assertIn("## [7.5.0] - 2026-11-07", self.read("CHANGELOG.md"))
+        self.assertIn(
+            f"## [7.5.0] - {datetime.date.today().isoformat()}", self.read("CHANGELOG.md")
+        )
 
     def testRollWithoutVersionFails(self):
         before = self.snapshot()

@@ -36,6 +36,7 @@ UNRELEASED_COMMENT = (
 )
 NO_CHANGES = "No user-facing changes."
 VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
+VERSION_HEADING_PATTERN = re.compile(r"^## \[\d+\.\d+\.\d+\]")
 
 
 class ChangelogError(Exception):
@@ -60,7 +61,7 @@ def parse_notes(lines: list[str], source: str, first_line_number: int = 1):
     for offset, raw_line in enumerate(lines):
         where = f"{source}:{first_line_number + offset}"
         line = raw_line.rstrip()
-        if not line or (line.startswith("<!--") and line.endswith("-->")):
+        if not line or _is_comment(line):
             continue
         if line == CHANGES_HEADING:
             in_changes = True
@@ -79,17 +80,28 @@ def parse_notes(lines: list[str], source: str, first_line_number: int = 1):
     return notes, errors
 
 
+def _is_comment(line: str) -> bool:
+    return line.startswith("<!--") and line.endswith("-->") and "-->" not in line[4:-3]
+
+
+def _read_lines(path: Path, source: str) -> list[str]:
+    try:
+        return path.read_text(encoding="utf-8").splitlines()
+    except UnicodeDecodeError as error:
+        raise ChangelogError(f"{source}: not valid UTF-8 ({error.reason} at byte {error.start})")
+
+
 def collect(root: Path) -> Collected:
     changelog_path = root / CHANGELOG
     if not changelog_path.is_file():
         raise ChangelogError(f"{CHANGELOG}: not found")
-    lines = changelog_path.read_text(encoding="utf-8").splitlines()
+    lines = _read_lines(changelog_path, CHANGELOG)
 
     if UNRELEASED_HEADING not in lines:
         raise ChangelogError(f"{CHANGELOG}: no '{UNRELEASED_HEADING}' heading")
     start = lines.index(UNRELEASED_HEADING)
     end = next(
-        (index for index in range(start + 1, len(lines)) if lines[index].startswith("## ")),
+        (index for index in range(start + 1, len(lines)) if VERSION_HEADING_PATTERN.match(lines[index])),
         len(lines),
     )
 
@@ -101,14 +113,17 @@ def collect(root: Path) -> Collected:
     entries = sorted(fragment_dir.iterdir()) if fragment_dir.is_dir() else []
     for path in entries:
         relative = f"{FRAGMENT_DIR}/{path.name}"
-        if path.name == FRAGMENT_README or path.name.startswith("."):
+        if path.name == FRAGMENT_README or (path.name.startswith(".") and path.suffix != ".md"):
             continue
         if path.suffix != ".md" or not path.is_file():
             errors.append(f"{relative}: not a .md file (notes go in {FRAGMENT_DIR}/<name>.md)")
             continue
-        fragment_notes, fragment_errors = parse_notes(
-            path.read_text(encoding="utf-8").splitlines(), relative
-        )
+        try:
+            fragment_lines = _read_lines(path, relative)
+        except ChangelogError as error:
+            errors.append(str(error))
+            continue
+        fragment_notes, fragment_errors = parse_notes(fragment_lines, relative)
         if not fragment_notes and not fragment_errors:
             fragment_errors.append(
                 f"{relative}:1: no notes (add '- ' bullets under '{CHANGES_HEADING}', "
@@ -170,7 +185,6 @@ def main(argv: list[str] | None = None) -> int:
     commands.add_parser("check", help="validate every note and print them")
     roll_parser = commands.add_parser("roll", help="move every note into a version section of CHANGELOG.md")
     roll_parser.add_argument("--version", default="", help="release version, e.g. 7.5.0")
-    roll_parser.add_argument("--date", default=None, help="release date YYYY-MM-DD (default: today)")
     args = parser.parse_args(argv)
 
     root = Path(args.root)
@@ -178,7 +192,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "check":
             notes = collect(root).notes
         else:
-            notes = roll(root, args.version, args.date or datetime.date.today().isoformat())
+            notes = roll(root, args.version, datetime.date.today().isoformat())
     except ChangelogError as error:
         print(f"Changelog error:\n{error}", file=sys.stderr)
         return 1

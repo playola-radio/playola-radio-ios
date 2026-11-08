@@ -120,7 +120,7 @@ git checkout -b "$release_branch"
 echo ""
 echo "Collecting release notes into CHANGELOG.md..."
 if ! release_notes=$(python3 scripts/changelog.py roll --version "$new_version"); then
-  git checkout develop
+  git checkout --force develop
   git branch -D "$release_branch"
   exit 1
 fi
