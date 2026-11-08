@@ -24,6 +24,15 @@ Reviewers (including Greptile): flag any PR that clearly advances or completes a
 flag *obvious* advancement of an *already-tracked* task; whether something new
 *should* be tracked is a human judgment call, not a review gate.
 
+## Release Notes (changelog.d/)
+
+**Never edit `CHANGELOG.md` in a pull request.** A PR with a user-facing change
+adds one new file, `changelog.d/<short-kebab-description>.md`, holding a
+`### Changes` heading and plain-English `- ` bullets (format and strict rules
+in `changelog.d/README.md`; check with `make changelog-check`). Pure chores add
+no file and say so in the PR's Changelog section. `scripts/release.sh` collects
+the files into `CHANGELOG.md` at release time.
+
 ## NEVER NEVER NEVER gate a feature to an environment
 
 **Do not gate any user-facing feature so that it behaves differently in production than in staging/development.** Absolutely never write code of the form `Config.shared.environment != .production` (or any equivalent) to turn a feature on in staging while leaving it dark in production.
