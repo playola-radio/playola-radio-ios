@@ -7,6 +7,7 @@
 
 import Combine
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import Sharing
@@ -296,6 +297,142 @@ struct RewardsPageModelTests {
     await model.viewAppeared()
 
     #expect(model.redeemedPrizeTierIds.contains(mockPrizeTiers[0].id))
+  }
+
+  @Test
+  func testUserPrizesResponseArrivingAfterClaimKeepsClaimedTierRedeemed() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-token")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseFetch, releaseFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { [.mock] }
+      $0.api.getUserPrizes = { _ in
+        fetchStartedContinuation.yield(())
+        var releaseFetchIterator = releaseFetch.makeAsyncIterator()
+        _ = await releaseFetchIterator.next()
+        return []
+      }
+      $0.api.createRewardRedemption = { _, _ in .mock(source: .reward, giveawayEventId: nil) }
+      $0.api.getMyFulfillmentRequests = { _ in [] }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    let appear = Task { await model.viewAppeared() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    await model.redeemPrizeTapped(for: .mock)
+    guard case .claim(let sheet) = coordinator.presentedSheet else {
+      Issue.record("expected claim sheet")
+      return
+    }
+    await sheet.claimItTapped()
+    releaseFetchContinuation.yield(())
+    releaseFetchContinuation.finish()
+    await appear.value
+
+    expectNoDifference(model.redeemedPrizeTierIds, [PrizeTier.mock.id])
+  }
+
+  @Test
+  func testUserPrizesResponseArrivingAfterAccountSwitchIsIgnored() async {
+    @Shared(.auth) var auth = Auth(jwt: "first-token")
+    let prize = PrizeTier.mock.prizes[0]
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseFetch, releaseFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { [.mock] }
+      $0.api.getUserPrizes = { _ in
+        fetchStartedContinuation.yield(())
+        var releaseFetchIterator = releaseFetch.makeAsyncIterator()
+        _ = await releaseFetchIterator.next()
+        return [UserPrize(id: "up-1", userId: "user-1", prizeId: prize.id, prize: prize)]
+      }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    let appear = Task { await model.viewAppeared() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    $auth.withLock { $0 = Auth(jwt: "second-token") }
+    releaseFetchContinuation.yield(())
+    releaseFetchContinuation.finish()
+    await appear.value
+
+    expectNoDifference(model.redeemedPrizeTierIds, [])
+  }
+
+  // MARK: - Error Reporting Tests
+
+  @Test
+  func testLoadPrizeTiersReportsNonNetworkFailureOnce() async {
+    let reportedEndpoints = LockIsolated<[String?]>([])
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reportedEndpoints.withValue { $0.append(tags["endpoint"]) }
+      }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(reportedEndpoints.value, ["getPrizeTiers"])
+  }
+
+  @Test
+  func testLoadPrizeTiersDoesNotReportNetworkFailure() async {
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  @Test
+  func testLoadUserPrizesReportsNonNetworkFailureOnce() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-token")
+    let reportedEndpoints = LockIsolated<[String?]>([])
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { PrizeTier.mocks }
+      $0.api.getUserPrizes = { _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reportedEndpoints.withValue { $0.append(tags["endpoint"]) }
+      }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(reportedEndpoints.value, ["getUserPrizes"])
+  }
+
+  @Test
+  func testLoadUserPrizesDoesNotReportNetworkFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-token")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { PrizeTier.mocks }
+      $0.api.getUserPrizes = { _ in throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      RewardsPageModel()
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(reportCount.value, 0)
   }
 
   // MARK: - Redemption Status Tests

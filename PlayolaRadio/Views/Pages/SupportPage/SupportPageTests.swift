@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  SupportPageTests.swift
 //  PlayolaRadio
@@ -903,6 +904,120 @@ struct SupportPageTests {
 
     expectNoDifference(model.isLoading, false)
     expectNoDifference(shownToasts.value.map(\.message), [])
+  }
+
+  @Test
+  func testSendMessageReportsNonNetworkCreateFailureOnce() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportedEndpoints = LockIsolated<[String?]>([])
+    let model = withDependencies {
+      $0.api.createSupportConversation = { _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reportedEndpoints.withValue { $0.append(tags["endpoint"]) }
+      }
+    } operation: {
+      SupportPageModel()
+    }
+    model.newMessage = "Hello"
+
+    await model.sendMessage()
+
+    expectNoDifference(reportedEndpoints.value, ["createSupportConversation"])
+  }
+
+  @Test
+  func testSendMessageReportsNonNetworkSendFailureOnce() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportedEndpoints = LockIsolated<[String?]>([])
+    let model = withDependencies {
+      $0.api.sendConversationMessage = { _, _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reportedEndpoints.withValue { $0.append(tags["endpoint"]) }
+      }
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+    model.newMessage = "Hello"
+
+    await model.sendMessage()
+
+    expectNoDifference(reportedEndpoints.value, ["sendConversationMessage"])
+  }
+
+  @Test
+  func testSendMessageDoesNotReportNetworkFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.sendConversationMessage = { _, _, _ in throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+    model.newMessage = "Hello"
+
+    await model.sendMessage()
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  @Test
+  func testSendMessageDoesNotReportCancellation() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.sendConversationMessage = { _, _, _ in throw CancellationError() }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+    model.newMessage = "Hello"
+
+    await model.sendMessage()
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  @Test
+  func testMarkAsReadReportsNonNetworkFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportedEndpoints = LockIsolated<[String?]>([])
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in [] }
+      $0.api.markConversationRead = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reportedEndpoints.withValue { $0.append(tags["endpoint"]) }
+      }
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+
+    await model.refreshMessages()
+
+    expectNoDifference(reportedEndpoints.value, ["markConversationRead"])
+  }
+
+  @Test
+  func testLoadMessagesDropsDuplicateMessageIds() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let first = makeMessage(id: "msg-1", conversationId: "conv-1", senderId: "u", text: "A")
+    let second = makeMessage(id: "msg-2", conversationId: "conv-1", senderId: "u", text: "B")
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in [first, second, first] }
+      $0.api.markConversationRead = { _, _ in }
+      $0.pushNotifications.clearSupportBadge = {}
+    } operation: {
+      SupportPageModel()
+    }
+    model.conversation = makeConversation(id: "conv-1")
+
+    await model.refreshMessages()
+
+    expectNoDifference(model.messages.map(\.id), ["msg-1", "msg-2"])
   }
 
   @Test
