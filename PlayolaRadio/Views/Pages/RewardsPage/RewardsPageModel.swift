@@ -31,6 +31,7 @@ class RewardsPageModel: ViewModel {
 
   var prizeTiers: [PrizeTier] = []
   var redeemedPrizeTierIds: Set<String> = []
+  @ObservationIgnored private var redeemedAccount: AuthIdentity?
 
   // MARK: - User Actions
 
@@ -141,6 +142,10 @@ class RewardsPageModel: ViewModel {
   private func loadUserPrizes() async {
     guard let jwt = auth.jwt else { return }
     let identity = auth.identity
+    if let redeemedAccount, !redeemedAccount.isSameAccount(as: identity) {
+      redeemedPrizeTierIds = []
+    }
+    redeemedAccount = identity
     do {
       let userPrizes = try await api.getUserPrizes(jwt)
       guard auth.identity.isSameAccount(as: identity) else { return }

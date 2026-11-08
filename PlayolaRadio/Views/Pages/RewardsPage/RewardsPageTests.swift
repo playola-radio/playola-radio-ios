@@ -365,6 +365,28 @@ struct RewardsPageModelTests {
     expectNoDifference(model.redeemedPrizeTierIds, [])
   }
 
+  @Test
+  func testRedeemedTiersFromPreviousAccountAreClearedAfterAccountSwitch() async {
+    @Shared(.auth) var auth = Auth(jwt: "first-token")
+    let prize = PrizeTier.mock.prizes[0]
+    let userPrizes = LockIsolated([
+      UserPrize(id: "up-1", userId: "user-1", prizeId: prize.id, prize: prize)
+    ])
+    let model = withDependencies {
+      $0.api.getPrizeTiers = { [.mock] }
+      $0.api.getUserPrizes = { _ in userPrizes.value }
+    } operation: {
+      RewardsPageModel()
+    }
+    await model.viewAppeared()
+    userPrizes.setValue([])
+    $auth.withLock { $0 = Auth(jwt: "second-token") }
+
+    await model.viewAppeared()
+
+    expectNoDifference(model.redeemedPrizeTierIds, [])
+  }
+
   // MARK: - Error Reporting Tests
 
   @Test
