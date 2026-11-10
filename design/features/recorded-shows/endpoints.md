@@ -45,7 +45,7 @@ The message names what it overlaps, is formatted in `Station.timezone`, and incl
 
 **Content changes never touch spins.** An Airing with spins is locked, so an editable Show has none. Segment add / reorder / remove apply the change, recompute offsets/fades, and run the lock and overlap checks in one transaction under the scheduling lock(s) — commit both or neither. The Airing picks up the new content when it materializes (about 4 hours ahead, `scheduler.ts:162`).
 
-**Bounded repair** (one helper in `lib/scheduler`, used by Unschedule and move): remove only this Airing's spins, close the gap with ordinary rotation (existing `reflowAfterRemoval`, `scheduler.ts:1835`), and, for a move, re-materialize this Airing at its new time (`insertAirings` with `windowOverride`). Other Airings, listener-question airings, live blocks and giveaway spins keep their ids and times. Replaces today's suffix delete in move and DELETE (`deleteAiringFromSchedule`, `scheduler.ts:950`, which removes every later non-live spin). Pattern: `deleteListenerQuestionAiringFromSchedule`, `scheduler.ts:1912`.
+**Bounded repair** (one helper in `lib/scheduler`, used by Unschedule and move): remove only this Airing's spins and close the gap with ordinary rotation (existing `reflowAfterRemoval`, `scheduler.ts:1835`). For a move, do not materialize the Airing early: normal scheduler processing materializes it when its new time enters the ordinary scheduling window. Until then it remains editable and movable unless it enters the six-hour lock window. Other Airings, listener-question airings, live blocks and giveaway spins keep their ids and times. Replaces today's suffix delete in move and DELETE (`deleteAiringFromSchedule`, `scheduler.ts:950`, which removes every later non-live spin). Pattern: `deleteListenerQuestionAiringFromSchedule`, `scheduler.ts:1912`.
 
 **Airing times:** wherever an Airing is returned, the existing `embedAiringTimes` (`lib/stations/stations.lib.ts:740`, generalized) fills `startTime` / `endTime`.
 
@@ -127,7 +127,7 @@ The message names what it overlaps, is formatted in `Station.timezone`, and incl
 - **Behavior:** `durationMS` is always filled, from the existing batched `episodeDurationsByEpisode` (`lib/stations/stations.lib.ts:696`, switched to `endOfMessageMS`), so lists don't need `includeSegments`. Airing start/end from `embedAiringTimes`.
 - **Errors:** unchanged
 - **Compatibility:** additive; same array, order, no pagination.
-- **Consumers:** Upcoming (counts), Series list, Series page, Individual Shows, Add a show sheet.
+- **Consumers:** Upcoming (counts), Curator Series list, Curator Series page, Individual Shows, Add a show sheet.
 
 ## GET /v1/episodes/:episodeId
 - **Change:** Changed
@@ -136,7 +136,7 @@ The message names what it overlaps, is formatted in `Station.timezone`, and incl
 - **Query params — added:** `includeAirings` (boolean, default false; the list route has it, detail doesn't today — `api/episode/episode.controller.ts:47`)
 - **Request body:** none
 - **Response `200`:** `airings` populated as in the list above
-- **Behavior:** GET no longer resolves song-request segments into audio for an Episode that has any Airing (today it writes during the read, `lib/episodes/episodes.lib.ts:160`); drafts still resolve on read as today. A scheduled web-made Show with an unresolved request airs without that song, as it does today.
+- **Behavior:** GET takes the same scheduling-lock boundary as Airing creation, then rechecks for an Airing on any station before writing resolved song-request segments. It resolves only a still-draft Episode with no Airings; otherwise it writes nothing. This prevents a concurrent schedule from changing a locked Show through a read. A scheduled web-made Show with an unresolved request airs without that song, as it does today.
 - **Errors:** unchanged
 - **Compatibility:** additive; the website's scheduled request-only segments stop filling in on read.
 - **Consumers:** Show builder (load, and refresh after a refusal or a failed save).
@@ -258,7 +258,7 @@ The message names what it overlaps, is formatted in `Station.timezone`, and incl
 
 ## Open slots (computed on iOS — no endpoint)
 
-From a weekly `show.rrule` and `Station.timezone`, expand occurrences forward and keep the first 8 that are in the future and not equal to the nominal `airtime` of any Airing on the station (existing `GET /v1/airings?stationId=`, iOS `api.getAirings`). Slots are suggestions; the server's overlap rule is the only judge. Moving or unscheduling a Show reopens its slot.
+From a weekly `show.rrule` and `Station.timezone`, expand occurrences forward and keep the first 8 that are in the future and outside every returned Airing interval `[startTime, endTime)` on the station (existing `GET /v1/airings?stationId=`, iOS `api.getAirings`). This avoids offering a slot inside a Show whose nominal `airtime` differs. Slots are suggestions; the server's overlap rule is the only judge. Moving or unscheduling a Show reopens its slot.
 
 ## Add a show sheet: two requests
 
@@ -269,8 +269,8 @@ Placing an existing Show into a slot is two existing calls, in order: schedule o
 | Screen | Calls |
 |---|---|
 | Upcoming | `GET /v1/shows?stationIds=`, `GET /v1/episodes?stationIds=&includeAirings=true` |
-| Series list | `GET /v1/shows?stationIds=`, `GET /v1/episodes?stationIds=&includeAirings=true`, `GET /v1/airings?stationId=` (slots) |
-| Series page | `GET /v1/shows/:showId`, `GET /v1/episodes?showId=&includeAirings=true`, `GET /v1/airings?stationId=` (slots) |
+| Curator Series list | `GET /v1/shows?stationIds=`, `GET /v1/episodes?stationIds=&includeAirings=true`, `GET /v1/airings?stationId=` (slots) |
+| Curator Series page | `GET /v1/shows/:showId`, `GET /v1/episodes?showId=&includeAirings=true`, `GET /v1/airings?stationId=` (slots) |
 | Individual Shows, Add a show sheet | `GET /v1/episodes?stationIds=&includeAirings=true` |
 | Show builder | `GET /v1/episodes/:episodeId?includeSegments=true&includeAirings=true`; Q&A via one `POST …/segments { audioBlockIds }` |
 | Schedule sheet | `GET /v1/airings?stationId=` when the Show is in a Series (slots) |

@@ -96,8 +96,9 @@ Run from `server/`. To run one suite: `npm test -- --grep "<describe title>"`. R
   - `airing endTime before spins is airtime plus durationMS`.
   - `GET /v1/episodes/:id on a scheduled episode with a song-request segment writes nothing`: snapshot `episodeSegments` rows before and after; expect deep equal.
   - `GET /v1/episodes/:id on a draft still resolves song requests` (current behavior kept).
+  - `GET /v1/episodes/:id racing an Airing create rechecks under the shared scheduling lock and writes no resolved segments`.
 - [ ] **Step 2:** Run `npm test -- --grep "episodes|durations|embedAiringTimes"`. Expect the new tests to FAIL.
-- [ ] **Step 3:** Implement per endpoints.md "GET /v1/episodes" and "GET /v1/episodes/:episodeId". Do not touch the giveaway worker's own copy of the window logic. In `getEpisodeById`, skip the song-request resolution block (`episodes.lib.ts:160`) when the Episode has any Airing.
+- [ ] **Step 3:** Implement per endpoints.md "GET /v1/episodes" and "GET /v1/episodes/:episodeId". Do not touch the giveaway worker's own copy of the window logic. In `getEpisodeById`, take the existing scheduling-lock boundary shared with Airing creation, recheck for Airings on every station, and resolve song-request segments only when none exist.
 - [ ] **Step 4:** Run again, plus the full `lib/stations` suite (touched-area regression rule). Expect PASS. Update the docs files listed above.
 - [ ] **Step 5:** Commit `feat: return real show lengths and airing times`.
 
@@ -117,7 +118,7 @@ Run from `server/`. To run one suite: `npm test -- --grep "<describe title>"`. R
   - `assertNoAiringOverlap({ stationId, airtime, durationMS, excludeAiringId, transaction }): Promise<void>`: throws `ConflictError(msg, { code: AIRING_OVERLAP })`; the message names what it overlaps.
   - `assertEpisodeHasAudio({ episodeId, transaction }): Promise<void>`: throws a message-only `ConflictError`.
   - `withEpisodeStationLocks<T>(episodeId: string, fn: (transaction: Transaction) => Promise<T>): Promise<T>`: authorizes nothing. It takes `acquireSchedulingLock` for every station that has an Airing of the Episode, plus the Episode's own station, in ascending `stationId` order, and runs `fn` in one transaction.
-- Produces, in `scheduler.ts`: `repairScheduleForAiring({ airingId, stationId, rematerialize, transaction }): Promise<void>`. It removes only spins with this `airingId`, calls `reflowAfterRemoval`, then, if `rematerialize`, calls `insertAirings({ stationId, assumeLocked: true, transaction, windowOverride })` for this Airing's time.
+- Produces, in `scheduler.ts`: `repairScheduleForAiring({ airingId, stationId, transaction }): Promise<void>`. It removes only spins with this `airingId` and calls `reflowAfterRemoval`. A moved Airing is left for ordinary scheduler processing when its new time enters the normal scheduling window; it is not early-materialized with `windowOverride`.
 
 - [ ] **Step 1: Write failing tests**, one assertion each where possible:
   - `create refuses a past airtime with the too-soon message`.
@@ -334,14 +335,14 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
   - fields `weekdays: Set<Locale.Weekday>`, `hour: Int`, `minute: Int`
   - `init?(rrule: String)`: nil for any rule other than plain weekly (`INTERVAL` other than 1, `DAILY`, `MONTHLY`, `COUNT`, `UNTIL`, `DTSTART`, several times)
   - `var rrule: String`: the exact form in models.md "What iOS writes"
-  - `func openSlots(after now: Date, in timeZone: TimeZone, takenAirtimes: Set<Date>, limit: Int = 8) -> [Date]`: follows models.md "Expansion rules (iOS)" (skip the spring-forward gap, use the earlier fall-back instant, stop at `limit` or 52 weeks).
+  - `func openSlots(after now: Date, in timeZone: TimeZone, occupiedIntervals: [DateInterval], limit: Int = 8) -> [Date]`: follows models.md "Expansion rules (iOS)" (skip the spring-forward gap, use the earlier fall-back instant, exclude slots inside an Airing interval, stop at `limit` or 52 weeks).
 - Plain-English text stays with the existing `RRuleFormatter` (unchanged).
 
 - [ ] **Step 1: Write failing tests:**
   - `weeklyRuleRoundTrips` (`"FREQ=WEEKLY;BYDAY=TU,TH;BYHOUR=20;BYMINUTE=0"`).
   - `everyOtherWeekRuleIsNotEditable` (`INTERVAL=2` → nil).
   - `dailyRuleIsNotEditable` (`FREQ=DAILY` → nil).
-  - `openSlotsSkipTakenTimes`.
+  - `openSlotsSkipOccupiedIntervals`, including a candidate slot inside an Airing whose nominal airtime differs.
   - `openSlotsStopAtEight`.
   - `openSlotsSkipSpringForwardGap` (2:30 AM on 2027-03-14 Chicago).
   - `openSlotsUseEarlierInstantOnFallBack` (1:30 AM on 2026-11-01 Chicago).
@@ -394,7 +395,7 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
 - Modify: `ShowBuilderPageModel.swift` (Schedule / Change / Unschedule actions; Unschedule uses a `PlayolaAlert` confirm "Unschedule <Show>?" / "Keep it scheduled")
 
 **Interfaces:**
-- Produces: `ScheduleShowSheetModel(episode: CuratorEpisode, series: CuratorSeries?, settings: StationSchedulingSettings, takenAirtimes: Set<Date>, initialTime: Date?, schedule: @escaping (Date) async throws -> Void)`. `schedule` is supplied by the caller: the builder passes one that goes through its `save` chain and calls `scheduleEpisode` for a draft or `moveAiring` for a scheduled Show.
+- Produces: `ScheduleShowSheetModel(episode: CuratorEpisode, series: CuratorSeries?, settings: StationSchedulingSettings, occupiedIntervals: [DateInterval], initialTime: Date?, schedule: @escaping (Date) async throws -> Void)`. `schedule` is supplied by the caller: the builder passes one that goes through its `save` chain and calls `scheduleEpisode` for a draft or `moveAiring` for a scheduled Show.
 
 - [ ] **Step 1: Write failing tests:**
   - `listsNextEightOpenSlotsForWeeklySeries`.
@@ -436,7 +437,7 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
 - [ ] **Step 4:** Run. Expect PASS.
 - [ ] **Step 5:** Commit `feature: pick and edit series for recorded shows`.
 
-### Task I2.4: Upcoming, Individual Shows, Series list, Series page, Add a show sheet
+### Task I2.4: Upcoming, Individual Shows, Curator Series list, Curator Series page, Add a show sheet
 
 **Files:**
 - Create: `PlayolaRadio/Views/Pages/UpcomingShowsPage/…` (Model, View, Tests), `IndividualShowsPage/…`, `CuratorSeriesListPage/…` (with `CuratorSeriesCard.swift`, styled like the listener `SeriesCard`, which is not modified), `CuratorSeriesPage/…`, `AddShowToSeriesSheet/…`
@@ -444,7 +445,7 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
 - Modify: `PlayolaSheet.swift` (`case addShowToSeries(AddShowToSeriesSheetModel)`), `MainContainerNavigationCoordinator.swift` (four page cases)
 
 **Interfaces:**
-- Consumes: `getCuratorEpisodes`, `getCuratorSeries`, `getAirings` (Series list and Series page only), `getStationSchedulingSettings`, `SeriesSchedule.openSlots`, `CuratorEpisode.state(now:lockMS:)`, `scheduleEpisode`, `moveAiring`, `updateEpisode(series:)`.
+- Consumes: `getCuratorEpisodes`, `getCuratorSeries`, `getAirings` (Curator Series list and Curator Series page only), `getStationSchedulingSettings`, `SeriesSchedule.openSlots`, `CuratorEpisode.state(now:lockMS:)`, `scheduleEpisode`, `moveAiring`, `updateEpisode(series:)`.
 - Produces: `UpcomingShowsPageModel(stationId:)`, `IndividualShowsPageModel(stationId:)`, `CuratorSeriesListPageModel(stationId:)`, `CuratorSeriesPageModel(stationId:seriesId:)`, `AddShowToSeriesSheetModel(stationId:series:slot:)`.
 
 - [ ] **Step 1: Write failing tests:**
@@ -467,7 +468,7 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
   - `slotUnderLockLengthOpensScheduleSheetAtThatSlot`.
   - `recordNewShowFromSlotOpensBuilderWithSlot`.
 - [ ] **Step 2:** Run. Expect FAIL.
-- [ ] **Step 3:** Implement per screens.md "Upcoming", "Individual Shows", "Series list", "Series page", "Add a show sheet".
+- [ ] **Step 3:** Implement per screens.md "Upcoming", "Individual Shows", "Curator Series list", "Curator Series page", "Add a show sheet".
 - [ ] **Step 4:** Run. Expect PASS.
 - [ ] **Step 5:** Commit `feature: list recorded shows and series with open slots`.
 
@@ -491,4 +492,4 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
 ## Unresolved questions
 
 - Delete a Series and delete a draft Show: deferred (spec Open questions).
-- The empty Series list is built from the Claude's-call description (page with only "Create a New Series"). It has no mockup.
+- The empty Curator Series list is built from the Claude's-call description (page with only "Create a New Series"). It has no mockup.

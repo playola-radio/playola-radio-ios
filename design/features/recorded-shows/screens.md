@@ -15,12 +15,12 @@ Loading and failure follow the app's existing conventions (no separate mockups):
 | Live (today's Shows, renamed) | ios | n/a (native) — pushed | Station tab → SHOWS "Live" |
 | Music / Breakers (renamed) | ios | n/a (native) — pushed | Station tab → LIBRARY "Music" / "Breakers" |
 | Upcoming | ios | n/a (native) — pushed | Station tab → SHOWS "Upcoming" |
-| Series list | ios | n/a (native) — pushed | Upcoming → "Series" |
-| Series page | ios | n/a (native) — pushed | Series list → a card's title |
+| Curator Series list | ios | n/a (native) — pushed | Upcoming → "Series" |
+| Curator Series page | ios | n/a (native) — pushed | Curator Series list → a card's title |
 | Individual Shows | ios | n/a (native) — pushed | Upcoming → "Individual Shows" |
-| Show builder | ios | n/a (native) — pushed | Individual Shows → a row or "Record a New Show" · Series list → a Show row in a card · Series page → a Show row · Add a show sheet → "Record a New Show" |
-| Add a show sheet | ios | n/a (native) — sheet | Series list → a slot's "+ Add show" · Series page → a slot's "+ Add show" or "Add a Show" |
-| Series details sheet | ios | n/a (native) — sheet | Series page → "Edit" · Series list → "Create a New Series" · Series picker sheet → "New Series" |
+| Show builder | ios | n/a (native) — pushed | Individual Shows → a row or "Record a New Show" · Curator Series list → a Show row in a card · Curator Series page → a Show row · Add a show sheet → "Record a New Show" |
+| Add a show sheet | ios | n/a (native) — sheet | Curator Series list → a slot's "+ Add show" · Curator Series page → a slot's "+ Add show" or "Add a Show" |
+| Series details sheet | ios | n/a (native) — sheet | Curator Series page → "Edit" · Curator Series list → "Create a New Series" · Series picker sheet → "New Series" |
 | Series picker sheet | ios | n/a (native) — sheet | Show builder → the series row |
 | Schedule sheet | ios | n/a (native) — sheet | Show builder → "Schedule" or the time's "Change" · Add a show sheet → a Show, when the slot is less than 6 hours away |
 | Unschedule confirmation | ios | n/a (native) — sheet | Show builder → "Unschedule" |
@@ -64,7 +64,7 @@ Loading and failure follow the app's existing conventions (no separate mockups):
 - **Navigated to from:**
   - Station tab → SHOWS "Upcoming"
 - **Navigates to:**
-  - "Series" row → Series list
+  - "Series" row → Curator Series list
   - "Individual Shows" row → Individual Shows
   - Back → Station tab
 
@@ -74,15 +74,16 @@ Each row's count line is computed from the station's Series and Shows ("3 series
 |---|---|---|---|
 | Default | Always | `h2E0tR` | ![Upcoming — default](exports/upcoming--default.png) |
 
-## Series list
+## Curator Series list
 - **Status:** New
 - **Surface:** ios
 - **Address:** n/a (native) — pushed onto the Station tab's stack
 - **Access:** station curator
+- **Title:** "Series" (the navigation title); this is distinct from the listener `seriesListPage` (Radio Shows).
 - **Navigated to from:**
   - Upcoming → "Series"
 - **Navigates to:**
-  - A card's title → Series page
+  - A card's title → Curator Series page
   - A Show row inside a card → Show builder
   - An open slot's "+ Add show" → Add a show sheet (for that slot)
   - "Create a New Series" → Series details sheet (New Series)
@@ -92,34 +93,34 @@ Each card reuses the listener `SeriesCard`: title, amber repeating-schedule badg
 
 | State | When it shows | Node | Mockup |
 |---|---|---|---|
-| Default | The station has at least one Series | `A3MYYC` | ![Series list — default](exports/series-list--default.png) |
+| Default | The station has at least one Series | `A3MYYC` | ![Curator Series list — default](exports/series-list--default.png) |
 
-## Series page
+## Curator Series page
 - **Status:** New
 - **Surface:** ios
 - **Address:** n/a (native) — pushed onto the Station tab's stack
 - **Access:** station curator
 - **Navigated to from:**
-  - Series list → a card's title
+  - Curator Series list → a card's title
 - **Navigates to:**
   - "Edit" → Series details sheet (Edit Series)
   - A Show row (NOT SCHEDULED YET or UPCOMING) → Show builder
   - An open slot's "+ Add show" → Add a show sheet (for that slot)
   - "Add a Show" → Add a show sheet (no slot)
-  - Back → Series list
+  - Back → Curator Series list
 
 | State | When it shows | Node | Mockup |
 |---|---|---|---|
-| Default | Always | `sSpLp` | ![Series page — default](exports/series-page--default.png) |
+| Default | Always | `sSpLp` | ![Curator Series page — default](exports/series-page--default.png) |
 
 ## Add a show sheet
 - **Status:** New
 - **Surface:** ios
-- **Address:** n/a (native) — sheet over the Series list or Series page
+- **Address:** n/a (native) — sheet over the Curator Series list or Curator Series page
 - **Access:** station curator
 - **Navigated to from:**
-  - Series list or Series page → an open slot's "+ Add show" (subtitle names the Series and the slot)
-  - Series page → "Add a Show" (subtitle names only the Series)
+  - Curator Series list or Curator Series page → an open slot's "+ Add show" (subtitle names the Series and the slot)
+  - Curator Series page → "Add a Show" (subtitle names only the Series)
 - **Navigates to:**
   - "Record a New Show" → Show builder for a new Show in this Series; from a slot, its Schedule step offers that slot first
   - A listed Show, from a slot → schedules or moves it into the slot, then adds it to this Series; dismisses back with the list refreshed. These are two requests: if adding to the Series fails, an alert says so and the Show stays scheduled at that time outside the Series (fixable from the builder's Series row). If the slot is less than 6 hours away, it opens the Schedule sheet set to that slot first, so its lock note shows.
@@ -138,8 +139,8 @@ Listed: the station's drafts that have at least one piece of audio, and schedule
 - **Address:** n/a (native) — sheet
 - **Access:** station curator
 - **Navigated to from:**
-  - Series page → "Edit" (Edit Series)
-  - Series list → "Create a New Series" (New Series)
+  - Curator Series page → "Edit" (Edit Series)
+  - Curator Series list → "Create a New Series" (New Series)
   - Series picker sheet → "New Series" (New Series; on Save the Show joins it)
 - **Navigates to:**
   - Save → saves and dismisses (disabled while Name is empty)
@@ -178,8 +179,8 @@ Every upcoming Show of the station, drafts first (amber pencil tile, "Not schedu
 - **Access:** station curator
 - **Navigated to from:**
   - Individual Shows → a row, or "Record a New Show"
-  - Series list → a Show row inside a card
-  - Series page → a Show row
+  - Curator Series list → a Show row inside a card
+  - Curator Series page → a Show row
   - Add a show sheet → "Record a New Show"
 - **Navigates to:**
   - "Rename" → system alert with a text field

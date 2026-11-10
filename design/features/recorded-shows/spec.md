@@ -23,6 +23,8 @@ The user-facing names follow the planned rename. Code and API names are unchange
 | **Series** | `Show` with an `rrule` | Optional. A Show not in a series lives in a hidden one-time Series (`shows.isOneTime = true`) the curator never sees. |
 | Airing | `Airing` | One scheduled broadcast. v1: at most one per Show (no reruns). |
 
+**Screen names:** the curator destinations are **Curator Series list** and **Curator Series page**. Their user-facing navigation titles remain **Series** and the Series name, respectively. This keeps them distinct from the listener `seriesListPage` (Radio Shows).
+
 ## Scope
 
 Let a station curator make a **recorded show** in the iOS app and schedule it, as a counterpart to the existing live-show runner (`ShowsPage` → AMA live runner).
@@ -34,7 +36,7 @@ Let a station curator make a **recorded show** in the iOS app and schedule it, a
 3. **Time is picked at the end.** A **Schedule** step replaces the live runner's Start Show.
 4. **Creating a Show and creating a Series are separate actions; connecting them is obvious but never required.** (User, 2026-11-06: "I don't want curators to feel like they have to commit to a series when they just want to make a show.")
    - **Record a New Show** (on the Individual Shows list) goes straight to the builder and never asks about a series up front.
-   - **Create a New Series** (on the Series list) creates a Series directly. A Series can also be created from a Show's "Add to a series" control.
+   - **Create a New Series** (on the Curator Series list) creates a Series directly. A Series can also be created from a Show's "Add to a series" control.
    - **From a Show:** an obviously-optional **"Add to a series"** control on the Show itself (empty by default), not buried in scheduling.
    - **From a Series:** **"Add a show"** → make a new Show in this series, or **add one of your existing standalone Shows**.
    - A Show can be **removed** from its series (back to standalone). (Claude's call; designed in the Series picker sheet.)
@@ -53,7 +55,7 @@ Let a station curator make a **recorded show** in the iOS app and schedule it, a
    - **Scheduling inside the 6 hours is allowed**; the Show is locked as soon as it is scheduled, and the Schedule step says so before the curator confirms. (Claude's call.)
    - The 6 hours is a **server rule**: the server enforces it and serializes its length; the client computes each airing's lock time from its air time and never hardcodes 6 hours.
 9. **Series management** (reached from Upcoming → Series; a Show's series row opens the Series picker, per the approved screens): create a Series (title + optional repeating schedule); view its Shows and open slots; rename; change its repeating schedule. Changing the rule only affects which future slots are offered — Shows already scheduled keep their times.
-   - **Series page** (title = the Series name, **Edit** at top right): the amber repeating-schedule badge with a note that open slots are only suggestions; **NOT SCHEDULED YET** (the Series' drafts); **UPCOMING** (scheduled Shows and open slots in date order, each slot with an outlined **+ Add show**); an **Add a Show** button at the bottom. Aired Shows are not listed (no Past list in v1).
+   - **Curator Series page** (title = the Series name, **Edit** at top right): the amber repeating-schedule badge with a note that open slots are only suggestions; **NOT SCHEDULED YET** (the Series' drafts); **UPCOMING** (scheduled Shows and open slots in date order, each slot with an outlined **+ Add show**); an **Add a Show** button at the bottom. Aired Shows are not listed (no Past list in v1).
    - **Add a show** sheet (from a slot's **+ Add show**): titled with the Series and the slot's time. Offers **Record a New Show** (opens the builder for that slot) or **add one of your Shows**: drafts, plus already-scheduled Shows labeled "Moves here from <old time>" — adding one moves it into the slot. Locked Shows (inside 6 hours) are not offered. The bottom **Add a Show** button has no slot: a new Show's time is picked in the Schedule step, and an added existing Show keeps its time. Adding to a slot is two requests (schedule or move, then join the Series); if the second fails, an alert says so and the Show stays scheduled outside the Series (Phase 7, R2).
    - **Edit Series** sheet (Cancel / Save): Name; Repeats (Every week / No schedule — Phase 7, R1); Days (S M T W T F S chips); Time ("Starts at"); with the note that changing the schedule only changes open slots. **New Series** is the same sheet titled "New Series". **No Delete Series in v1** — the server has no way to delete a Series (`/v1/shows` has no DELETE route on `develop`).
 10. **Entry points** (user, 2026-11-06 — round 1's combined Shows home was rejected as "too busy and confusing"): Going live and recorded shows are **separate screens**. The Station tab's links are two sections of nouns:
@@ -62,7 +64,7 @@ Let a station curator make a **recorded show** in the iOS app and schedule it, a
     - **No schedule link.** The station schedule (today's Broadcast screen) is still opened by tapping the On Air Now card, as it is today.
     - **Every destination's title matches the link that opens it** (user, 2026-11-06). Today's "Shows", "Music Library" and "Breakers Library" screen titles are renamed to match.
     - **Upcoming** has two rows: **Series** and **Individual Shows**, each with a one-line count.
-    - **Series** reuses the listener's Radio Shows card (`SeriesCard`): one card per Series with its title, an amber repeating-schedule badge, an "UPCOMING SHOWS" heading with counts, and its next Shows as calendar-tile rows. **Open slots appear inside the card** as dashed rows with **+ Add show**. A **Create a New Series** button sits at the bottom. Tapping a card's title opens the Series page (item 9).
+    - **Series** opens the Curator Series list, which reuses the listener's Radio Shows card (`SeriesCard`): one card per Series with its title, an amber repeating-schedule badge, an "UPCOMING SHOWS" heading with counts, and its next Shows as calendar-tile rows. **Open slots appear inside the card** as dashed rows with **+ Add show**. A **Create a New Series** button sits at the bottom. Tapping a card's title opens the Curator Series page (item 9).
     - **Individual Shows** lists **every** upcoming Show, each row led by the calendar tile (red month strip over the day) with the title, then day · time · length. A Show in a Series carries a grey badge with the Series name; a one-off has none. Drafts sit at the top with an amber pencil tile and "Not scheduled yet". A **Record a New Show** button sits at the bottom.
 
 ### Decisions from the builder check (user, 2026-11-06)
@@ -107,7 +109,7 @@ Let a station curator make a **recorded show** in the iOS app and schedule it, a
 ## Open questions
 
 - Delete a Series: deferred from v1. When revisited, decide what happens to its scheduled and draft Shows.
-- Empty Series list (no Series yet): not mocked; Claude's call is the page with only "Create a New Series". Mock it if the user wants.
+- Empty Curator Series list (no Series yet): not mocked; Claude's call is the page with only "Create a New Series". Mock it if the user wants.
 - Delete a draft Show: not in the v1 screens (Claude's call, 2026-11-06). The backend supports deleting a never-aired episode; revisit if abandoned drafts pile up.
 
 ## Existing contracts
@@ -207,7 +209,7 @@ Every disposition was checked against `origin/develop` (backend `fd456a53`, iOS 
 |---|---|---|
 | S1 | Merge the two UI PRs | **Applied** — four PRs: B1, B2, I1 (data layer), I2 (builder, sheets, lists, Station tab) |
 | S2 | Slot occupancy can use the existing `getAirings` | **Applied** — no new airings endpoint or field |
-| S3 | Upcoming doesn't need Airings for slots | **Applied** — only Series list, Series page and Schedule sheet fetch them |
+| S3 | Upcoming doesn't need Airings for slots | **Applied** — only Curator Series list, Curator Series page and Schedule sheet fetch them |
 | S4 | `editableUntil` duplicates `airtime − lock length` | **Applied** — dropped; lock = not ended and (inside 6 h or has spins); the client computes it from `airingEditLockMS` |
 | S5 | Error codes nobody branches on | **Applied** — only `AIRING_EDIT_LOCKED` and `AIRING_OVERLAP`; no `data.conflict`; other refusals are message-only |
 | S6 | New airing-window and duration helpers duplicate existing ones | **Applied** — generalize `embedAiringTimes`; switch batched `episodeDurationsByEpisode` to `endOfMessageMS` |
