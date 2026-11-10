@@ -88,7 +88,7 @@ class SupportPageModel: ViewModel {
       try await api.markConversationRead(jwt, conversationId)
       await pushNotifications.clearSupportBadge()
     } catch {
-      // Silently fail - not critical
+      await reportUnexpectedError(error, endpoint: "markConversationRead")
     }
   }
 
@@ -98,6 +98,7 @@ class SupportPageModel: ViewModel {
     let messageText = newMessage.trimmingCharacters(in: .whitespacesAndNewlines)
     isSending = true
     newMessage = ""
+    var endpoint = "createSupportConversation"
 
     do {
       if conversation == nil {
@@ -107,6 +108,7 @@ class SupportPageModel: ViewModel {
       guard let conversationId = conversation?.id else {
         throw APIError.dataNotValid
       }
+      endpoint = "sendConversationMessage"
       let message = try await api.sendConversationMessage(jwt, conversationId, messageText)
       completedSendCount += 1
       if !messages.contains(where: { $0.id == message.id }) {
@@ -119,6 +121,7 @@ class SupportPageModel: ViewModel {
         newMessage = messageText + "\n" + newMessage
       }
       presentedAlert = .errorSendingMessage
+      await reportUnexpectedError(error, endpoint: endpoint)
     }
 
     isSending = false
@@ -153,8 +156,18 @@ class SupportPageModel: ViewModel {
       sendCountBeforeFetch = completedSendCount
       fetchedMessages = try await api.getConversationMessages(jwt, conversationId)
     } while completedSendCount != sendCountBeforeFetch
-    messages = fetchedMessages
+    var seenIds = Set<String>()
+    messages = fetchedMessages.filter { seenIds.insert($0.id).inserted }
     await markAsRead()
+  }
+
+  private func reportUnexpectedError(_ error: Error, endpoint: String) async {
+    guard !Task.isCancelled, !(error is CancellationError),
+      !NetworkErrorClassifier.isNetworkError(error)
+    else { return }
+    var tags = NetworkErrorClassifier.errorTags(for: error)
+    tags["endpoint"] = endpoint
+    await errorReporting.reportError(error, tags)
   }
 
   // MARK: - View Helpers
