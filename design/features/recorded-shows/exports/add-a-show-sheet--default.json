@@ -13,7 +13,7 @@
     {
       "type": "frame",
       "id": "XBhs6",
-      "name": "Music Library Navigation",
+      "name": "Navigation",
       "width": "fill_container",
       "height": 60,
       "layout": "none",
@@ -23,7 +23,7 @@
           "id": "duHzy",
           "x": 16,
           "y": 27,
-          "name": "Music Library Back",
+          "name": "Back",
           "width": 18,
           "height": 18,
           "icon": "chevron-left",
@@ -35,7 +35,7 @@
           "id": "vnApX",
           "x": 20,
           "y": 26,
-          "name": "Music Library Navigation Title",
+          "name": "Navigation Title",
           "fill": "#FFFFFF",
           "textGrowth": "fixed-width",
           "width": 353,
@@ -351,7 +351,7 @@
                       "id": "THNb7",
                       "name": "Day Label",
                       "fill": "#FFFFFF",
-                      "content": "9",
+                      "content": "8",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "700"
@@ -492,7 +492,7 @@
                       "id": "varXY",
                       "name": "Day Label",
                       "fill": "#FFFFFF",
-                      "content": "16",
+                      "content": "15",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "700"
@@ -633,7 +633,7 @@
                       "id": "hupcr",
                       "name": "Day Label",
                       "fill": "#999999",
-                      "content": "23",
+                      "content": "22",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "700"
@@ -800,7 +800,7 @@
                       "id": "VUoKh",
                       "name": "Day Label",
                       "fill": "#999999",
-                      "content": "30",
+                      "content": "29",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "700"
@@ -967,7 +967,7 @@
                       "id": "Zv6xG",
                       "name": "Day Label",
                       "fill": "#999999",
-                      "content": "7",
+                      "content": "6",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "700"
@@ -1061,7 +1061,7 @@
       "id": "isNN9",
       "type": "ref",
       "ref": "R0hsG",
-      "name": "Music Library Tab Bar",
+      "name": "Tab Bar",
       "layoutPosition": "absolute",
       "x": 16,
       "y": 762,
@@ -1208,7 +1208,7 @@
               "id": "sfPGD",
               "name": "Sheet Subtitle",
               "fill": "#C7C7C7",
-              "content": "This One\u2019s For You \u00b7 Sunday, Nov 23 at 7pm",
+              "content": "This One\u2019s For You \u00b7 Sunday, Nov 22 at 7pm",
               "fontFamily": "Inter",
               "fontSize": 13,
               "fontWeight": "normal"
@@ -1479,7 +1479,7 @@
                       "id": "q5ccw",
                       "name": "Day Label",
                       "fill": "#FFFFFF",
-                      "content": "9",
+                      "content": "8",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "700"
@@ -1511,7 +1511,7 @@
                   "id": "aaKyL",
                   "name": "Subtitle",
                   "fill": "#C7C7C7",
-                  "content": "Moves here from Sun, Nov 9 \u00b7 42 min",
+                  "content": "Moves here from Sun, Nov 8 \u00b7 42 min",
                   "fontFamily": "Inter",
                   "fontSize": 12,
                   "fontWeight": "normal"
@@ -1616,7 +1616,7 @@
                       "id": "jKe0c",
                       "name": "Day Label",
                       "fill": "#FFFFFF",
-                      "content": "14",
+                      "content": "13",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "700"
@@ -1648,7 +1648,7 @@
                   "id": "AyUUs",
                   "name": "Subtitle",
                   "fill": "#C7C7C7",
-                  "content": "Moves here from Fri, Nov 14 \u00b7 25 min",
+                  "content": "Moves here from Fri, Nov 13 \u00b7 25 min",
                   "fontFamily": "Inter",
                   "fontSize": 12,
                   "fontWeight": "normal"
@@ -1753,7 +1753,7 @@
                       "id": "h4Jz7",
                       "name": "Day Label",
                       "fill": "#FFFFFF",
-                      "content": "30",
+                      "content": "29",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "700"
@@ -1785,7 +1785,7 @@
                   "id": "Ap9dY",
                   "name": "Subtitle",
                   "fill": "#C7C7C7",
-                  "content": "Moves here from Sun, Nov 30 \u00b7 51 min",
+                  "content": "Moves here from Sun, Nov 29 \u00b7 51 min",
                   "fontFamily": "Inter",
                   "fontSize": 12,
                   "fontWeight": "normal"

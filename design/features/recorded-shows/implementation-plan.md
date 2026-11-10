@@ -118,7 +118,7 @@ Run from `server/`. To run one suite: `npm test -- --grep "<describe title>"`. R
   - `assertNoAiringOverlap({ stationId, airtime, durationMS, excludeAiringId, transaction }): Promise<void>`: throws `ConflictError(msg, { code: AIRING_OVERLAP })`; the message names what it overlaps.
   - `assertEpisodeHasAudio({ episodeId, transaction }): Promise<void>`: throws a message-only `ConflictError`.
   - `withEpisodeStationLocks<T>(episodeId: string, fn: (transaction: Transaction) => Promise<T>): Promise<T>`: authorizes nothing. It takes `acquireSchedulingLock` for every station that has an Airing of the Episode, plus the Episode's own station, in ascending `stationId` order, and runs `fn` in one transaction.
-- Produces, in `scheduler.ts`: `repairScheduleForAiring({ airingId, stationId, transaction }): Promise<void>`. It removes only spins with this `airingId` and calls `reflowAfterRemoval`. A moved Airing is left for ordinary scheduler processing when its new time enters the normal scheduling window; it is not early-materialized with `windowOverride`.
+- Produces, in `scheduler.ts`: `repairScheduleForAiring({ airingId, stationId, transaction }): Promise<void>`. It removes only spins with this `airingId` and calls `reflowAfterRemoval`. After a move, call `insertAirings({ stationId, assumeLocked: true, transaction })` with no `windowOverride` (same as create), so a move into the already-built playlist materializes immediately and a later one waits for ordinary processing.
 
 - [ ] **Step 1: Write failing tests**, one assertion each where possible:
   - `create refuses a past airtime with the too-soon message`.
