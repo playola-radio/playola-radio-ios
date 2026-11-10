@@ -12,3 +12,12 @@ Outside Pen.dev sessions, normal skill routing still applies.
 # Feature design
 
 New features or changes to existing ones start with the shared `design-feature` skill (from the `playola-skills` repo, installed at `~/.claude/skills/design-feature/SKILL.md` and `~/.codex/skills/design-feature/SKILL.md`) BEFORE any implementation code. Its data-layer phases read server models/endpoints from the sibling `../playola` checkout; the iOS canvas file is `design/playola-ios.pen`. Implementation happens in a later session from `design/features/{slug}/implementation-plan.md`.
+
+# Release notes (changelog.d/)
+
+**Never edit `CHANGELOG.md` in a pull request.** A PR with a user-facing change
+adds one new file, `changelog.d/<short-kebab-description>.md`, holding a
+`### Changes` heading and plain-English `- ` bullets (format and strict rules
+in `changelog.d/README.md`; check with `make changelog-check`). Pure chores add
+no file and say so in the PR's Changelog section. `scripts/release.sh` collects
+the files into `CHANGELOG.md` at release time.

@@ -3,6 +3,17 @@
 # What & why
 
 
+## Changelog
+
+- [ ] This PR adds a `changelog.d/<short-kebab-description>.md` file with a
+      plain-English `### Changes` bullet, **or** it is a pure chore with no
+      user-facing change and needs none.
+
+<!--
+Don't edit CHANGELOG.md in a pull request. Format and rules:
+changelog.d/README.md. Check with `make changelog-check`.
+-->
+
 ## Long-running work
 
 - [ ] This PR does **not** advance/start a long-running effort, **or** I updated

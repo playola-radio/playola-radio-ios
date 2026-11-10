@@ -1,6 +1,6 @@
 ORIGINAL_REPO := $(HOME)/playola/playola-radio-ios
 
-.PHONY: lint format format-check create-release create-new-build release-production release-staging setup-conductor
+.PHONY: lint format format-check changelog-check test-scripts create-release create-new-build release-production release-staging setup-conductor
 
 # Run SwiftLint (strict mode to match CI).
 # Warns when the local swiftlint drifts from the pinned version in .swiftlint-version,
@@ -21,6 +21,14 @@ format:
 # Check formatting (fails on issues; vendored third-party code under */Vendor/* excluded)
 format-check:
 	find PlayolaRadio PlayolaRadioTests -name '*.swift' -not -path '*/Vendor/*' -print0 | xargs -0 xcrun swift-format lint --strict
+
+# Validate pending release notes in changelog.d/ and print them
+changelog-check:
+	python3 scripts/changelog.py check
+
+# Run the release-script tests
+test-scripts:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts -p 'test_*.py'
 
 # Create a release PR (develop -> main) with a version bump
 create-release:

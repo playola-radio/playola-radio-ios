@@ -30,6 +30,11 @@ git log origin/main..origin/develop --merges --pretty=format:"%s" 2>/dev/null | 
 done
 echo ""
 
+echo "Release notes (changelog.d/):"
+echo "-----------------------------"
+python3 scripts/changelog.py check
+echo ""
+
 read -p "Release title: " release_title
 
 if [ -z "$release_title" ]; then
@@ -113,6 +118,14 @@ echo "Creating release branch..."
 git checkout -b "$release_branch"
 
 echo ""
+echo "Collecting release notes into CHANGELOG.md..."
+if ! release_notes=$(python3 scripts/changelog.py roll --version "$new_version"); then
+  git checkout --force develop
+  git branch -D "$release_branch"
+  exit 1
+fi
+
+echo ""
 echo "Bumping version..."
 sed -i '' "s/MARKETING_VERSION = ${current_version};/MARKETING_VERSION = ${new_version};/g" "$PBXPROJ"
 agvtool new-version -all "$new_build"
@@ -120,7 +133,7 @@ agvtool new-version -all "$new_build"
 echo ""
 echo "Committing..."
 git add -A
-git commit -m "Bump version to $new_version ($new_build)"
+git commit -m "Bump version to $new_version ($new_build) and collect release notes"
 
 echo ""
 echo "Pushing release branch..."
@@ -129,10 +142,12 @@ git push -u origin "$release_branch"
 echo ""
 echo "Creating PR..."
 
-# Build PR body with changelog
 pr_body="## $release_title
 
-### Changes
+### Release notes
+$release_notes
+
+### Pull requests
 $(git log origin/main..origin/develop --merges --pretty=format:"%s" 2>/dev/null | grep "^Merge pull request" | grep -oE '#[0-9]+' | sort -t'#' -k1 -rn | uniq | while read pr; do
   num=${pr#\#}
   title=$(gh pr view "$num" --json title --jq '.title' 2>/dev/null)
