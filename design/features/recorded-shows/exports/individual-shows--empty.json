@@ -1,0 +1,169 @@
+{
+  "type": "frame",
+  "id": "zsGxw",
+  "x": 3451,
+  "y": 28880,
+  "name": "Individual Shows \u00b7 Empty",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "DwEpt",
+      "name": "Navigation",
+      "width": "fill_container",
+      "height": 60,
+      "layout": "none",
+      "children": [
+        {
+          "type": "icon",
+          "id": "j7Qokg",
+          "x": 16,
+          "y": 27,
+          "name": "Back",
+          "width": 18,
+          "height": 18,
+          "icon": "chevron-left",
+          "library": "lucide",
+          "fill": "#EF6962"
+        },
+        {
+          "type": "text",
+          "id": "z8C0KE",
+          "x": 20,
+          "y": 26,
+          "name": "Navigation Title",
+          "fill": "#FFFFFF",
+          "textGrowth": "fixed-width",
+          "width": 353,
+          "content": "Individual Shows",
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 17,
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "dlCm3",
+      "name": "Song Category List",
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "gap": 8,
+      "padding": [
+        0,
+        40,
+        140,
+        40
+      ],
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "icon",
+          "id": "A2OjT",
+          "name": "Empty icon",
+          "width": 36,
+          "height": 36,
+          "icon": "calendar-clock",
+          "library": "lucide",
+          "fill": "#868686"
+        },
+        {
+          "type": "text",
+          "id": "v1laC5",
+          "name": "Empty title",
+          "fill": "#FFFFFF",
+          "content": "No shows scheduled",
+          "fontFamily": "Inter",
+          "fontSize": 17,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "gT04H",
+          "name": "Empty message",
+          "fill": "#999999",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Record a show and pick when it airs. It'll show up here.",
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "id": "zEyia",
+      "type": "ref",
+      "ref": "R0hsG",
+      "name": "Tab Bar",
+      "layoutPosition": "absolute",
+      "x": 16,
+      "y": 762,
+      "descendants": {
+        "hucGR/Mb28I": {
+          "fill": "#868686"
+        },
+        "hucGR/x7cAoO": {
+          "fill": "#868686"
+        },
+        "Kq4ks/Mb28I": {
+          "fill": "#FFFFFF"
+        },
+        "Kq4ks/x7cAoO": {
+          "fill": "#FFFFFF"
+        },
+        "Z7dIob/Mb28I": {
+          "fill": "#868686"
+        },
+        "Z7dIob/x7cAoO": {
+          "fill": "#868686"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "PkXGC",
+      "layoutPosition": "absolute",
+      "x": 16,
+      "y": 694,
+      "name": "Record a New Show button",
+      "width": 361,
+      "height": 50,
+      "fill": "#EF6962",
+      "cornerRadius": 12,
+      "gap": 8,
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "icon",
+          "id": "hfDUO",
+          "name": "Icon",
+          "width": 18,
+          "height": 18,
+          "icon": "plus",
+          "library": "lucide",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "WCY82",
+          "name": "Label",
+          "fill": "#FFFFFF",
+          "content": "Record a New Show",
+          "fontFamily": "Inter",
+          "fontSize": 16,
+          "fontWeight": "600"
+        }
+      ]
+    }
+  ]
+}

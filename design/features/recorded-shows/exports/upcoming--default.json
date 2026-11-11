@@ -1,0 +1,217 @@
+{
+  "type": "frame",
+  "id": "h2E0tR",
+  "x": 493,
+  "y": 28880,
+  "name": "Upcoming",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "hptkc",
+      "name": "Navigation",
+      "width": "fill_container",
+      "height": 60,
+      "layout": "none",
+      "children": [
+        {
+          "type": "icon",
+          "id": "jd92z",
+          "x": 16,
+          "y": 27,
+          "name": "Back",
+          "width": 18,
+          "height": 18,
+          "icon": "chevron-left",
+          "library": "lucide",
+          "fill": "#EF6962"
+        },
+        {
+          "type": "text",
+          "id": "J9UyfL",
+          "x": 20,
+          "y": 26,
+          "name": "Navigation Title",
+          "fill": "#FFFFFF",
+          "textGrowth": "fixed-width",
+          "width": 353,
+          "content": "Upcoming",
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 17,
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "tan2k",
+      "name": "Song Category List",
+      "width": "fill_container",
+      "layout": "vertical",
+      "padding": [
+        12,
+        20,
+        0,
+        20
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "V3CDPU",
+          "name": "Hub \u00b7 Series",
+          "width": "fill_container",
+          "height": 60,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Cowfn",
+              "name": "All Songs Text",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "e5Mk1",
+                  "name": "All Songs Title",
+                  "fill": "#FFFFFF",
+                  "content": "Series",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "Fc4A5",
+                  "name": "All Songs Count",
+                  "fill": "#999999",
+                  "content": "3 series \u00b7 3 shows coming up",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "TXwKC",
+              "name": "All Songs Chevron",
+              "width": 15,
+              "height": 15,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "#868686"
+            },
+            {
+              "type": "rectangle",
+              "id": "t5dnHw",
+              "layoutPosition": "absolute",
+              "x": 0,
+              "y": 59,
+              "name": "All Songs Divider",
+              "fill": "#FFFFFF12",
+              "width": 353,
+              "height": 1
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "OtOeH",
+          "name": "Hub \u00b7 Individual Shows",
+          "width": "fill_container",
+          "height": 60,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "t3WTDo",
+              "name": "All Songs Text",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Xrw7n",
+                  "name": "All Songs Title",
+                  "fill": "#FFFFFF",
+                  "content": "Individual Shows",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "F6nmn4",
+                  "name": "All Songs Count",
+                  "fill": "#999999",
+                  "content": "6 shows coming up \u00b7 1 not scheduled",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "AdMsc",
+              "name": "All Songs Chevron",
+              "width": 15,
+              "height": 15,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "#868686"
+            },
+            {
+              "type": "rectangle",
+              "id": "a4Uzs",
+              "layoutPosition": "absolute",
+              "x": 0,
+              "y": 59,
+              "name": "All Songs Divider",
+              "fill": "#FFFFFF12",
+              "width": 353,
+              "height": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Oiuxd",
+      "type": "ref",
+      "ref": "R0hsG",
+      "name": "Tab Bar",
+      "layoutPosition": "absolute",
+      "x": 16,
+      "y": 762,
+      "descendants": {
+        "hucGR/Mb28I": {
+          "fill": "#868686"
+        },
+        "hucGR/x7cAoO": {
+          "fill": "#868686"
+        },
+        "Kq4ks/Mb28I": {
+          "fill": "#FFFFFF"
+        },
+        "Kq4ks/x7cAoO": {
+          "fill": "#FFFFFF"
+        },
+        "Z7dIob/Mb28I": {
+          "fill": "#868686"
+        },
+        "Z7dIob/x7cAoO": {
+          "fill": "#868686"
+        }
+      }
+    }
+  ]
+}

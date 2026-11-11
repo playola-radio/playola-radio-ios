@@ -1,0 +1,1133 @@
+{
+  "type": "frame",
+  "id": "WNwOi",
+  "x": 7395,
+  "y": 28880,
+  "name": "Show Builder \u00b7 Add to a Series Sheet",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "M31SgU",
+      "name": "Navigation",
+      "width": "fill_container",
+      "height": 60,
+      "layout": "none",
+      "children": [
+        {
+          "type": "icon",
+          "id": "AQZ92",
+          "x": 16,
+          "y": 27,
+          "name": "Back",
+          "width": 18,
+          "height": 18,
+          "icon": "chevron-left",
+          "library": "lucide",
+          "fill": "#EF6962"
+        },
+        {
+          "type": "text",
+          "id": "SqEzm",
+          "x": 20,
+          "y": 26,
+          "name": "Navigation Title",
+          "fill": "#FFFFFF",
+          "textGrowth": "fixed-width",
+          "width": 353,
+          "content": "Tour Stories",
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 17,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "GCp4h",
+          "x": 316,
+          "y": 24,
+          "name": "Edit",
+          "fill": "#EF6962",
+          "content": "Rename",
+          "fontFamily": "Inter",
+          "fontSize": 16,
+          "fontWeight": "500"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "BK1Lq",
+      "name": "Builder Content",
+      "width": "fill_container",
+      "layout": "vertical",
+      "padding": [
+        4,
+        0,
+        120,
+        0
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "wffur",
+          "name": "Header",
+          "width": "fill_container",
+          "layout": "vertical",
+          "padding": [
+            0,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "SemWQ",
+              "name": "When Row",
+              "width": "fill_container",
+              "height": 68,
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "mMrr7",
+                  "name": "Calendar Tile",
+                  "clip": true,
+                  "width": 36,
+                  "height": 44,
+                  "cornerRadius": 6,
+                  "stroke": "#4D4D4D",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "gIKpj",
+                      "name": "Draft",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "pencil-line",
+                      "library": "lucide",
+                      "fill": "#FFC107"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ZYhIa",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "HFV0i",
+                      "name": "Title",
+                      "fill": "#FFC107",
+                      "content": "Not scheduled yet",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "N9epxM",
+                      "name": "Subtitle",
+                      "fill": "#999999",
+                      "content": "18 min \u00b7 Changes save automatically",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Klrxh",
+                  "layoutPosition": "absolute",
+                  "x": 0,
+                  "y": 67,
+                  "name": "Divider",
+                  "fill": "#FFFFFF12",
+                  "width": 353,
+                  "height": 1
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gaRVH",
+              "name": "Series Row Wrap",
+              "width": "fill_container",
+              "padding": [
+                14,
+                0,
+                0,
+                0
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "b52ap7",
+                  "name": "Add to a series row",
+                  "width": "fill_container",
+                  "cornerRadius": 10,
+                  "stroke": "#4D4D4D",
+                  "strokeWidth": 1,
+                  "gap": 10,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "xE1XY",
+                      "name": "Icon",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "layers",
+                      "library": "lucide",
+                      "fill": "#C7C7C7"
+                    },
+                    {
+                      "type": "text",
+                      "id": "dtnWl",
+                      "name": "Label",
+                      "fill": "#C7C7C7",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Add to a series",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "aVXKm",
+                      "name": "Optional",
+                      "fill": "#868686",
+                      "content": "Optional",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "HWJBv",
+              "name": "Section \u00b7 YOUR SHOW",
+              "width": "fill_container",
+              "padding": [
+                22,
+                0,
+                8,
+                0
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "qfR9E",
+                  "name": "Section title",
+                  "fill": "#999999",
+                  "content": "YOUR SHOW",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.6
+                },
+                {
+                  "type": "text",
+                  "id": "wESm0",
+                  "name": "Length",
+                  "fill": "#999999",
+                  "content": "18:35",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "d4bzG1",
+          "name": "Playlist",
+          "width": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "id": "oSajj",
+              "type": "ref",
+              "ref": "th8Fu",
+              "name": "Opening Show Intro",
+              "width": "fill_container",
+              "descendants": {
+                "U3D5a": {
+                  "enabled": false
+                },
+                "FjQb3": {
+                  "fill": "#EF6962"
+                },
+                "u3FiM": {
+                  "icon": "mic",
+                  "fill": "#FFFFFF"
+                },
+                "p2Yva": {
+                  "content": "Welcome to Tour Stories",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container"
+                },
+                "lgz8a": {
+                  "content": "Your voice"
+                },
+                "A6rbJA": {
+                  "enabled": false
+                },
+                "o0bsjb": {
+                  "content": "0:30"
+                },
+                "Fcaui": {
+                  "icon": "menu"
+                }
+              }
+            },
+            {
+              "id": "soaFt",
+              "type": "ref",
+              "ref": "th8Fu",
+              "name": "Opening Hummingbird",
+              "width": "fill_container",
+              "descendants": {
+                "U3D5a": {
+                  "enabled": false
+                },
+                "FjQb3": {
+                  "fill": "#4A4A4A"
+                },
+                "u3FiM": {
+                  "icon": "music",
+                  "fill": "#FFFFFF"
+                },
+                "p2Yva": {
+                  "content": "Hummingbird",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container"
+                },
+                "lgz8a": {
+                  "content": "Flatland Cavalry"
+                },
+                "A6rbJA": {
+                  "enabled": false
+                },
+                "o0bsjb": {
+                  "content": "3:05"
+                },
+                "Fcaui": {
+                  "icon": "menu"
+                }
+              }
+            },
+            {
+              "id": "jafoR",
+              "type": "ref",
+              "ref": "th8Fu",
+              "name": "Opening Question and Answer: Maya",
+              "width": "fill_container",
+              "descendants": {
+                "U3D5a": {
+                  "enabled": false
+                },
+                "FjQb3": {
+                  "fill": "#EF6962"
+                },
+                "u3FiM": {
+                  "icon": "messages-square",
+                  "fill": "#FFFFFF"
+                },
+                "p2Yva": {
+                  "content": "Question and Answer: Maya",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container"
+                },
+                "lgz8a": {
+                  "content": "Question + answer"
+                },
+                "A6rbJA": {
+                  "enabled": false
+                },
+                "o0bsjb": {
+                  "content": "1:24"
+                },
+                "Fcaui": {
+                  "icon": "menu"
+                }
+              }
+            },
+            {
+              "id": "lcSBC",
+              "type": "ref",
+              "ref": "th8Fu",
+              "name": "Opening Whiskey Papers",
+              "width": "fill_container",
+              "descendants": {
+                "U3D5a": {
+                  "enabled": false
+                },
+                "FjQb3": {
+                  "fill": "#4A4A4A"
+                },
+                "u3FiM": {
+                  "icon": "music",
+                  "fill": "#FFFFFF"
+                },
+                "p2Yva": {
+                  "content": "Whiskey Papers",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container"
+                },
+                "lgz8a": {
+                  "content": "Bri Bagwell"
+                },
+                "A6rbJA": {
+                  "enabled": false
+                },
+                "o0bsjb": {
+                  "content": "3:36"
+                },
+                "Fcaui": {
+                  "icon": "menu"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "j3UCB",
+              "name": "Add to Show section spacing",
+              "width": "fill_container",
+              "layout": "vertical",
+              "padding": [
+                16,
+                16,
+                8,
+                16
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "mgfaD",
+                  "name": "Add to Show action group",
+                  "width": "fill_container",
+                  "fill": "#1A1A1A",
+                  "cornerRadius": 16,
+                  "stroke": "#FFFFFF26",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 14,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "TlJeP",
+                      "name": "Add section introduction",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "yokD1",
+                          "name": "Add section title row",
+                          "width": "fill_container",
+                          "gap": 7,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "qvPLv",
+                              "name": "Add section plus",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "circle-plus",
+                              "library": "lucide",
+                              "fill": "#EF6962"
+                            },
+                            {
+                              "type": "text",
+                              "id": "wrvyD",
+                              "name": "Add section title",
+                              "fill": "#FFFFFF",
+                              "content": "Add to Show",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "BaaFl",
+                          "name": "Add section explanation",
+                          "fill": "#C7C7C7",
+                          "content": "Added to the end of your playlist",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ct048",
+                      "name": "Playlist add actions",
+                      "width": "fill_container",
+                      "height": 92,
+                      "gap": 8,
+                      "padding": [
+                        4,
+                        0,
+                        0,
+                        0
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "id": "V8zlpi",
+                          "type": "ref",
+                          "ref": "EqHkj",
+                          "name": "Voicetrack",
+                          "width": "fill_container",
+                          "descendants": {
+                            "qmScc": {
+                              "type": "frame",
+                              "id": "nZhOE",
+                              "name": "Add audio circle",
+                              "width": 64,
+                              "height": 64,
+                              "fill": "#EF6962",
+                              "cornerRadius": 32,
+                              "stroke": "#FFFFFF",
+                              "strokeWidth": 2,
+                              "layout": "none",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "LiXEx",
+                                  "x": 17,
+                                  "y": 16,
+                                  "name": "Audio type icon",
+                                  "width": 28,
+                                  "height": 28,
+                                  "icon": "mic",
+                                  "library": "lucide",
+                                  "fill": "#FFFFFF"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "L4rXFZ",
+                                  "x": 42,
+                                  "y": 42,
+                                  "name": "Add badge",
+                                  "width": 22,
+                                  "height": 22,
+                                  "fill": "#3A1212",
+                                  "cornerRadius": 11,
+                                  "stroke": "#FFFFFF",
+                                  "strokeWidth": 1.5,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "nrinm",
+                                      "name": "Add plus",
+                                      "width": 14,
+                                      "height": 14,
+                                      "icon": "plus",
+                                      "library": "lucide",
+                                      "fill": "#FFFFFF"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            "LaZ61": {
+                              "content": "Voicetrack",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          }
+                        },
+                        {
+                          "id": "M0ZJwZ",
+                          "type": "ref",
+                          "ref": "EqHkj",
+                          "name": "Song",
+                          "width": "fill_container",
+                          "descendants": {
+                            "qmScc": {
+                              "type": "frame",
+                              "id": "a1PKyD",
+                              "name": "Add audio circle",
+                              "width": 64,
+                              "height": 64,
+                              "fill": "#EF6962",
+                              "cornerRadius": 32,
+                              "stroke": "#FFFFFF",
+                              "strokeWidth": 2,
+                              "layout": "none",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "Q6Qvdr",
+                                  "x": 17,
+                                  "y": 16,
+                                  "name": "Audio type icon",
+                                  "width": 28,
+                                  "height": 28,
+                                  "icon": "music-2",
+                                  "library": "lucide",
+                                  "fill": "#FFFFFF"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "utThi",
+                                  "x": 42,
+                                  "y": 42,
+                                  "name": "Add badge",
+                                  "width": 22,
+                                  "height": 22,
+                                  "fill": "#3A1212",
+                                  "cornerRadius": 11,
+                                  "stroke": "#FFFFFF",
+                                  "strokeWidth": 1.5,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "Zb9lQ",
+                                      "name": "Add plus",
+                                      "width": 14,
+                                      "height": 14,
+                                      "icon": "plus",
+                                      "library": "lucide",
+                                      "fill": "#FFFFFF"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            "LaZ61": {
+                              "content": "Song",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          }
+                        },
+                        {
+                          "id": "G6gcv",
+                          "type": "ref",
+                          "ref": "EqHkj",
+                          "name": "Q/A",
+                          "width": "fill_container",
+                          "descendants": {
+                            "qmScc": {
+                              "type": "frame",
+                              "id": "eQeXF",
+                              "name": "Add audio circle",
+                              "width": 64,
+                              "height": 64,
+                              "fill": "#EF6962",
+                              "cornerRadius": 32,
+                              "stroke": "#FFFFFF",
+                              "strokeWidth": 2,
+                              "layout": "none",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "apcf5",
+                                  "x": 17,
+                                  "y": 16,
+                                  "name": "Audio type icon",
+                                  "width": 28,
+                                  "height": 28,
+                                  "icon": "messages-square",
+                                  "library": "lucide",
+                                  "fill": "#FFFFFF"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "f2DsPJ",
+                                  "x": 42,
+                                  "y": 42,
+                                  "name": "Add badge",
+                                  "width": 22,
+                                  "height": 22,
+                                  "fill": "#3A1212",
+                                  "cornerRadius": 11,
+                                  "stroke": "#FFFFFF",
+                                  "strokeWidth": 1.5,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "HOHd5",
+                                      "name": "Add plus",
+                                      "width": 14,
+                                      "height": 14,
+                                      "icon": "plus",
+                                      "library": "lucide",
+                                      "fill": "#FFFFFF"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            "LaZ61": {
+                              "content": "Q/A",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FPRFN",
+      "type": "ref",
+      "ref": "R0hsG",
+      "name": "Tab Bar",
+      "layoutPosition": "absolute",
+      "x": 16,
+      "y": 762,
+      "descendants": {
+        "hucGR/Mb28I": {
+          "fill": "#868686"
+        },
+        "hucGR/x7cAoO": {
+          "fill": "#868686"
+        },
+        "Kq4ks/Mb28I": {
+          "fill": "#FFFFFF"
+        },
+        "Kq4ks/x7cAoO": {
+          "fill": "#FFFFFF"
+        },
+        "Z7dIob/Mb28I": {
+          "fill": "#868686"
+        },
+        "Z7dIob/x7cAoO": {
+          "fill": "#868686"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "FbPrQ",
+      "layoutPosition": "absolute",
+      "x": 16,
+      "y": 694,
+      "name": "Schedule button",
+      "width": 361,
+      "height": 50,
+      "fill": "#EF6962",
+      "cornerRadius": 12,
+      "gap": 8,
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "icon",
+          "id": "sXAVT",
+          "name": "Icon",
+          "width": 18,
+          "height": 18,
+          "icon": "calendar-clock",
+          "library": "lucide",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "UGI04",
+          "name": "Label",
+          "fill": "#FFFFFF",
+          "content": "Schedule",
+          "fontFamily": "Inter",
+          "fontSize": 16,
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "type": "rectangle",
+      "id": "wr7It",
+      "layoutPosition": "absolute",
+      "x": 0,
+      "y": 0,
+      "name": "Dim",
+      "fill": "#000000A6",
+      "width": 393,
+      "height": 852
+    },
+    {
+      "type": "frame",
+      "id": "KNu3M",
+      "layoutPosition": "absolute",
+      "x": 0,
+      "y": 493,
+      "name": "Sheet",
+      "width": 393,
+      "fill": "#1A1A1A",
+      "cornerRadius": [
+        16,
+        16,
+        0,
+        0
+      ],
+      "layout": "vertical",
+      "padding": [
+        8,
+        20,
+        34,
+        20
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "JsMhc",
+          "name": "Grabber Row",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            14,
+            0
+          ],
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 3,
+              "id": "Eq2lA",
+              "name": "Grabber",
+              "fill": "#FFFFFF33",
+              "width": 36,
+              "height": 5
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "AC6lQ",
+          "name": "Sheet Title",
+          "fill": "#FFFFFF",
+          "content": "Add to a series",
+          "fontFamily": "Inter",
+          "fontSize": 20,
+          "fontWeight": "700"
+        },
+        {
+          "type": "frame",
+          "id": "ZUxGb",
+          "name": "Sheet Subtitle Wrap",
+          "width": "fill_container",
+          "padding": [
+            4,
+            0,
+            18,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "G6EbKv",
+              "name": "Sheet Subtitle",
+              "fill": "#C7C7C7",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Tour Stories will show up on the series page.",
+              "lineHeight": 1.4,
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "kbqgH",
+          "name": "Option \u00b7 This One\u2019s For You",
+          "width": "fill_container",
+          "fill": "#444444",
+          "cornerRadius": 12,
+          "gap": 12,
+          "padding": 14,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "r3qLX",
+              "name": "Icon Tile",
+              "width": 36,
+              "height": 36,
+              "fill": "#4A4A4A",
+              "cornerRadius": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "W8Ydxf",
+                  "name": "Mic",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "layers",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "C1xMG",
+              "name": "Text",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "BiuqD",
+                  "name": "Title",
+                  "fill": "#FFFFFF",
+                  "content": "This One\u2019s For You",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "cu76R",
+                  "name": "Subtitle",
+                  "fill": "#C7C7C7",
+                  "content": "Every Sunday at 7pm",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "l8A1yS",
+              "name": "Chevron",
+              "width": 15,
+              "height": 15,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "#868686"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "x6Ijg9",
+          "name": "Option spacing",
+          "width": "fill_container",
+          "height": 8
+        },
+        {
+          "type": "frame",
+          "id": "GqZWg",
+          "name": "Option \u00b7 Kitchen Table Songs",
+          "width": "fill_container",
+          "fill": "#444444",
+          "cornerRadius": 12,
+          "gap": 12,
+          "padding": 14,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Rs5K9",
+              "name": "Icon Tile",
+              "width": 36,
+              "height": 36,
+              "fill": "#4A4A4A",
+              "cornerRadius": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "lgv2o",
+                  "name": "Mic",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "layers",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "NFPYe",
+              "name": "Text",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SL3I6",
+                  "name": "Title",
+                  "fill": "#FFFFFF",
+                  "content": "Kitchen Table Songs",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "iQK59",
+                  "name": "Subtitle",
+                  "fill": "#C7C7C7",
+                  "content": "Every Wednesday at 8pm",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "UhRMT",
+              "name": "Chevron",
+              "width": 15,
+              "height": 15,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "#868686"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "u4abXk",
+          "name": "Option spacing",
+          "width": "fill_container",
+          "height": 8
+        },
+        {
+          "type": "frame",
+          "id": "nxLkI",
+          "name": "Option \u00b7 New Series",
+          "width": "fill_container",
+          "fill": "#444444",
+          "cornerRadius": 12,
+          "gap": 12,
+          "padding": 14,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "c78LCF",
+              "name": "Icon Tile",
+              "width": 36,
+              "height": 36,
+              "fill": "#EF6962",
+              "cornerRadius": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "TGM4P",
+                  "name": "Mic",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "plus",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "vXErN",
+              "name": "Text",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "K8lwG1",
+                  "name": "Title",
+                  "fill": "#FFFFFF",
+                  "content": "New Series",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "KmM06",
+                  "name": "Subtitle",
+                  "fill": "#C7C7C7",
+                  "content": "Name it and choose when it repeats",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "vkWP6",
+              "name": "Chevron",
+              "width": 15,
+              "height": 15,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "#868686"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "WZ4YT",
+          "name": "Option spacing",
+          "width": "fill_container",
+          "height": 8
+        }
+      ]
+    }
+  ]
+}
