@@ -217,10 +217,11 @@ Run from `server/`. To run one suite: `npm test -- --grep "<describe title>"`. R
 - [ ] **Step 1: Write failing tests:**
   - `show_airing starts at the first spin of the airing, not airtime`.
   - `show_airing ends after the last spin's endOfMessage`.
+  - `an airing with no spins is not show_airing`.
   - `a voicetrack inside a recorded show does not mark the station voicetracking hours earlier`: an earlier voicetrack 3 h before the Show plus the Show's own voicetrack → not live at Show −2 h.
   - `a voicetrack outside any airing still marks voicetracking`.
 - [ ] **Step 2:** Run `npm test -- --grep "live"`. Expect FAIL.
-- [ ] **Step 3:** Exclude spins with a non-null `airingId` from the voicetrack window query. Compute `show_airing` from the Airing's `startTime`–`endTime`.
+- [ ] **Step 3:** Exclude spins with a non-null `airingId` from the voicetrack window query. Compute `show_airing` from the first and last actual spin; an Airing with no spins is not `show_airing` (its nominal `startTime`–`endTime` is not playback evidence).
 - [ ] **Step 4:** Run again. Expect PASS.
 - [ ] **Step 5:** Commit `fix: show the LIVE badge only while a recorded show is actually playing`.
 
@@ -336,7 +337,7 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
   - `init?(rrule: String)`: nil for any rule other than plain weekly (`INTERVAL` other than 1, `DAILY`, `MONTHLY`, `COUNT`, `UNTIL`, `DTSTART`, several times)
   - `var rrule: String`: the exact form in models.md "What iOS writes"
   - `func openSlots(after now: Date, in timeZone: TimeZone, occupiedIntervals: [DateInterval], limit: Int = 8) -> [Date]`: follows models.md "Expansion rules (iOS)" (skip the spring-forward gap, use the earlier fall-back instant, exclude slots inside an Airing interval, stop at `limit` or 52 weeks).
-- Plain-English text stays with the existing `RRuleFormatter` (unchanged).
+- Plain-English text stays with the existing `RRuleFormatter`, which receives the station time zone rather than `Calendar.current` so displayed schedule text matches the screen's station-time label.
 
 - [ ] **Step 1: Write failing tests:**
   - `weeklyRuleRoundTrips` (`"FREQ=WEEKLY;BYDAY=TU,TH;BYHOUR=20;BYMINUTE=0"`).
@@ -347,6 +348,7 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
   - `openSlotsSkipSpringForwardGap` (2:30 AM on 2027-03-14 Chicago).
   - `openSlotsUseEarlierInstantOnFallBack` (1:30 AM on 2026-11-01 Chicago).
   - `openSlotsUseStationTimeNotDeviceTime` (device `Asia/Tokyo`, station `America/Chicago`).
+  - `legacyScheduleTextUsesStationTimeNotDeviceTime` (device `Asia/Tokyo`, station `America/Chicago`).
 - [ ] **Step 2:** Run. Expect FAIL.
 - [ ] **Step 3:** Implement with a `Calendar(identifier: .gregorian)` whose `timeZone` is the station's. No rrule library.
 - [ ] **Step 4:** Run. Expect PASS. Run the full suite and `make lint`. Open the I1 PR.

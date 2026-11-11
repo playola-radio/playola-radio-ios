@@ -10,7 +10,7 @@ UX "Show" = `Episode`; UX "Series" = `Show`. No new routes, no PATCH.
 | Changed | POST | `/v1/shows` | station editor | Accept a repeating schedule when creating a Series |
 | Changed | PUT | `/v1/shows/:showId` | station editor | Validate the schedule |
 | Changed | GET | `/v1/episodes` | authenticated | Correct lengths; Airings carry start and end times |
-| Changed | GET | `/v1/episodes/:episodeId` | authenticated | Optional Airings; no writes during the read |
+| Changed | GET | `/v1/episodes/:episodeId` | authenticated | Optional Airings; resolve song requests only for drafts without Airings |
 | Changed | PUT | `/v1/episodes/:episodeId` | station editor | Move a Show into or out of a Series |
 | Changed | POST | `/v1/episodes/:episodeId/segments` | station editor | Add content (one or several pieces); lock and overlap checks |
 | Changed | PUT | `/v1/episodes/:episodeId/segments/:segmentId` | station editor | Reorder; lock and overlap checks |
