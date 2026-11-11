@@ -28,11 +28,17 @@ final class SpyPlayolaStationPlayer: PlayolaTransport {
   var resumeAfterInterruptionCount = 0
   var outputLatencyCompensation: TimeInterval = 0
   var setRenderBackendCalls: [PlayolaRenderBackend] = []
+  let resumeEntered = DispatchSemaphore(value: 0)
+  var resumeGate: AsyncGate?
 
   func configure(authProvider: PlayolaAuthenticationProvider, baseURL: URL) { configureCount += 1 }
   func setRenderBackend(_ backend: PlayolaRenderBackend) { setRenderBackendCalls.append(backend) }
   func play(stationId: String) async throws { playCount += 1 }
   func stop() { stopCount += 1 }
   func pauseForInterruption() { pauseForInterruptionCount += 1 }
-  func resumeAfterInterruption() async throws { resumeAfterInterruptionCount += 1 }
+  func resumeAfterInterruption() async throws {
+    resumeAfterInterruptionCount += 1
+    resumeEntered.signal()
+    if resumeAfterInterruptionCount == 1 { await resumeGate?.wait() }
+  }
 }
