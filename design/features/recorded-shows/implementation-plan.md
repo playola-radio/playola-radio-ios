@@ -337,8 +337,8 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
   - fields `weekdays: Set<Locale.Weekday>`, `hour: Int`, `minute: Int`
   - `init?(rrule: String)`: nil for any rule other than plain weekly (`INTERVAL` other than 1, `DAILY`, `MONTHLY`, `COUNT`, `UNTIL`, `DTSTART`, several times)
   - `var rrule: String`: the exact form in models.md "What iOS writes"
+  - `var text: String`: plain English from the rule's own days and `BYHOUR`/`BYMINUTE` ("Every Sunday at 7pm"), shown as station wall-clock time with no time-zone conversion. The curator screens use this, not `RRuleFormatter`, because `RRuleFormatter` takes its time from the next Airing (`formatToPlainEnglish(rrule:airtime:)`), which is stale after a schedule change and missing for a Series with no Shows. A rule `init?` rejects displays as "Custom schedule". The listener `RRuleFormatter` is unchanged.
   - `func openSlots(after now: Date, in timeZone: TimeZone, occupiedIntervals: [DateInterval], limit: Int = 8) -> [Date]`: follows models.md "Expansion rules (iOS)" (skip the spring-forward gap, use the earlier fall-back instant, exclude slots inside an Airing interval, stop at `limit` or 52 weeks).
-- Plain-English text stays with the existing `RRuleFormatter`, which receives the station time zone rather than `Calendar.current` so displayed schedule text matches the screen's station-time label.
 
 - [ ] **Step 1: Write failing tests:**
   - `weeklyRuleRoundTrips` (`"FREQ=WEEKLY;BYDAY=TU,TH;BYHOUR=20;BYMINUTE=0"`).
@@ -349,7 +349,8 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
   - `openSlotsSkipSpringForwardGap` (2:30 AM on 2027-03-14 Chicago).
   - `openSlotsUseEarlierInstantOnFallBack` (1:30 AM on 2026-11-01 Chicago).
   - `openSlotsUseStationTimeNotDeviceTime` (device `Asia/Tokyo`, station `America/Chicago`).
-  - `scheduleTextUsesStationTimeNotDeviceTime` (device `Asia/Tokyo`, station `America/Chicago`).
+  - `textUsesRuleTimeNotDeviceTime` (`BYHOUR=19` reads "7pm" on a device in `Asia/Tokyo`).
+  - `textForSeveralDays` (`BYDAY=TU,TH;BYHOUR=20` → "Every Tuesday and Thursday at 8pm").
 - [ ] **Step 2:** Run. Expect FAIL.
 - [ ] **Step 3:** Implement with a `Calendar(identifier: .gregorian)` whose `timeZone` is the station's. No rrule library.
 - [ ] **Step 4:** Run. Expect PASS. Run the full suite and `make lint`. Open the I1 PR.

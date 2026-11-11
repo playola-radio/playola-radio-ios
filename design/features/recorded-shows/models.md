@@ -26,7 +26,7 @@ UX "Show" = `Episode`; UX "Series" = `Show` (see spec Vocabulary).
 
 | Column | Type | Null | Default | Change | Notes |
 |---|---|---|---|---|---|
-| `rrule` | STRING(255) | NULL | `null` | Changed — contract only (was: stored, unused by web) | Repeating schedule of a Series. `null` = no schedule. Read by Curator Series cards, Curator Series page, Series details sheet, Schedule sheet, and the listener `RRuleFormatter`. |
+| `rrule` | STRING(255) | NULL | `null` | Changed — contract only (was: stored, unused by web) | Repeating schedule of a Series. `null` = no schedule. Read by Curator Series cards, Curator Series page, Series details sheet, Schedule sheet (all via `SeriesSchedule`), and the listener `RRuleFormatter`. |
 
 **What iOS writes** (wall-clock values are in `Station.timezone`): every week only, one line, the form the shipped listener formatter already reads:
 `FREQ=WEEKLY;BYDAY=TU,TH;BYHOUR=20;BYMINUTE=0` — one or more days, exactly one time; no `INTERVAL`, `COUNT`, `UNTIL`, or exclusions.
