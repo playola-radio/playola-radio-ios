@@ -1,6 +1,6 @@
 # Recorded Shows Implementation Plan
 
-> **For agentic workers:** this feature spans two repos and four PRs. Drive it with the `orchestrate-feature` skill: one fresh implementation session and one PR per box in the PR graph, each executed with `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans`. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** this feature spans two repos: two backend PRs, and nine iOS PRs into the `feature/recorded-shows` integration branch. Drive it with the `orchestrate-feature` skill: one fresh implementation session and one PR per row in the PR graph table, each executed with `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans`. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Curators can make, schedule, edit, move and unschedule recorded shows and manage series in the iOS app, with server-enforced six-hour locks, overlap refusals, a LIVE badge that follows real playback, and an "on now" follower push.
 
@@ -19,18 +19,29 @@
 
 ```
 B1 backend: scheduling contract ──┬──> B2 backend: on-air signals (LIVE + "on now" push)
-                                  └──> I1 iOS: data layer ──> I2 iOS: builder, sheets, lists, Station tab
+                                  └──> iOS integration branch feature/recorded-shows:
+                                         I1 data layer ──> S1 ──> S2 ──> … ──> S7 ──> merge to develop
 ```
 
-| PR | Repo | Base | Title (plain English) | Merge gate |
-|---|---|---|---|---|
-| B1 | playola | `develop` | `feature: let shows be safely scheduled, edited and moved from the app` | server tests + lint + `docs:check` green |
-| B2 | playola | `develop` (after B1) | `feature: show recorded shows as live and tell followers when they start` | same |
-| I1 | ios | `develop` (after B1 on `develop`) | `chore: teach the app to read and save recorded shows` | tests + `make lint` |
-| I2 | ios | `develop` (after I1) | `feature: let curators record and schedule shows from the Station tab` | same |
+All iOS work goes into the integration branch `feature/recorded-shows` (cut from `develop` at `ef7a9495`), one PR per screen. Each PR targets `feature/recorded-shows`, **not** `develop`. Nothing reaches `develop` until the whole feature is done, so the screens can land in the order a curator taps through them, with links to screens that don't exist yet. Merge `develop` into the integration branch whenever it falls behind.
 
-- I1 changes nothing a curator or listener sees. I2 is the only PR that does.
-- **Release gate:** B1 and B2 must be deployed to production before any iOS release that contains I2. Record this in `LONG_RUNNING.md` (row added by the design PR). Each PR advances that row.
+| PR | Repo | Base | Title (plain English) | Plan tasks |
+|---|---|---|---|---|
+| B1 | playola | `develop` | `feature: let shows be safely scheduled, edited and moved from the app` | B1.1–B1.5 |
+| B2 | playola | `develop` (after B1) | `feature: show recorded shows as live and tell followers when they start` | B2.1–B2.2 |
+| I1 | ios | `feature/recorded-shows` | `chore: teach the app to read and save recorded shows` | I1.1–I1.3 |
+| S1 | ios | `feature/recorded-shows` | `feature: split the Station tab into Shows and Library and add Upcoming` | I2.5, plus Upcoming from I2.4 (`upcomingFetchesNoAirings`, `upcomingCountsShowsNotAirings`). Its "Series" and "Individual Shows" rows do nothing until S2 and S6 |
+| S2 | ios | `feature/recorded-shows` | `feature: list a station's individual shows` | Individual Shows from I2.4 (`individualShowsListsDraftsFirstThenByAirtime`, `showInSeriesCarriesSeriesBadge`, `airedShowsAreNotListed`, `failedLoadShowsToastAndKeepsList`) and the `CalendarDateBadge` / `DraftDateBadge` changes. Rows and "Record a New Show" do nothing until S3 |
+| S3 | ios | `feature/recorded-shows` | `feature: build a recorded show` | I2.1, and wires Individual Shows' rows and "Record a New Show" to the builder (`multiAiringShowOpensReadOnly`) |
+| S4 | ios | `feature/recorded-shows` | `feature: schedule, move and unschedule recorded shows` | I2.2 |
+| S5 | ios | `feature/recorded-shows` | `feature: pick and edit series for recorded shows` | I2.3 |
+| S6 | ios | `feature/recorded-shows` | `feature: list a station's series with open slots` | Curator Series list from I2.4 (`seriesCardShowsOpenSlotsBetweenScheduledShows`, `seriesWithoutScheduleShowsNoSlots`, `emptySeriesListShowsOnlyCreateButton`) |
+| S7 | ios | `feature/recorded-shows` | `feature: fill a series' open slots` | Curator Series page and Add a show sheet from I2.4 (the remaining `addShow…`, `addingDraftToSlot…`, `addingScheduledShowToSlot…`, `seriesStep…`, `slotUnderLock…`, `recordNewShowFromSlot…`, `lockedAndMultiAiring…`, `scheduledShowLabeled…` tests) |
+| Final | ios | `develop` | `feature: let curators record and schedule shows from the Station tab` | `feature/recorded-shows` → `develop`, after B1 is on `develop` |
+
+- Each screen PR: tests and `make lint` green, its screen checked on a simulator against its mockup in `exports/`, and the adversarial Codex review before it opens.
+- I1 and every screen PR need B1's routes. Until B1 is on staging, test against stubs; verify on staging before the final merge.
+- **Release gate:** B1 and B2 must be deployed to production before any App Store release that contains the final merge. Each PR advances the recorded-shows row in `LONG_RUNNING.md` (edit it on the integration branch; it reaches `develop` with the final merge).
 - Backend rule (playola `CLAUDE.md`): use the fewest PRs that each ship safely, so the backend is two PRs, not one per endpoint.
 
 ## Global Constraints
@@ -353,12 +364,14 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
   - `textForSeveralDays` (`BYDAY=TU,TH;BYHOUR=20` → "Every Tuesday and Thursday at 8pm").
 - [ ] **Step 2:** Run. Expect FAIL.
 - [ ] **Step 3:** Implement with a `Calendar(identifier: .gregorian)` whose `timeZone` is the station's. No rrule library.
-- [ ] **Step 4:** Run. Expect PASS. Run the full suite and `make lint`. Open the I1 PR.
+- [ ] **Step 4:** Run. Expect PASS. Run the full suite and `make lint`. Open the I1 PR against `feature/recorded-shows`.
 - [ ] **Step 5:** Commit `chore: read and write weekly series schedules and find open slots`.
 
 ---
 
-# iOS — PR I2: builder, sheets, lists, Station tab
+# iOS — screen PRs S1–S7: builder, sheets, lists, Station tab
+
+The tasks below are grouped by kind; the PR graph table says which PR ships which task or test. Each PR includes only its own tests.
 
 ### Task I2.1: Show builder page
 
@@ -492,7 +505,7 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
 - [ ] **Step 2:** Run. Expect FAIL.
 - [ ] **Step 3:** Implement per screens.md "Station tab".
 - [ ] **Step 4:** Run the full suite and `make lint`. Expect PASS. Verify on a simulator against staging (B1/B2 deployed there): create a draft, schedule it into a series slot, see it locked inside 6 hours, unschedule it.
-- [ ] **Step 5:** Commit `feature: open recorded shows from the Station tab`. Open the I2 PR.
+- [ ] **Step 5:** Commit `feature: open recorded shows from the Station tab`. Open the S1 PR against `feature/recorded-shows`.
 
 ## Unresolved questions
 
