@@ -143,15 +143,15 @@ Listed: the station's drafts that have at least one piece of audio, and schedule
   - Curator Series list → "Create a New Series" (New Series)
   - Series picker sheet → "New Series" (New Series; on Save the Show joins it)
 - **Navigates to:**
-  - Save → saves and dismisses (disabled while Name is empty)
+  - Save → saves and dismisses (disabled while Name is empty, or while Every week has no day selected)
   - Cancel or swipe down → dismiss without saving
 
-Repeats: Every week / No schedule. A Series with a rule the app can't edit (made on the website, e.g. every other week) shows that rule's text read-only. Days and Time are hidden when Repeats is "No schedule". Times are in the station's time zone.
+Repeats: Every week / No schedule. Schedules are weekly only (the server refuses anything else). If a Series' rule can't be parsed, the sheet shows "Custom schedule" read-only in place of Repeats, Days and Time; this state has no separate mockup. Days and Time are hidden when Repeats is "No schedule". Times are in the station's time zone.
 
 | State | When it shows | Node | Mockup |
 |---|---|---|---|
 | Edit Series | Editing an existing Series | `BRLnN` | ![Series details sheet — edit series](exports/series-details-sheet--edit-series.png) |
-| New Series | Creating a Series; Save disabled until it has a name | `YDx8T` | ![Series details sheet — new series](exports/series-details-sheet--new-series.png) |
+| New Series | Creating a Series; Save disabled until it has a name and, for Every week, at least one day | `YDx8T` | ![Series details sheet — new series](exports/series-details-sheet--new-series.png) |
 
 ## Individual Shows
 - **Status:** New

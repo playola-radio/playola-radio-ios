@@ -31,8 +31,8 @@ UX "Show" = `Episode`; UX "Series" = `Show` (see spec Vocabulary).
 **What iOS writes** (wall-clock values are in `Station.timezone`): every week only, one line, the form the shipped listener formatter already reads:
 `FREQ=WEEKLY;BYDAY=TU,TH;BYHOUR=20;BYMINUTE=0` — one or more days, exactly one time; no `INTERVAL`, `COUNT`, `UNTIL`, or exclusions.
 
-- **Server role:** stores and length-checks the string; it never expands it. Slots are computed on iOS (see endpoints.md, "Open slots").
-- **Legacy rules:** existing web-written rules (including `INTERVAL=2`, `DAILY`, `MONTHLY`) are left untouched. iOS shows a rule it can't edit as its formatted text, read-only, and offers slots only for plain weekly rules; saving a rename sends no `rrule`.
+- **Server role:** stores the string and refuses (400) anything that isn't exactly this weekly form; it never expands it. Slots are computed on iOS (see endpoints.md, "Open slots").
+- **No legacy rules:** production holds only weekly rules (checked 2026-11-11) and the website editor writes only this form, so no data migration is needed. iOS still parses defensively: a rule it can't parse shows as "Custom schedule", read-only, with no slots; saving a rename sends no `rrule`.
 - **Indexes / constraints:** none. **Associations:** unchanged. **Enums:** none.
 - **Migration:** none.
 - **Deploy compatibility:** every rule iOS writes reads correctly in every shipped iOS version and in the admin web editor (`rrule.js`).

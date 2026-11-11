@@ -870,7 +870,7 @@
               "fill": "#C7C7C7",
               "textGrowth": "fixed-width",
               "width": "fill_container",
-              "content": "Tour Stories will show up on the series page, ready for one of its open slots.",
+              "content": "Tour Stories will show up on the series page.",
               "lineHeight": 1.4,
               "fontFamily": "Inter",
               "fontSize": 13,
@@ -935,7 +935,7 @@
                   "id": "cu76R",
                   "name": "Subtitle",
                   "fill": "#C7C7C7",
-                  "content": "Every Sunday at 7pm \u00b7 3 open slots",
+                  "content": "Every Sunday at 7pm",
                   "fontFamily": "Inter",
                   "fontSize": 12,
                   "fontWeight": "normal"

@@ -49,7 +49,7 @@ B1 backend: scheduling contract ──┬──> B2 backend: on-air signals (LIV
 
 1. **A curator whose phone is in a different time zone from the station.** Slots, "airs at about" and schedule text must use station time, and the label says so. → I1.3 (`openSlotsUseStationTimeNotDeviceTime`) and I2.2 (`scheduleSheetLabelsUseStationTimeZone`).
 2. **Quick double taps on a slow network** (Schedule twice, two songs added fast). They must not create two Airings, two drafts, or out-of-order content. → I2.1 (`twoQuickChangesSaveInOrderOnce`), I2.2 (`scheduleButtonDisabledWhileSaving`).
-3. **Web-made data the app didn't write**: every-other-week, `DAILY`/`MONTHLY` rules, Shows with two Airings, request-only segments with no audio. These must decode and list without crashing, and open read-only. → I1.1 (`decodesRequestOnlySegmentWithoutAudio`), I1.3 (`everyOtherWeekRuleIsNotEditable`), I2.4 (`multiAiringShowOpensReadOnly`).
+3. **Web-made data the app didn't write**: Shows with two Airings, request-only segments with no audio, and (defensively) a rule that isn't the weekly form. These must decode and list without crashing, and open read-only. → I1.1 (`decodesRequestOnlySegmentWithoutAudio`), I1.3 (`everyOtherWeekRuleIsNotEditable`), I2.3 (`editSeriesWithUnparseableRuleShowsCustomScheduleAndSendsNoRruleOnRename`), I2.4 (`multiAiringShowOpensReadOnly`).
 4. **Removing the last piece of audio from a scheduled Show** must show the server's "unschedule first" message and keep the row. → B1.4 (`refusesRemovingLastAudioFromScheduledEpisode`), I2.1 (`removingLastAudioOfScheduledShowShowsServerMessage`).
 5. **Add a show: the schedule step succeeds but joining the Series fails.** The curator must be told, and the Show must stay scheduled (not silently half-done). → I2.4 (`seriesStepFailureAfterScheduleShowsAlertAndKeepsAiring`).
 
@@ -192,11 +192,12 @@ Run from `server/`. To run one suite: `npm test -- --grep "<describe title>"`. R
   - `PUT episode showId on a locked episode succeeds`.
   - `POST shows saves rrule`.
   - `POST shows with rrule and isOneTime is 400`.
+  - `POST and PUT shows with a non-weekly rrule are 400` (`INTERVAL=2`, `FREQ=MONTHLY`, `FREQ=DAILY`, `COUNT=3`, no `BYDAY`).
   - `PUT shows rrule null clears it`.
   - `PUT shows rrule longer than 255 is 400`.
   - `PUT shows rename of a one-time wrapper whose episode is locked succeeds`.
 - [ ] **Step 2:** Run `npm test -- --grep "episode|show"`. Expect FAIL.
-- [ ] **Step 3:** Implement per endpoints.md "PUT /v1/episodes/:episodeId", "POST /v1/shows" and "PUT /v1/shows/:showId". Lock the source and target Shows by id (`lockShowForUpdate`), then re-read membership.
+- [ ] **Step 3:** Implement per endpoints.md "PUT /v1/episodes/:episodeId", "POST /v1/shows" and "PUT /v1/shows/:showId". Lock the source and target Shows by id (`lockShowForUpdate`), then re-read membership. The weekly-only `rrule` check may already exist from the standalone server PR (spec.md approval log entry 16); reuse it for create rather than adding a second validator.
 - [ ] **Step 4:** Run the full `npm test`, then `npm run lint` and `npm run docs:check`. Expect all green. Add the `CHANGELOG.md` Changes entry (website moves inside 6 hours and overlapping times are refused with a message). No migration in B1.
 - [ ] **Step 5:** Commit `feat: move shows between series and save series schedules`.
 
@@ -348,7 +349,7 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
   - `openSlotsSkipSpringForwardGap` (2:30 AM on 2027-03-14 Chicago).
   - `openSlotsUseEarlierInstantOnFallBack` (1:30 AM on 2026-11-01 Chicago).
   - `openSlotsUseStationTimeNotDeviceTime` (device `Asia/Tokyo`, station `America/Chicago`).
-  - `legacyScheduleTextUsesStationTimeNotDeviceTime` (device `Asia/Tokyo`, station `America/Chicago`).
+  - `scheduleTextUsesStationTimeNotDeviceTime` (device `Asia/Tokyo`, station `America/Chicago`).
 - [ ] **Step 2:** Run. Expect FAIL.
 - [ ] **Step 3:** Implement with a `Calendar(identifier: .gregorian)` whose `timeZone` is the station's. No rrule library.
 - [ ] **Step 4:** Run. Expect PASS. Run the full suite and `make lint`. Open the I1 PR.
@@ -401,7 +402,7 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
 
 - [ ] **Step 1: Write failing tests:**
   - `listsNextEightOpenSlotsForWeeklySeries`.
-  - `noSlotsForStandaloneShowOrLegacyRule`.
+  - `noSlotsForStandaloneShowOrUnparseableRule`.
   - `tappingSlotFillsPickerWithoutScheduling`.
   - `showsLocksRightAwayInsideLock`.
   - `refusalShowsMessageAndDisablesScheduleUntilTimeChanges`.
@@ -430,10 +431,11 @@ Test command for every iOS task: `xcodebuild test -project PlayolaRadio.xcodepro
   - `pickingSeriesSendsJoin`.
   - `removeFromSeriesSendsMakeStandalone`.
   - `newSeriesFromPickerCreatesThenJoins`.
-  - `editSeriesWithLegacyRuleShowsTextAndSendsNoRruleOnRename`.
+  - `editSeriesWithUnparseableRuleShowsCustomScheduleAndSendsNoRruleOnRename`.
   - `saveEveryWeekSendsWeeklyRule`.
   - `noScheduleClearsRrule`.
   - `saveDisabledWithoutName`.
+  - `saveDisabledForEveryWeekWithNoDay`.
 - [ ] **Step 2:** Run. Expect FAIL.
 - [ ] **Step 3:** Implement per screens.md "Series picker sheet" and "Series details sheet".
 - [ ] **Step 4:** Run. Expect PASS.

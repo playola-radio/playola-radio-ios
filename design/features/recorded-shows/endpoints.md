@@ -88,7 +88,7 @@ The message names what it overlaps, is formatted in `Station.timezone`, and incl
 
   | Status | When |
   |---|---|
-  | 400 | `rrule` longer than 255, or `rrule` with `isOneTime: true` |
+  | 400 | `rrule` longer than 255, not the weekly form in models.md, or sent with `isOneTime: true` |
 
 - **Compatibility:** additive; existing callers send no `rrule`.
 - **Consumers:** Series details sheet — New Series (also from Series picker → New Series). Standalone Show creation (`isOneTime: true`) is unchanged.
@@ -104,7 +104,7 @@ The message names what it overlaps, is formatted in `Station.timezone`, and incl
 
   | Status | When |
   |---|---|
-  | 400 | `rrule` longer than 255, or `rrule` on a one-time wrapper |
+  | 400 | `rrule` longer than 255, not the weekly form in models.md, or sent on a one-time wrapper |
 
 - **Behavior:** renames and schedule changes are allowed at any time; a schedule change only changes which slots are offered.
 - **Compatibility:** additive.
