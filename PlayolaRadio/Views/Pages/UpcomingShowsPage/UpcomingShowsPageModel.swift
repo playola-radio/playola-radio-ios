@@ -114,6 +114,7 @@ class UpcomingShowsPageModel: ViewModel {
         tags["endpoint"] = "upcomingShows"
         await errorReporting.reportError(error, tags)
       }
+      guard !Task.isCancelled else { return }
       await toast.show(PlayolaToast(message: "Upcoming shows couldn't load.", buttonTitle: "OK"))
     }
   }
