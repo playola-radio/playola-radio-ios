@@ -109,7 +109,8 @@ extension AskMeAnythingLivePageModel {
       uncertainQuestionAirings[questionAnswer.questionId] = nil
     } catch let error as APIError {
       switch error {
-      case .validationError, .liveShowUnavailable, .liveShowReplaced, .liveShowFinished:
+      case .validationError, .liveShowUnavailable, .liveShowReplaced, .liveShowFinished,
+        .recordedShowLocked:
         throw error
       case .dataNotValid, .serverError:
         break

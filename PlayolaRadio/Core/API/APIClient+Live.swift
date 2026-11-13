@@ -43,6 +43,98 @@ private struct EndLiveShowParameters: Encodable, Sendable {
   let audioBlockId: String
 }
 
+struct CreateStandaloneEpisodeParameters: Encodable, Sendable {
+  let stationId: String
+  let title: String
+
+  private enum CodingKeys: String, CodingKey {
+    case stationId, title, isOneTime, firstEpisodeTitle
+  }
+
+  func encode(to encoder: any Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(stationId, forKey: .stationId)
+    try container.encode(title, forKey: .title)
+    try container.encode(true, forKey: .isOneTime)
+    try container.encode(title, forKey: .firstEpisodeTitle)
+  }
+}
+
+struct CreateEpisodeParameters: Encodable, Sendable {
+  let showId: String
+  let title: String
+}
+
+struct AddEpisodeSegmentsParameters: Encodable, Sendable {
+  let audioBlockIds: [String]
+  let position: Int
+}
+
+struct MoveEpisodeSegmentParameters: Encodable, Sendable {
+  let position: Int
+}
+
+struct CreateSeriesParameters: Encodable, Sendable {
+  let stationId: String
+  let title: String
+  let rrule: String?
+
+  private enum CodingKeys: String, CodingKey { case stationId, title, rrule }
+
+  func encode(to encoder: any Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(stationId, forKey: .stationId)
+    try container.encode(title, forKey: .title)
+    try container.encodeIfPresent(rrule, forKey: .rrule)
+  }
+}
+
+/// `rrule`: outer nil is omitted, `.some(nil)` encodes JSON `null` (clears the schedule).
+struct UpdateSeriesParameters: Encodable, Sendable {
+  let title: String
+  let rrule: String??
+
+  private enum CodingKeys: String, CodingKey { case title, rrule }
+
+  func encode(to encoder: any Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(title, forKey: .title)
+    if let rrule {
+      try container.encode(rrule, forKey: .rrule)
+    }
+  }
+}
+
+struct ScheduleEpisodeParameters: Encodable, Sendable {
+  let episodeId: String
+  let stationId: String
+  let airtime: Date
+
+  private enum CodingKeys: String, CodingKey { case episodeId, stationId, airtime }
+
+  func encode(to encoder: any Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(episodeId, forKey: .episodeId)
+    try container.encode(stationId, forKey: .stationId)
+    try container.encode(airtime.ISO8601Format(), forKey: .airtime)
+  }
+}
+
+struct MoveAiringParameters: Encodable, Sendable {
+  let airtime: Date
+
+  private enum CodingKeys: String, CodingKey { case airtime }
+
+  func encode(to encoder: any Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(airtime.ISO8601Format(), forKey: .airtime)
+  }
+}
+
+private struct CreateShowResponse: Decodable, Sendable {
+  let episodes: [CuratorEpisode]
+}
+
 // MARK: - Request Helpers
 
 private let sharedIsoDecoder = JSONDecoderWithIsoFull()
@@ -122,6 +214,70 @@ private struct LiveShowConflictDataBody: Decodable {
 func parseLiveShowDelayUntil(from data: Data) -> Date? {
   let decoder = JSONDecoderWithIsoFull()
   return (try? decoder.decode(LiveShowConflictEnvelope.self, from: data))?.error?.data?.delayUntil
+}
+
+private let recordedShowLockedCode = "AIRING_EDIT_LOCKED"
+
+/// Maps a non-2xx recorded-show response. Only `AIRING_EDIT_LOCKED` is distinguished; every other
+/// refusal (`AIRING_OVERLAP` included) is the server's message as `.serverError`.
+func recordedShowAPIError(data: Data) -> APIError {
+  let message = parsePlayolaErrorMessage(from: data) ?? "Something went wrong. Please try again."
+  if parsePlayolaErrorCode(from: data) == recordedShowLockedCode {
+    return .recordedShowLocked(message)
+  }
+  return .serverError(message)
+}
+
+private func recordedShowsResult(_ response: DataResponse<Data, AFError>) throws -> Data {
+  guard let statusCode = response.response?.statusCode else {
+    throw transportFailure(response.error)
+  }
+  guard (200..<300).contains(statusCode) else {
+    throw recordedShowAPIError(data: response.data ?? Data())
+  }
+  guard let data = response.value else { throw transportFailure(response.error) }
+  return data
+}
+
+private func recordedShowsData(
+  path: String,
+  method: HTTPMethod,
+  token: String,
+  queryParams: [String: String] = [:]
+) async throws -> Data {
+  var url = "\(Config.shared.baseUrl.absoluteString)\(path)"
+  if !queryParams.isEmpty {
+    var components = URLComponents(string: url)
+    components?.queryItems = queryParams.sorted { $0.key < $1.key }
+      .map { URLQueryItem(name: $0.key, value: $0.value) }
+    if let resolvedURL = components?.url { url = resolvedURL.absoluteString }
+  }
+  let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+  let response = await apiSession.request(url, method: method, headers: headers)
+    .serializingData()
+    .response
+  return try recordedShowsResult(response)
+}
+
+private func recordedShowsData<Body: Encodable & Sendable>(
+  path: String,
+  method: HTTPMethod,
+  token: String,
+  body: Body
+) async throws -> Data {
+  let url = "\(Config.shared.baseUrl.absoluteString)\(path)"
+  let headers: HTTPHeaders = ["Authorization": "Bearer \(token)"]
+  let response = await apiSession.request(
+    url, method: method, parameters: body, encoder: JSONParameterEncoder.default,
+    headers: headers
+  )
+  .serializingData()
+  .response
+  return try recordedShowsResult(response)
+}
+
+private func decodeRecordedShows<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+  try sharedIsoDecoder.decode(type, from: data)
 }
 
 private func authenticatedGet<T: Decodable & Sendable>(
@@ -1166,6 +1322,94 @@ extension APIClient: DependencyKey {
           .validate(statusCode: 200..<300)
           .serializingDecodable(AppVersionRequirements.self)
           .value
+      },
+      // MARK: Recorded shows (curator)
+      getCuratorEpisodes: { jwtToken, stationId, showId in
+        var queryParams = ["includeAirings": "true"]
+        if let stationId { queryParams["stationIds"] = stationId }
+        if let showId { queryParams["showId"] = showId }
+        let data = try await recordedShowsData(
+          path: "/v1/episodes", method: .get, token: jwtToken, queryParams: queryParams)
+        return try decodeRecordedShows([CuratorEpisode].self, from: data)
+      },
+      getCuratorEpisode: { jwtToken, episodeId in
+        let data = try await recordedShowsData(
+          path: "/v1/episodes/\(episodeId)", method: .get, token: jwtToken,
+          queryParams: ["includeSegments": "true", "includeAirings": "true"])
+        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+      },
+      createStandaloneEpisode: { jwtToken, stationId, title in
+        let data = try await recordedShowsData(
+          path: "/v1/shows", method: .post, token: jwtToken,
+          body: CreateStandaloneEpisodeParameters(stationId: stationId, title: title))
+        let response = try decodeRecordedShows(CreateShowResponse.self, from: data)
+        guard let episode = response.episodes.first else { throw APIError.dataNotValid }
+        return episode
+      },
+      createEpisodeInSeries: { jwtToken, showId, title in
+        let data = try await recordedShowsData(
+          path: "/v1/episodes", method: .post, token: jwtToken,
+          body: CreateEpisodeParameters(showId: showId, title: title))
+        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+      },
+      updateEpisode: { jwtToken, episodeId, update in
+        let data = try await recordedShowsData(
+          path: "/v1/episodes/\(episodeId)", method: .put, token: jwtToken, body: update)
+        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+      },
+      addEpisodeSegments: { jwtToken, episodeId, audioBlockIds, position in
+        let data = try await recordedShowsData(
+          path: "/v1/episodes/\(episodeId)/segments", method: .post, token: jwtToken,
+          body: AddEpisodeSegmentsParameters(audioBlockIds: audioBlockIds, position: position))
+        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+      },
+      moveEpisodeSegment: { jwtToken, episodeId, segmentId, position in
+        let data = try await recordedShowsData(
+          path: "/v1/episodes/\(episodeId)/segments/\(segmentId)", method: .put,
+          token: jwtToken, body: MoveEpisodeSegmentParameters(position: position))
+        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+      },
+      removeEpisodeSegment: { jwtToken, episodeId, segmentId in
+        let data = try await recordedShowsData(
+          path: "/v1/episodes/\(episodeId)/segments/\(segmentId)", method: .delete,
+          token: jwtToken)
+        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+      },
+      getCuratorSeries: { jwtToken, stationId in
+        let data = try await recordedShowsData(
+          path: "/v1/shows", method: .get, token: jwtToken,
+          queryParams: ["stationIds": stationId])
+        return try decodeRecordedShows([CuratorSeries].self, from: data)
+      },
+      createSeries: { jwtToken, stationId, title, rrule in
+        let data = try await recordedShowsData(
+          path: "/v1/shows", method: .post, token: jwtToken,
+          body: CreateSeriesParameters(stationId: stationId, title: title, rrule: rrule))
+        return try decodeRecordedShows(CuratorSeries.self, from: data)
+      },
+      updateSeries: { jwtToken, showId, title, rrule in
+        let data = try await recordedShowsData(
+          path: "/v1/shows/\(showId)", method: .put, token: jwtToken,
+          body: UpdateSeriesParameters(title: title, rrule: rrule))
+        return try decodeRecordedShows(CuratorSeries.self, from: data)
+      },
+      scheduleEpisode: { jwtToken, episodeId, stationId, airtime in
+        _ = try await recordedShowsData(
+          path: "/v1/airings", method: .post, token: jwtToken,
+          body: ScheduleEpisodeParameters(
+            episodeId: episodeId, stationId: stationId, airtime: airtime))
+      },
+      moveAiring: { jwtToken, airingId, airtime in
+        _ = try await recordedShowsData(
+          path: "/v1/airings/\(airingId)", method: .put, token: jwtToken,
+          body: MoveAiringParameters(airtime: airtime))
+      },
+      unscheduleAiring: { jwtToken, airingId in
+        _ = try await recordedShowsData(
+          path: "/v1/airings/\(airingId)", method: .delete, token: jwtToken)
+      },
+      getStationSchedulingSettings: { jwtToken, stationId in
+        try await authenticatedGet(path: "/v1/stations/\(stationId)", token: jwtToken)
       }
     )
   }()

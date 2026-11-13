@@ -999,6 +999,101 @@ struct APIClient: Sendable {
   var getAppVersionRequirements: @Sendable () async throws -> AppVersionRequirements = {
     AppVersionRequirements(minimumVersion: "1.0.0", minimumBroadcasterVersion: "1.0.0")
   }
+
+  // MARK: - Recorded Shows (curator)
+
+  // UX "Show" = server `Episode`; UX "Series" = server `Show`. Refusals throw `APIError`:
+  // `.recordedShowLocked(message)` for `AIRING_EDIT_LOCKED`, `.serverError(message)` otherwise.
+
+  /// Lists a station's Shows (episodes) with their Airings. `GET /v1/episodes?includeAirings=true`.
+  var getCuratorEpisodes:
+    @Sendable (_ jwtToken: String, _ stationId: String?, _ showId: String?) async throws ->
+      [CuratorEpisode]
+
+  /// Loads one Show with its segments and Airings.
+  var getCuratorEpisode:
+    @Sendable (_ jwtToken: String, _ episodeId: String) async throws -> CuratorEpisode
+
+  /// Creates a standalone Show: a one-time Series wrapper plus its first Show.
+  var createStandaloneEpisode:
+    @Sendable (_ jwtToken: String, _ stationId: String, _ title: String) async throws ->
+      CuratorEpisode
+
+  /// Creates a draft Show inside an existing Series.
+  var createEpisodeInSeries:
+    @Sendable (_ jwtToken: String, _ showId: String, _ title: String) async throws ->
+      CuratorEpisode
+
+  /// Renames a Show and/or moves it into or out of a Series. Never edit-locked.
+  var updateEpisode:
+    @Sendable (_ jwtToken: String, _ episodeId: String, _ update: CuratorEpisodeUpdate)
+      async throws -> CuratorEpisode
+
+  /// Inserts one or more AudioBlocks, in order, at `position`; all or nothing.
+  var addEpisodeSegments:
+    @Sendable (
+      _ jwtToken: String, _ episodeId: String, _ audioBlockIds: [String], _ position: Int
+    ) async throws -> CuratorEpisode
+
+  var moveEpisodeSegment:
+    @Sendable (_ jwtToken: String, _ episodeId: String, _ segmentId: String, _ position: Int)
+      async throws -> CuratorEpisode
+
+  var removeEpisodeSegment:
+    @Sendable (_ jwtToken: String, _ episodeId: String, _ segmentId: String) async throws ->
+      CuratorEpisode
+
+  /// Lists a station's Series, including the one-time wrappers (`isOneTime == true`).
+  var getCuratorSeries:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws -> [CuratorSeries]
+
+  var createSeries:
+    @Sendable (_ jwtToken: String, _ stationId: String, _ title: String, _ rrule: String?)
+      async throws -> CuratorSeries
+
+  /// Renames a Series and optionally changes its schedule. `rrule`: outer nil leaves the
+  /// schedule alone, `.some(nil)` clears it, `.some(value)` sets it.
+  var updateSeries:
+    @Sendable (_ jwtToken: String, _ showId: String, _ title: String, _ rrule: String??)
+      async throws -> CuratorSeries
+
+  /// `POST /v1/airings`. Never locked: overlaps and a missing-audio refusal are `.serverError`.
+  var scheduleEpisode:
+    @Sendable (_ jwtToken: String, _ episodeId: String, _ stationId: String, _ airtime: Date)
+      async throws -> Void
+
+  var moveAiring:
+    @Sendable (_ jwtToken: String, _ airingId: String, _ airtime: Date) async throws -> Void
+
+  var unscheduleAiring: @Sendable (_ jwtToken: String, _ airingId: String) async throws -> Void
+
+  /// `GET /v1/stations/:id`, decoding only the time zone and edit-lock length.
+  var getStationSchedulingSettings:
+    @Sendable (_ jwtToken: String, _ stationId: String) async throws ->
+      StationSchedulingSettings
+}
+
+/// Body of `PUT /v1/episodes/:id`. Nil fields are not sent.
+struct CuratorEpisodeUpdate: Encodable, Equatable, Sendable {
+  var title: String?
+  var series: SeriesChange?
+
+  private enum CodingKeys: String, CodingKey { case title, showId }
+
+  func encode(to encoder: any Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(title, forKey: .title)
+    switch series {
+    case .join(let showId): try container.encode(showId, forKey: .showId)
+    case .makeStandalone: try container.encodeNil(forKey: .showId)
+    case nil: break
+    }
+  }
+}
+
+enum SeriesChange: Equatable, Sendable {
+  case join(String)
+  case makeStandalone
 }
 
 struct StartLiveShowResponse: Decodable, Equatable, Sendable {
@@ -1019,6 +1114,7 @@ enum APIError: Error, LocalizedError {
   case liveShowUnavailable(delayUntil: Date?)
   case liveShowReplaced
   case liveShowFinished
+  case recordedShowLocked(String)
 
   var errorDescription: String? {
     switch self {
@@ -1034,6 +1130,8 @@ enum APIError: Error, LocalizedError {
       return "This live show was replaced."
     case .liveShowFinished:
       return "This live show has already finished."
+    case .recordedShowLocked(let message):
+      return message
     }
   }
 }
@@ -1046,6 +1144,17 @@ func parsePlayolaErrorMessage(from data: Data) -> String? {
     return nil
   }
   return message
+}
+
+func parsePlayolaErrorCode(from data: Data) -> String? {
+  guard let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+    let errorObj = errorResponse["error"] as? [String: Any],
+    let errorData = errorObj["data"] as? [String: Any],
+    let code = errorData["code"] as? String
+  else {
+    return nil
+  }
+  return code
 }
 
 extension APIClient: TestDependencyKey {

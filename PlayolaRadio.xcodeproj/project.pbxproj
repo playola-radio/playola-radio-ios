@@ -396,6 +396,7 @@
 		D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */; };
 		E7A1C0DE5AB0000000000001 /* APIClientTestStubs.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7A1C0DE5AB0000000000002 /* APIClientTestStubs.swift */; };
 		003B2E877478D395DBEB710A /* APIClientLiveShowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0017D8D68B91A2679AFC6D /* APIClientLiveShowTests.swift */; };
+		51D9F9C972A95975B83EBBF7 /* APIClientRecordedShowsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E6B319FE09D3CA3DB5566C /* APIClientRecordedShowsTests.swift */; };
 		D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */; };
 		D35EFBEE2F1092A7000F64A4 /* RRuleFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */; };
 		D35EFBF02F1092D7000F64A4 /* RRuleFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */; };
@@ -969,6 +970,7 @@
 		D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
 		E7A1C0DE5AB0000000000002 /* APIClientTestStubs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTestStubs.swift; sourceTree = "<group>"; };
 		4B0017D8D68B91A2679AFC6D /* APIClientLiveShowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientLiveShowTests.swift; sourceTree = "<group>"; };
+		83E6B319FE09D3CA3DB5566C /* APIClientRecordedShowsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientRecordedShowsTests.swift; sourceTree = "<group>"; };
 		D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerTests.swift; sourceTree = "<group>"; };
 		D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RRuleFormatterTests.swift; sourceTree = "<group>"; };
 		D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RRuleFormatter.swift; sourceTree = "<group>"; };
@@ -2190,6 +2192,7 @@
 				D35EFBD62F0EC6F7000F64A4 /* APIClientTests.swift */,
 				E7A1C0DE5AB0000000000002 /* APIClientTestStubs.swift */,
 				4B0017D8D68B91A2679AFC6D /* APIClientLiveShowTests.swift */,
+				83E6B319FE09D3CA3DB5566C /* APIClientRecordedShowsTests.swift */,
 				D317C0D72EF3500500DBC82E /* APIClient+Live.swift */,
 				A1750A0000000000000000F1 /* PlayolaTLS.swift */,
 				A1750A0000000000000000F4 /* ConnectivityProbe.swift */,
@@ -3340,6 +3343,7 @@
 				D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */,
 				E7A1C0DE5AB0000000000001 /* APIClientTestStubs.swift in Sources */,
 				003B2E877478D395DBEB710A /* APIClientLiveShowTests.swift in Sources */,
+				51D9F9C972A95975B83EBBF7 /* APIClientRecordedShowsTests.swift in Sources */,
 				A1750A0000000000000000F8 /* ConnectivityProbeTests.swift in Sources */,
 				D3B662762D41B0D200975D2F /* SignInPageTests.swift in Sources */,
 				D39728562F5F03FF008591E3 /* VersionComparisonTests.swift in Sources */,
