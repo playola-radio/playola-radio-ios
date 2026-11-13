@@ -399,8 +399,11 @@
 		51D9F9C972A95975B83EBBF7 /* APIClientRecordedShowsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E6B319FE09D3CA3DB5566C /* APIClientRecordedShowsTests.swift */; };
 		D35EFBD92F101A76000F64A4 /* StationPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */; };
 		D35EFBEE2F1092A7000F64A4 /* RRuleFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */; };
+		78707DC4FDF75373B44F6A2E /* SeriesScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6061489927E6E3CAB6675F6 /* SeriesScheduleTests.swift */; };
 		D35EFBF02F1092D7000F64A4 /* RRuleFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */; };
+		4C062A83BC45E0DB4BEE9BA0 /* SeriesSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA944C71324E392C52D8B2A4 /* SeriesSchedule.swift */; };
 		D35EFBF12F1092D7000F64A4 /* RRuleFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */; };
+		78DD99FA949FD3E17FC950EC /* SeriesSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA944C71324E392C52D8B2A4 /* SeriesSchedule.swift */; };
 		D35EFBF52F1576EF000F64A4 /* NewFeatureTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBF22F1576EF000F64A4 /* NewFeatureTile.swift */; };
 		D35EFBF62F1576EF000F64A4 /* NewFeatureTileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBF32F1576EF000F64A4 /* NewFeatureTileModel.swift */; };
 		D35EFBF72F1576EF000F64A4 /* NewFeatureTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35EFBF22F1576EF000F64A4 /* NewFeatureTile.swift */; };
@@ -973,7 +976,9 @@
 		83E6B319FE09D3CA3DB5566C /* APIClientRecordedShowsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientRecordedShowsTests.swift; sourceTree = "<group>"; };
 		D35EFBD82F101A76000F64A4 /* StationPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPlayerTests.swift; sourceTree = "<group>"; };
 		D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RRuleFormatterTests.swift; sourceTree = "<group>"; };
+		D6061489927E6E3CAB6675F6 /* SeriesScheduleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesScheduleTests.swift; sourceTree = "<group>"; };
 		D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RRuleFormatter.swift; sourceTree = "<group>"; };
+		CA944C71324E392C52D8B2A4 /* SeriesSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesSchedule.swift; sourceTree = "<group>"; };
 		D35EFBF22F1576EF000F64A4 /* NewFeatureTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFeatureTile.swift; sourceTree = "<group>"; };
 		D35EFBF32F1576EF000F64A4 /* NewFeatureTileModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFeatureTileModel.swift; sourceTree = "<group>"; };
 		D35EFBF92F1579E5000F64A4 /* NewFeatureTileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFeatureTileTests.swift; sourceTree = "<group>"; };
@@ -1875,7 +1880,9 @@
 			isa = PBXGroup;
 			children = (
 				D35EFBEF2F1092D7000F64A4 /* RRuleFormatter.swift */,
+				CA944C71324E392C52D8B2A4 /* SeriesSchedule.swift */,
 				D35EFBEC2F1092A7000F64A4 /* RRuleFormatterTests.swift */,
+				D6061489927E6E3CAB6675F6 /* SeriesScheduleTests.swift */,
 			);
 			path = Formatters;
 			sourceTree = "<group>";
@@ -2777,6 +2784,7 @@
 				D35EFC032F157E59000F64A4 /* EpisodeRow.swift in Sources */,
 				D30F005B2E8592F0007BCC73 /* View+ListInstalledFonts.swift in Sources */,
 				D35EFBF12F1092D7000F64A4 /* RRuleFormatter.swift in Sources */,
+				78DD99FA949FD3E17FC950EC /* SeriesSchedule.swift in Sources */,
 				D30F005C2E8592F0007BCC73 /* FontNames.swift in Sources */,
 				D30F005D2E8592F0007BCC73 /* CarPlaySceneDelegate.swift in Sources */,
 				E1CA0000000000000000A002 /* CarPlayPlaybackTransition.swift in Sources */,
@@ -3063,6 +3071,7 @@
 				D35EFC072F157E59000F64A4 /* EpisodeRow.swift in Sources */,
 				D37257BD2DF893C6001BC6F9 /* View+ListInstalledFonts.swift in Sources */,
 				D35EFBF02F1092D7000F64A4 /* RRuleFormatter.swift in Sources */,
+				4C062A83BC45E0DB4BEE9BA0 /* SeriesSchedule.swift in Sources */,
 				D37257CC2DFA3F83001BC6F9 /* FontNames.swift in Sources */,
 				D35673B02D3DC55900E4E926 /* CarPlaySceneDelegate.swift in Sources */,
 				E1CA0000000000000000A003 /* CarPlayPlaybackTransition.swift in Sources */,
@@ -3362,6 +3371,7 @@
 				D30257AB2E652F8D00F4228B /* SongDrawerTests.swift in Sources */,
 				D342A0C72DFCB368002BAC30 /* HomePageTests.swift in Sources */,
 				D35EFBEE2F1092A7000F64A4 /* RRuleFormatterTests.swift in Sources */,
+				78707DC4FDF75373B44F6A2E /* SeriesScheduleTests.swift in Sources */,
 				D39728762F60E2A7008591E3 /* StationSuggestionPageTests.swift in Sources */,
 				D3FACE010000000000000005 /* ArtistSuggestionTests.swift in Sources */,
 				D3FACE040000000000000011 /* SongSuggestionTests.swift in Sources */,
