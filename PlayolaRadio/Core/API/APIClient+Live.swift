@@ -48,7 +48,7 @@ struct CreateStandaloneEpisodeParameters: Encodable, Sendable {
   let title: String
 
   private enum CodingKeys: String, CodingKey {
-    case stationId, title, isOneTime, firstEpisodeTitle
+    case stationId, title, isOneTime
   }
 
   func encode(to encoder: any Encoder) throws {
@@ -56,7 +56,6 @@ struct CreateStandaloneEpisodeParameters: Encodable, Sendable {
     try container.encode(stationId, forKey: .stationId)
     try container.encode(title, forKey: .title)
     try container.encode(true, forKey: .isOneTime)
-    try container.encode(title, forKey: .firstEpisodeTitle)
   }
 }
 
@@ -78,15 +77,6 @@ struct CreateSeriesParameters: Encodable, Sendable {
   let stationId: String
   let title: String
   let rrule: String?
-
-  private enum CodingKeys: String, CodingKey { case stationId, title, rrule }
-
-  func encode(to encoder: any Encoder) throws {
-    var container = encoder.container(keyedBy: CodingKeys.self)
-    try container.encode(stationId, forKey: .stationId)
-    try container.encode(title, forKey: .title)
-    try container.encodeIfPresent(rrule, forKey: .rrule)
-  }
 }
 
 /// `rrule`: outer nil is omitted, `.some(nil)` encodes JSON `null` (clears the schedule).
@@ -274,10 +264,6 @@ private func recordedShowsData<Body: Encodable & Sendable>(
   .serializingData()
   .response
   return try recordedShowsResult(response)
-}
-
-private func decodeRecordedShows<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
-  try sharedIsoDecoder.decode(type, from: data)
 }
 
 private func authenticatedGet<T: Decodable & Sendable>(
@@ -1330,19 +1316,19 @@ extension APIClient: DependencyKey {
         if let showId { queryParams["showId"] = showId }
         let data = try await recordedShowsData(
           path: "/v1/episodes", method: .get, token: jwtToken, queryParams: queryParams)
-        return try decodeRecordedShows([CuratorEpisode].self, from: data)
+        return try sharedIsoDecoder.decode([CuratorEpisode].self, from: data)
       },
       getCuratorEpisode: { jwtToken, episodeId in
         let data = try await recordedShowsData(
           path: "/v1/episodes/\(episodeId)", method: .get, token: jwtToken,
           queryParams: ["includeSegments": "true", "includeAirings": "true"])
-        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+        return try sharedIsoDecoder.decode(CuratorEpisode.self, from: data)
       },
       createStandaloneEpisode: { jwtToken, stationId, title in
         let data = try await recordedShowsData(
           path: "/v1/shows", method: .post, token: jwtToken,
           body: CreateStandaloneEpisodeParameters(stationId: stationId, title: title))
-        let response = try decodeRecordedShows(CreateShowResponse.self, from: data)
+        let response = try sharedIsoDecoder.decode(CreateShowResponse.self, from: data)
         guard let episode = response.episodes.first else { throw APIError.dataNotValid }
         return episode
       },
@@ -1350,48 +1336,48 @@ extension APIClient: DependencyKey {
         let data = try await recordedShowsData(
           path: "/v1/episodes", method: .post, token: jwtToken,
           body: CreateEpisodeParameters(showId: showId, title: title))
-        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+        return try sharedIsoDecoder.decode(CuratorEpisode.self, from: data)
       },
       updateEpisode: { jwtToken, episodeId, update in
         let data = try await recordedShowsData(
           path: "/v1/episodes/\(episodeId)", method: .put, token: jwtToken, body: update)
-        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+        return try sharedIsoDecoder.decode(CuratorEpisode.self, from: data)
       },
       addEpisodeSegments: { jwtToken, episodeId, audioBlockIds, position in
         let data = try await recordedShowsData(
           path: "/v1/episodes/\(episodeId)/segments", method: .post, token: jwtToken,
           body: AddEpisodeSegmentsParameters(audioBlockIds: audioBlockIds, position: position))
-        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+        return try sharedIsoDecoder.decode(CuratorEpisode.self, from: data)
       },
       moveEpisodeSegment: { jwtToken, episodeId, segmentId, position in
         let data = try await recordedShowsData(
           path: "/v1/episodes/\(episodeId)/segments/\(segmentId)", method: .put,
           token: jwtToken, body: MoveEpisodeSegmentParameters(position: position))
-        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+        return try sharedIsoDecoder.decode(CuratorEpisode.self, from: data)
       },
       removeEpisodeSegment: { jwtToken, episodeId, segmentId in
         let data = try await recordedShowsData(
           path: "/v1/episodes/\(episodeId)/segments/\(segmentId)", method: .delete,
           token: jwtToken)
-        return try decodeRecordedShows(CuratorEpisode.self, from: data)
+        return try sharedIsoDecoder.decode(CuratorEpisode.self, from: data)
       },
       getCuratorSeries: { jwtToken, stationId in
         let data = try await recordedShowsData(
           path: "/v1/shows", method: .get, token: jwtToken,
           queryParams: ["stationIds": stationId])
-        return try decodeRecordedShows([CuratorSeries].self, from: data)
+        return try sharedIsoDecoder.decode([CuratorSeries].self, from: data)
       },
       createSeries: { jwtToken, stationId, title, rrule in
         let data = try await recordedShowsData(
           path: "/v1/shows", method: .post, token: jwtToken,
           body: CreateSeriesParameters(stationId: stationId, title: title, rrule: rrule))
-        return try decodeRecordedShows(CuratorSeries.self, from: data)
+        return try sharedIsoDecoder.decode(CuratorSeries.self, from: data)
       },
       updateSeries: { jwtToken, showId, title, rrule in
         let data = try await recordedShowsData(
           path: "/v1/shows/\(showId)", method: .put, token: jwtToken,
           body: UpdateSeriesParameters(title: title, rrule: rrule))
-        return try decodeRecordedShows(CuratorSeries.self, from: data)
+        return try sharedIsoDecoder.decode(CuratorSeries.self, from: data)
       },
       scheduleEpisode: { jwtToken, episodeId, stationId, airtime in
         _ = try await recordedShowsData(

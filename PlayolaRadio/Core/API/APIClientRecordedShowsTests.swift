@@ -142,13 +142,13 @@ struct APIClientRecordedShowsTests {
     #expect(object["rrule"] == nil)
   }
 
-  @Test func createStandaloneEpisodeBodyIsOneTimeShowWithFirstEpisodeTitle() throws {
+  @Test func createStandaloneEpisodeBodyIsOneTimeShowWithoutFirstEpisodeTitle() throws {
     let object = try encodedObject(
       CreateStandaloneEpisodeParameters(stationId: "station-1", title: "Pilot"))
 
     expectNoDifference(object["isOneTime"] as? Bool, true)
-    expectNoDifference(object["firstEpisodeTitle"] as? String, "Pilot")
     expectNoDifference(object["title"] as? String, "Pilot")
+    #expect(object["firstEpisodeTitle"] == nil)
   }
 
   @Test func addSegmentsSendsAudioBlockIdsAndPosition() throws {
