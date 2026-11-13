@@ -42,6 +42,16 @@ class UpcomingShowsPageModel: ViewModel {
   var individualShowsRowTitle: String { "Individual Shows" }
   var loadingOpacity: Double { isLoading ? 1 : 0 }
 
+  // MARK: - User Actions
+
+  func viewAppeared() async {
+    await loadShows()
+  }
+
+  func seriesRowTapped() {}
+
+  func individualShowsRowTapped() {}
+
   // MARK: - View Helpers
 
   var seriesCountLabel: String {
@@ -54,16 +64,6 @@ class UpcomingShowsPageModel: ViewModel {
     guard draftCount > 0 else { return comingUp }
     return "\(comingUp) · \(draftCount) not scheduled"
   }
-
-  // MARK: - User Actions
-
-  func viewAppeared() async {
-    await loadShows()
-  }
-
-  func seriesRowTapped() {}
-
-  func individualShowsRowTapped() {}
 
   // MARK: - Private Helpers
 
