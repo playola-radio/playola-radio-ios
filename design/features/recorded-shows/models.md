@@ -8,7 +8,6 @@ UX "Show" = `Episode`; UX "Series" = `Show` (see spec Vocabulary).
 | Changed | `Station` | `stations` | Serializes the time zone (a server constant) and the edit-lock length |
 | Changed | `Show` | `shows` | Defines what iOS writes into the existing `rrule` column |
 | Changed | `Episode` | `episodes` | `durationMS` matches what the scheduler actually plays |
-| Changed | `Airing` | `airings` | Adds the "on now" push dedup marker |
 
 ## Station (`stations`) — Changed
 
@@ -51,18 +50,13 @@ UX "Show" = `Episode`; UX "Series" = `Show` (see spec Vocabulary).
 - **Migration:** none.
 - **Deploy compatibility:** same type; values can shrink where a file has audio after `endOfMessageMS`.
 
-## Airing (`airings`) — Changed
+## Airing (`airings`) — No model change
 
-| Column | Type | Null | Default | Change | Notes |
-|---|---|---|---|---|---|
-| `onNowNotificationSentAt` | DATE | NULL | `null` | Added | Set by the "on now" worker after the follower push publishes. Mirrors `liveShows.liveNotificationSentAt`. Never client-writable. |
+No `Airing` column is added. The start-of-show follower push already exists (playola #1120, `lib/showStartNotifications`): it fires when an Airing's first spin airs, only for starts between 8am and 9pm Central, at most once per station per Central calendar day, and is skipped if the station sent a manual or Ask Me Anything push in the prior 4 hours. Brian accepted those rules for recorded shows (2026-11-12); there is no per-Airing guarantee.
 
 Existing `startTime` / `endTime` virtuals are populated wherever an Airing is returned, by the existing `embedAiringTimes` (`lib/stations/stations.lib.ts:740`, generalized): MIN spin `airtime` and MAX spin `endOfMessageTime` once spins exist; before that, `airtime` + episode `durationMS`.
 
 - **Lock (no stored field):** an Airing is locked when it hasn't ended and either `now >= airtime − RECORDED_SHOW_EDIT_LOCK_MS` or it already has spins. iOS computes the same time from `airtime` and `Station.airingEditLockMS`.
-- **Indexes / constraints:** none. The worker finds due Airings from currently-playing airing spins, not by scanning `airings`.
-- **Associations:** unchanged. **Enums:** none (no status column).
-- **Migration:** add nullable column; no backfill. An Airing already on air at deploy may push once.
-- **Deploy compatibility:** deploy the column before the worker; old workers ignore it; keep it on rollback.
-- **"On now" worker:** a job on the existing 15-second tick (`worker.js:387`) finds Airings whose first spin has started and whose last spin hasn't ended, with `onNowNotificationSentAt IS NULL`; it re-reads the Airing and its spins under a row lock and re-checks that it is still playing, publishes to the station's existing follower topic (title: station name; body: "<Show title> is on now."; existing `stationId` payload), then sets the marker. Moves keep the Airing id; unscheduling deletes it, so nothing is pushed. A crash between publish and commit can repeat one push (same boundary as the live-show worker). A Show that starts and ends between two ticks, or plays while the worker is down, gets no push — no late "on now" for a Show that is over.
-- **Requirement:** six-hour lock; "on now" push that follows moves and cancels.
+- **Indexes / constraints:** none. **Associations:** unchanged. **Enums:** none (no status column).
+- **Migration:** none.
+- **Requirement:** six-hour lock.
