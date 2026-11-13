@@ -37,7 +37,7 @@ class BreakersLibraryPageModel: ViewModel {
   var isLoading = false
   var presentedAlert: PlayolaAlert?
 
-  var navigationTitle: String { "Breakers Library" }
+  var navigationTitle: String { "Breakers" }
   var emptyStateMessage: String { "No breakers yet." }
 
   var showsEmptyState: Bool { !isLoading && categories.isEmpty }
