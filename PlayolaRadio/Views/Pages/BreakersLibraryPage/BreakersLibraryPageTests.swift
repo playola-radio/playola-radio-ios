@@ -33,6 +33,12 @@ struct BreakersLibraryPageTests {
     }
   }
 
+  @Test func navigationTitleMatchesTheStationTabLink() {
+    let model = BreakersLibraryPageModel(stationId: testStationId)
+
+    expectNoDifference(model.navigationTitle, "Breakers")
+  }
+
   @Test func viewAppearedTracksViewedScreen() async {
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
 

@@ -31,6 +31,12 @@ struct MusicLibraryPageTests {
     }
   }
 
+  @Test func navigationTitleMatchesTheStationTabLink() {
+    let model = MusicLibraryPageModel(stationId: testStationId)
+
+    expectNoDifference(model.navigationTitle, "Music")
+  }
+
   @Test func viewAppearedTracksViewedScreen() async {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let capturedEvents = LockIsolated<[AnalyticsEvent]>([])

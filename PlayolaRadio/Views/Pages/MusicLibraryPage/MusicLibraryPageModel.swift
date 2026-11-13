@@ -38,7 +38,7 @@ class MusicLibraryPageModel: ViewModel {
   var isLoading = false
   var presentedAlert: PlayolaAlert?
 
-  var navigationTitle: String { "Music Library" }
+  var navigationTitle: String { "Music" }
   var emptyStateMessage: String { "No songs yet." }
 
   var showsEmptyState: Bool { !isLoading && categories.isEmpty }
