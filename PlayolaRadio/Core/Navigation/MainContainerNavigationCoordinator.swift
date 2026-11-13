@@ -103,6 +103,7 @@ final class MainContainerNavigationCoordinator {
     case musicLibraryPage(MusicLibraryPageModel)
     case musicCategoryDetailPage(MusicCategoryDetailPageModel)
     case showsPage(ShowsPageModel)
+    case upcomingShowsPage(UpcomingShowsPageModel)
     case askMeAnythingLivePage(AskMeAnythingLivePageModel)
     case amaQuestionPickerPage(AMAQuestionPickerPageModel)
     case amaAnswerQuestionPage(AMAAnswerQuestionPageModel)
@@ -149,6 +150,8 @@ final class MainContainerNavigationCoordinator {
         MusicCategoryDetailPageView(model: model)
       case .showsPage(let model):
         ShowsPageView(model: model)
+      case .upcomingShowsPage(let model):
+        UpcomingShowsPageView(model: model)
       case .askMeAnythingLivePage(let model):
         AskMeAnythingLivePageView(model: model)
       case .amaQuestionPickerPage(let model):
