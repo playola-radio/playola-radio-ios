@@ -40,6 +40,7 @@ class ShowBuilderPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.notificationCenter) var notificationCenter
   @ObservationIgnored @Dependency(\.toast) var toast
 
   // MARK: - Shared State
@@ -425,6 +426,10 @@ class ShowBuilderPageModel: ViewModel {
       defer { pendingSaveCount -= 1 }
       let failure = await runChange(change)
       if alertsOnFailure, let failure { presentSaveAlert(for: failure) }
+      if failure == nil {
+        notificationCenter.post(
+          name: .recordedShowsChanged, object: nil, userInfo: ["stationId": stationId])
+      }
       return failure
     }
   }

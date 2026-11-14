@@ -533,6 +533,50 @@ struct ShowBuilderPageTests {
     expectNoDifference(updates.value, [CuratorEpisodeUpdate(title: "Road Stories")])
   }
 
+  @Test func renameSavePostsRecordedShowsChanged() async {
+    let notificationCenter = NotificationCenter()
+    let postedStations = LockIsolated<[String?]>([])
+    let observer = notificationCenter.addObserver(
+      forName: .recordedShowsChanged, object: nil, queue: nil
+    ) { notification in
+      postedStations.withValue { $0.append(notification.userInfo?["stationId"] as? String) }
+    }
+    defer { notificationCenter.removeObserver(observer) }
+    let model = makeModel {
+      $0.notificationCenter = notificationCenter
+      $0.api.updateEpisode = { [loaded = episode()] _, _, _ in loaded }
+    }
+    await model.viewAppeared()
+    expectNoDifference(postedStations.value, [])
+
+    model.renameButtonTapped()
+    model.renameText = "Road Stories"
+    await model.renameSaveButtonTapped()
+
+    expectNoDifference(postedStations.value, ["station-1"])
+  }
+
+  @Test func failedSaveDoesNotPostRecordedShowsChanged() async {
+    let notificationCenter = NotificationCenter()
+    let posts = LockIsolated(0)
+    let observer = notificationCenter.addObserver(
+      forName: .recordedShowsChanged, object: nil, queue: nil
+    ) { _ in posts.withValue { $0 += 1 } }
+    defer { notificationCenter.removeObserver(observer) }
+    let model = makeModel {
+      $0.notificationCenter = notificationCenter
+      $0.api.updateEpisode = { _, _, _ in throw ShowBuilderTestError() }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.viewAppeared()
+
+    model.renameButtonTapped()
+    model.renameText = "Road Stories"
+    await model.renameSaveButtonTapped()
+
+    expectNoDifference(posts.value, 0)
+  }
+
   @Test func renameKeepsTheShowContentWhenTheRefetchFails() async {
     let fetchCount = LockIsolated(0)
     let loaded = episode(segments: [segment("s1", position: 0), segment("s2", position: 1)])

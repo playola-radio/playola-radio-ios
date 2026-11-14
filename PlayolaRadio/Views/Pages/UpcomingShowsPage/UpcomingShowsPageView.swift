@@ -28,6 +28,9 @@ struct UpcomingShowsPageView: View {
     .task {
       await model.viewAppeared()
     }
+    .task {
+      await model.observeRecordedShowsChanges()
+    }
   }
 
   private var loadingSpinner: some View {
