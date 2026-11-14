@@ -72,6 +72,7 @@ class ShowBuilderPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   var renameText = ""
   private var pendingSaveCount = 0
+  private var questionAnswerRoles: [String: QuestionAnswerRole] = [:]
   @ObservationIgnored private var lastOperation: Task<(any Error)?, Never>?
 
   var navigationTitle: String { episode?.title ?? Self.newShowTitle }
@@ -88,6 +89,11 @@ class ShowBuilderPageModel: ViewModel {
   var songActionLabel: String { "Song" }
   var qaActionLabel: String { "Q/A" }
   var removeRowLabel: String { "Remove" }
+  var questionRowTitle: String { "Question" }
+  var answerRowTitle: String { "Answer" }
+  var answerRowSubtitle: String { "Your voice" }
+  var unknownAskerRowSubtitle: String { "Listener question" }
+  var questionAnswerIconSystemName: String { "bubble.left.and.bubble.right" }
   var settingsLoadErrorMessage: String { "The show settings couldn’t load." }
   var loadingOpacity: Double { isLoading ? 1 : 0 }
 
@@ -96,6 +102,7 @@ class ShowBuilderPageModel: ViewModel {
   func viewAppeared() async {
     guard let jwt = auth.jwt else { return }
     async let settingsLoad: Void = loadSettings(jwt: jwt)
+    async let questionsLoad: Void = loadQuestionAnswerRoles(jwt: jwt)
     if episodeId != nil, episode == nil {
       isLoading = true
       defer { isLoading = false }
@@ -105,6 +112,7 @@ class ShowBuilderPageModel: ViewModel {
       }.value
     }
     await settingsLoad
+    await questionsLoad
   }
 
   func save(_ change: @escaping @MainActor (_ episodeId: String) async throws -> Void) async {
@@ -166,6 +174,7 @@ class ShowBuilderPageModel: ViewModel {
       stationId: stationId, showStartedAt: nil,
       addToShow: { [weak self] questionAnswer in
         guard let self else { throw CancellationError() }
+        recordQuestionAnswerRoles(questionAnswer)
         let blockIds =
           [questionAnswer.questionBlock.id, questionAnswer.answerBlock.id]
           + [questionAnswer.trailingBlock?.id].compactMap { $0 }
@@ -328,7 +337,7 @@ class ShowBuilderPageModel: ViewModel {
     return IdentifiedArray(
       uniqueElements: orderedSegments.map { segment in
         ShowBuilderSegmentRow(
-          id: segment.id, data: Self.rowData(for: segment, isEditable: isEditable))
+          id: segment.id, data: rowData(for: segment, isEditable: isEditable))
       })
   }
 
@@ -344,6 +353,12 @@ class ShowBuilderPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
+  private enum QuestionAnswerRole {
+    case question(askerFirstName: String?)
+    case answer
+  }
+
+  private static let unknownListenerName = "Listener"
   private static let unknownRowDataId = UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
   private var timeZone: TimeZone {
@@ -465,6 +480,30 @@ class ShowBuilderPageModel: ViewModel {
     }
   }
 
+  private func loadQuestionAnswerRoles(jwt: String) async {
+    do {
+      let questions = try await api.getListenerQuestions(jwt, stationId)
+      for question in questions {
+        questionAnswerRoles[question.audioBlockId] = .question(
+          askerFirstName: question.listener?.firstName)
+        if let answerId = question.answerAudioBlockId {
+          questionAnswerRoles[answerId] = .answer
+        }
+      }
+    } catch {
+      guard !isCancellation(error) else { return }
+      await report(error, endpoint: "getListenerQuestions")
+    }
+  }
+
+  private func recordQuestionAnswerRoles(_ questionAnswer: AMAQuestionAnswer) {
+    let askerFirstName =
+      questionAnswer.listenerName == Self.unknownListenerName ? nil : questionAnswer.listenerName
+    questionAnswerRoles[questionAnswer.questionBlock.id] = .question(
+      askerFirstName: askerFirstName)
+    questionAnswerRoles[questionAnswer.answerBlock.id] = .answer
+  }
+
   private func recordSaveFailure(_ error: Error) async {
     guard !isCancellation(error), !(error is ShowBuilderNotSignedIn) else { return }
     if case APIError.recordedShowLocked = error { refusedAsLocked = true }
@@ -517,10 +556,10 @@ class ShowBuilderPageModel: ViewModel {
     return String(format: "%d:%02d", total / 60, total % 60)
   }
 
-  private static func rowData(for segment: CuratorEpisodeSegment, isEditable: Bool)
+  private func rowData(for segment: CuratorEpisodeSegment, isEditable: Bool)
     -> AMAOpeningRowData
   {
-    let dataId = UUID(uuidString: segment.id) ?? unknownRowDataId
+    let dataId = UUID(uuidString: segment.id) ?? Self.unknownRowDataId
     let trailingIcon = isEditable ? "line.3.horizontal" : "lock"
     guard let block = segment.audioBlock else {
       return AMAOpeningRowData(
@@ -532,11 +571,26 @@ class ShowBuilderPageModel: ViewModel {
     }
     let isSong = block.type == "song"
     let hasArtwork = isSong && block.imageUrl != nil
+    var title = block.title
+    var subtitle = isSong ? block.artist : "Your voice"
+    var iconSystemName = isSong ? "music.note" : "mic"
+    switch questionAnswerRoles[block.id] {
+    case .question(let askerFirstName):
+      title = questionRowTitle
+      subtitle = askerFirstName.map { "From \($0)" } ?? unknownAskerRowSubtitle
+      iconSystemName = questionAnswerIconSystemName
+    case .answer:
+      title = answerRowTitle
+      subtitle = answerRowSubtitle
+      iconSystemName = questionAnswerIconSystemName
+    case nil:
+      break
+    }
     return AMAOpeningRowData(
-      id: dataId, title: block.title, subtitle: isSong ? block.artist : "Your voice",
-      subtitleColor: .playolaTextDisabled, iconSystemName: isSong ? "music.note" : "mic",
+      id: dataId, title: title, subtitle: subtitle,
+      subtitleColor: .playolaTextDisabled, iconSystemName: iconSystemName,
       albumImageUrl: isSong ? block.imageUrl : nil, leadingArtworkOpacity: hasArtwork ? 1 : 0,
-      leadingFallbackOpacity: hasArtwork ? 0 : 1, trailingText: clockText(block.durationMS),
+      leadingFallbackOpacity: hasArtwork ? 0 : 1, trailingText: Self.clockText(block.durationMS),
       trailingIconSystemName: trailingIcon, processingOpacity: 0, completedOpacity: 1,
       isEditable: isEditable)
   }

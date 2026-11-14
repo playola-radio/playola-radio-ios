@@ -81,6 +81,7 @@ struct ShowBuilderPageTests {
       $0.date.now = resolvedNow
       $0.api.getCuratorEpisode = { _, _ in loaded }
       $0.api.getStationSchedulingSettings = { _, _ in resolvedSettings }
+      $0.api.getListenerQuestions = { _, _ in [] }
       configure(&$0)
     } operation: {
       ShowBuilderPageModel(
@@ -769,5 +770,113 @@ struct ShowBuilderPageTests {
     model.songActionTapped()
     #expect(model.presentedAlert == nil)
     #expect(coordinator.presentedSheet == nil)
+  }
+
+  // MARK: - Question and answer rows
+
+  private func voicetrack(_ id: String) -> AudioBlock {
+    block(id, title: "Voicetrack", type: "voicetrack")
+  }
+
+  private func labels(_ model: ShowBuilderPageModel) -> [String] {
+    model.rows.map { "\($0.data.title) | \($0.data.subtitle) | \($0.data.iconSystemName)" }
+  }
+
+  @Test func questionAndAnswerRowsAreLabeledQuestionAndAnswer() async {
+    let loaded = episode(segments: [
+      segment("s1", position: 0),
+      segment("s2", position: 1, audio: voicetrack("question-audio")),
+      segment("s3", position: 2, audio: voicetrack("answer-audio")),
+      segment("s4", position: 3, audio: voicetrack("anonymous-question-audio")),
+      segment("s5", position: 4, audio: voicetrack("plain-voicetrack")),
+    ])
+    let model = makeModel(episode: loaded) {
+      $0.api.getListenerQuestions = { _, _ in
+        [
+          .mockWith(
+            id: "question-1", audioBlockId: "question-audio", status: .answered,
+            answerAudioBlockId: "answer-audio",
+            listener: .mockWith(firstName: "Maya", lastName: "Lopez")),
+          .mockWith(id: "question-2", audioBlockId: "anonymous-question-audio", listener: nil),
+        ]
+      }
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(
+      labels(model),
+      [
+        "Song block-s1 | Artist block-s1 | music.note",
+        "Question | From Maya | bubble.left.and.bubble.right",
+        "Answer | Your voice | bubble.left.and.bubble.right",
+        "Question | Listener question | bubble.left.and.bubble.right",
+        "Voicetrack | Your voice | mic",
+      ])
+  }
+
+  @Test func newlyAddedQAndARowsAreLabeledWithoutRefetchingQuestions() async throws {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let questionFetches = LockIsolated(0)
+    let withQAndA = episode(segments: [
+      segment("s1", position: 0),
+      segment("s2", position: 1, audio: voicetrack("question-audio")),
+      segment("s3", position: 2, audio: voicetrack("answer-audio")),
+    ])
+    let model = makeModel(episode: episode(segments: [segment("s1", position: 0)])) {
+      $0.api.getListenerQuestions = { _, _ in
+        questionFetches.withValue { $0 += 1 }
+        return []
+      }
+      $0.api.addEpisodeSegments = { _, _, _, _ in withQAndA }
+      $0.api.getCuratorEpisode = { _, _ in withQAndA }
+    }
+    await model.viewAppeared()
+    model.qaActionTapped()
+    guard case .amaQuestionPickerPage(let picker) = coordinator.path.last else {
+      Issue.record("Expected the question picker to be pushed")
+      return
+    }
+
+    try await picker.addToShow(
+      AMAQuestionAnswer(
+        questionId: "question-1", listenerName: "Maya",
+        questionBlock: voicetrack("question-audio"), answerBlock: voicetrack("answer-audio")))
+
+    expectNoDifference(
+      labels(model).suffix(2),
+      [
+        "Question | From Maya | bubble.left.and.bubble.right",
+        "Answer | Your voice | bubble.left.and.bubble.right",
+      ])
+    expectNoDifference(questionFetches.value, 1)
+  }
+
+  @Test func failedQuestionLookupFallsBackToVoicetrackLabels() async {
+    let reported = LockIsolated<[String?]>([])
+    let shownToasts = LockIsolated(0)
+    let loaded = episode(segments: [
+      segment("s1", position: 0, audio: voicetrack("question-audio")),
+      segment("s2", position: 1, audio: voicetrack("answer-audio")),
+    ])
+    let model = makeModel(episode: loaded) {
+      $0.api.getListenerQuestions = { _, _ in throw ShowBuilderTestError() }
+      $0.errorReporting.reportError = { _, tags in
+        reported.withValue { $0.append(tags["endpoint"]) }
+      }
+      $0.toast.show = { _ in shownToasts.withValue { $0 += 1 } }
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(
+      labels(model),
+      [
+        "Voicetrack | Your voice | mic",
+        "Voicetrack | Your voice | mic",
+      ])
+    expectNoDifference(reported.value, ["getListenerQuestions"])
+    expectNoDifference(shownToasts.value, 0)
   }
 }
