@@ -452,4 +452,32 @@ struct MainContainerNavigationCoordinatorTests {
     coordinator.sanitizeRewardsRouteForKoozie()
     #expect(coordinator.profilePath.count == 1)
   }
+
+  @Test func popToQuestionAnswerHostReturnsToTheShowBuilder() {
+    let coordinator = MainContainerNavigationCoordinator()
+    let builder = ShowBuilderPageModel(
+      stationId: "station-1", episodeId: "episode-1", seriesId: nil, slot: nil)
+    let picker = AMAQuestionPickerPageModel(
+      stationId: "station-1", showStartedAt: nil, addToShow: { _ in })
+    coordinator.path = [
+      .individualShowsPage(IndividualShowsPageModel(stationId: "station-1")),
+      .showBuilderPage(builder), .amaQuestionPickerPage(picker),
+    ]
+
+    coordinator.popToQuestionAnswerHost()
+
+    #expect(coordinator.path.count == 2)
+    #expect(coordinator.path.last == .showBuilderPage(builder))
+  }
+
+  @Test func popToQuestionAnswerHostLeavesAPathWithoutAHostAlone() {
+    let coordinator = MainContainerNavigationCoordinator()
+    let picker = AMAQuestionPickerPageModel(
+      stationId: "station-1", showStartedAt: nil, addToShow: { _ in })
+    coordinator.path = [.amaQuestionPickerPage(picker)]
+
+    coordinator.popToQuestionAnswerHost()
+
+    #expect(coordinator.path == [.amaQuestionPickerPage(picker)])
+  }
 }
