@@ -17,7 +17,6 @@ struct ShowBuilderSegmentRow: Identifiable {
   let subtitle: String
   let icon: String
   let tileColor: Color
-  let artworkURL: URL?
   let durationText: String
   let handleIcons: [String]
   let isEditable: Bool
@@ -198,7 +197,7 @@ class ShowBuilderPageModel: ViewModel {
   }
 
   func rowsMoved(from source: IndexSet, to destination: Int) async {
-    guard canReorder, let episode, let sourceIndex = source.first else { return }
+    guard canReorder, let episode, source.count == 1, let sourceIndex = source.first else { return }
     let groups = segmentGroups
     guard groups.indices.contains(sourceIndex) else { return }
     var reorderedGroups = groups
@@ -212,15 +211,10 @@ class ShowBuilderPageModel: ViewModel {
     }
     self.episode = episode.replacingSegments(reorderedGroups.flatMap { $0 })
     _ = await enqueueSave { [weak self, api] jwt, episodeId in
-      do {
-        var updated = episode
-        for (segmentId, finalIndex) in moves {
-          updated = try await api.moveEpisodeSegment(jwt, episodeId, segmentId, finalIndex)
-        }
-        self?.episode = updated
-      } catch {
-        self?.episode = episode
-        throw error
+      var updated = episode
+      defer { self?.episode = updated }
+      for (segmentId, finalIndex) in moves {
+        updated = try await api.moveEpisodeSegment(jwt, episodeId, segmentId, finalIndex)
       }
     }.value
   }
@@ -229,10 +223,10 @@ class ShowBuilderPageModel: ViewModel {
     guard canEditContent, let segmentIds = rows[id: rowId]?.segmentIds else { return }
     _ = await enqueueSave { [weak self, api] jwt, episodeId in
       var updated = self?.episode
+      defer { self?.episode = updated }
       for segmentId in segmentIds {
         updated = try await api.removeEpisodeSegment(jwt, episodeId, segmentId)
       }
-      self?.episode = updated
     }.value
   }
 
@@ -613,13 +607,12 @@ class ShowBuilderPageModel: ViewModel {
     -> ShowBuilderSegmentRow
   {
     func makeRow(
-      _ title: String, _ subtitle: String, icon: String, tileColor: Color,
-      artworkURL: URL? = nil
+      _ title: String, _ subtitle: String, icon: String, tileColor: Color
     ) -> ShowBuilderSegmentRow {
       let blocks = group.compactMap(\.audioBlock)
       return ShowBuilderSegmentRow(
         id: group[0].id, segmentIds: group.map(\.id), title: title, subtitle: subtitle,
-        icon: icon, tileColor: tileColor, artworkURL: artworkURL,
+        icon: icon, tileColor: tileColor,
         durationText: blocks.isEmpty ? "" : Self.clockText(blocks.reduce(0) { $0 + $1.durationMS }),
         handleIcons: isEditable ? [Self.dragHandleIcon] : [], isEditable: isEditable)
     }
@@ -642,8 +635,7 @@ class ShowBuilderPageModel: ViewModel {
         answerRowTitle, voiceRowSubtitle, icon: Self.questionAnswerIcon, tileColor: .playolaRed)
     case nil where block.type == "song":
       return makeRow(
-        block.title, block.artist, icon: Self.songIcon, tileColor: .playolaSurfaceMuted,
-        artworkURL: block.imageUrl)
+        block.title, block.artist, icon: Self.songIcon, tileColor: .playolaSurfaceMuted)
     case nil:
       return makeRow(block.title, voiceRowSubtitle, icon: Self.voiceIcon, tileColor: .playolaRed)
     }

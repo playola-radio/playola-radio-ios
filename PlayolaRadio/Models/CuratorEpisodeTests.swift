@@ -216,8 +216,8 @@ struct CuratorEpisodeTests {
     expectNoDifference(makeEpisode(durationMS: 1_115_000).lengthLabel, "18 min")
   }
 
-  @Test func lengthLabelUnderAMinuteSaysSo() {
-    expectNoDifference(makeEpisode(durationMS: 59_999).lengthLabel, "Under 1 min")
+  @Test func lengthLabelUnderAMinuteRoundsDownToZero() {
+    expectNoDifference(makeEpisode(durationMS: 59_999).lengthLabel, "0 min")
   }
 
   @Test func lengthLabelIsNilWithoutAudio() {

@@ -97,8 +97,7 @@ extension CuratorEpisode {
 
   var lengthLabel: String? {
     guard hasAudio else { return nil }
-    let minutes = durationMS / 60_000
-    return minutes == 0 ? "Under 1 min" : "\(minutes) min"
+    return "\(durationMS / 60_000) min"
   }
 
   var isDraft: Bool { airings.isEmpty }

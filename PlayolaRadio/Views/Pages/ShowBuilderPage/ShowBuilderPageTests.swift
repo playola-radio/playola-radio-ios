@@ -1083,22 +1083,34 @@ extension ShowBuilderPageTests {
     expectNoDifference(moves.value, ["s1->2", "s4->1"])
   }
 
-  @Test func failedQuestionAndAnswerMoveRestoresTheSavedOrder() async {
+  private func refetchFailsAfterFirstLoad(_ loaded: CuratorEpisode)
+    -> @Sendable (String, String) async throws -> CuratorEpisode
+  {
     let fetchCount = LockIsolated(0)
+    return { _, _ in
+      let count = fetchCount.withValue {
+        $0 += 1
+        return $0
+      }
+      guard count == 1 else { throw ShowBuilderTestError() }
+      return loaded
+    }
+  }
+
+  @Test func failedQuestionAndAnswerMoveShowsWhatTheServerSaved() async {
     let loaded = showWithQuestionAndAnswer()
+    let questionMoved = episode(segments: [
+      segment("s1", position: 0),
+      segment("s3", position: 1, audio: voicetrack("answer-audio", durationMS: 44_000)),
+      segment("s4", position: 2),
+      segment("s2", position: 3, audio: voicetrack("question-audio", durationMS: 40_000)),
+    ])
     let model = makeModel(episode: loaded) {
       $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }
-      $0.api.getCuratorEpisode = { _, _ in
-        let count = fetchCount.withValue {
-          $0 += 1
-          return $0
-        }
-        guard count == 1 else { throw ShowBuilderTestError() }
-        return loaded
-      }
-      $0.api.moveEpisodeSegment = { _, _, segmentId, _ in
+      $0.api.getCuratorEpisode = refetchFailsAfterFirstLoad(loaded)
+      $0.api.moveEpisodeSegment = { [questionMoved] _, _, segmentId, _ in
         guard segmentId == "s2" else { throw ShowBuilderTestError() }
-        return loaded
+        return questionMoved
       }
       $0.errorReporting.reportError = { _, _ in }
     }
@@ -1106,8 +1118,49 @@ extension ShowBuilderPageTests {
 
     await model.rowsMoved(from: IndexSet(integer: 1), to: 3)
 
-    expectNoDifference(model.rows.map(\.segmentIds), [["s1"], ["s2", "s3"], ["s4"]])
+    expectNoDifference(model.rows.map(\.segmentIds), [["s1"], ["s3"], ["s4"], ["s2"]])
     #expect(model.presentedAlert != nil)
+  }
+
+  @Test func movingSeveralRowsAtOnceIsIgnored() async {
+    let moves = LockIsolated<[String]>([])
+    let loaded = showWithQuestionAndAnswer()
+    let model = makeModel(episode: loaded) {
+      $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }
+      $0.api.moveEpisodeSegment = { _, _, segmentId, position in
+        moves.withValue { $0.append("\(segmentId)->\(position)") }
+        return loaded
+      }
+    }
+    await model.viewAppeared()
+
+    await model.rowsMoved(from: IndexSet([0, 1]), to: 3)
+
+    expectNoDifference(moves.value, [])
+    expectNoDifference(model.rows.map(\.segmentIds), [["s1"], ["s2", "s3"], ["s4"]])
+  }
+
+  @Test func failedQuestionAndAnswerRemovalShowsWhatTheServerSaved() async {
+    let loaded = showWithQuestionAndAnswer()
+    let questionRemoved = episode(segments: [
+      segment("s1", position: 0),
+      segment("s3", position: 1, audio: voicetrack("answer-audio", durationMS: 44_000)),
+      segment("s4", position: 2),
+    ])
+    let model = makeModel(episode: loaded) {
+      $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }
+      $0.api.getCuratorEpisode = refetchFailsAfterFirstLoad(loaded)
+      $0.api.removeEpisodeSegment = { [questionRemoved] _, _, segmentId in
+        guard segmentId == "s2" else { throw ShowBuilderTestError() }
+        return questionRemoved
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.viewAppeared()
+
+    await model.rowDeleteTapped("s2")
+
+    expectNoDifference(model.rows.map(\.segmentIds), [["s1"], ["s3"], ["s4"]])
   }
 
   @Test func removingTheQuestionAndAnswerRowRemovesBothSegments() async {

@@ -3,12 +3,10 @@
 //  PlayolaRadio
 //
 
-import SDWebImageSwiftUI
 import SwiftUI
 
 struct ShowBuilderPageView: View {
   @Bindable var model: ShowBuilderPageModel
-  @Environment(\.displayScale) private var displayScale
 
   var body: some View {
     List {
@@ -211,15 +209,6 @@ struct ShowBuilderPageView: View {
         .overlay(
           Image(row.icon).resizable().scaledToFit().frame(width: 20, height: 20)
             .foregroundStyle(Color.playolaTextPrimary)
-        )
-        .overlay(
-          WebImage(
-            url: row.artworkURL,
-            context: RemoteArtwork.downsampleContext(
-              CGSize(width: 45, height: 45), scale: displayScale)
-          )
-          .resizable()
-          .scaledToFill()
         )
         .frame(width: 45, height: 45)
         .clipShape(RoundedRectangle(cornerRadius: 4))
