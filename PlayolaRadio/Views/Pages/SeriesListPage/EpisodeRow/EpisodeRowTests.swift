@@ -202,8 +202,11 @@ struct CalendarDateBadgeTests {
     let auckland = CalendarDateBadge(
       date: afternoonInChicago, timeZone: TimeZone(identifier: "Pacific/Auckland")!)
 
-    expectNoDifference([chicago.monthString, chicago.dayString], ["JAN", "15"])
-    expectNoDifference([auckland.monthString, auckland.dayString], ["JAN", "16"])
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMM"
+    let expectedMonth = formatter.string(from: afternoonInChicago).uppercased()
+    expectNoDifference([chicago.monthString, chicago.dayString], [expectedMonth, "15"])
+    expectNoDifference([auckland.monthString, auckland.dayString], [expectedMonth, "16"])
   }
 
   @Test func calendarBadgeDefaultsToTheDeviceTimeZone() {

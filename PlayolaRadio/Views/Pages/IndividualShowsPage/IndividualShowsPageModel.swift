@@ -5,6 +5,7 @@
 
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import Sharing
 import SwiftUI
 
@@ -107,14 +108,14 @@ class IndividualShowsPageModel: ViewModel {
 
   // MARK: - View Helpers
 
-  var rows: [IndividualShowRow] {
+  var rows: IdentifiedArrayOf<IndividualShowRow> {
     let drafts = episodes.filter(\.isDraft).map { draftRow(for: $0) }
     let scheduled = episodes.compactMap { episode in
       episode.upcomingAiring(now: now).map { (episode: episode, airing: $0) }
     }
     .sorted { $0.airing.airtime < $1.airing.airtime }
     .map { scheduledRow(for: $0.episode, airing: $0.airing) }
-    return drafts + scheduled
+    return IdentifiedArray(uniqueElements: drafts + scheduled)
   }
 
   // MARK: - Private Helpers
