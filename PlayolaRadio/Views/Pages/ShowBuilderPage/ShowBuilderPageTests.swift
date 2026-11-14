@@ -883,6 +883,22 @@ extension ShowBuilderPageTests {
     expectNoDifference(model.rows.map(\.handleIcons), [[]])
   }
 
+  @Test func songRowsShowTheirAlbumArt() async {
+    let art = URL(string: "https://example.com/cover.jpg")
+    let song = AudioBlock.mockWith(
+      id: "song-1", title: "Song", artist: "Artist", durationMS: 180_000,
+      endOfMessageMS: 180_000, type: "song", imageUrl: art)
+    let voice = block("voice-1", type: "voicetrack")
+    let loaded = episode(segments: [
+      segment("s1", position: 0, audio: song), segment("s2", position: 1, audio: voice),
+    ])
+    let model = makeModel(episode: loaded)
+
+    await model.viewAppeared()
+
+    expectNoDifference(model.rows.map(\.artworkURL), [art, nil])
+  }
+
   @Test func questionFollowedByItsAnswerShowsAsOneRow() async {
     let model = makeModel(episode: showWithQuestionAndAnswer()) {
       $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }

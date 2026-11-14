@@ -17,6 +17,7 @@ struct ShowBuilderSegmentRow: Identifiable {
   let subtitle: String
   let icon: String
   let tileColor: Color
+  let artworkURL: URL?
   let durationText: String
   let handleIcons: [String]
   let isEditable: Bool
@@ -614,12 +615,13 @@ class ShowBuilderPageModel: ViewModel {
     -> ShowBuilderSegmentRow
   {
     func makeRow(
-      _ title: String, _ subtitle: String, icon: String, tileColor: Color
+      _ title: String, _ subtitle: String, icon: String, tileColor: Color,
+      artworkURL: URL? = nil
     ) -> ShowBuilderSegmentRow {
       let blocks = group.compactMap(\.audioBlock)
       return ShowBuilderSegmentRow(
         id: group[0].id, segmentIds: group.map(\.id), title: title, subtitle: subtitle,
-        icon: icon, tileColor: tileColor,
+        icon: icon, tileColor: tileColor, artworkURL: artworkURL,
         durationText: blocks.isEmpty ? "" : Self.clockText(blocks.reduce(0) { $0 + $1.durationMS }),
         handleIcons: isEditable ? [Self.dragHandleIcon] : [], isEditable: isEditable)
     }
@@ -642,7 +644,8 @@ class ShowBuilderPageModel: ViewModel {
         answerRowTitle, voiceRowSubtitle, icon: Self.questionAnswerIcon, tileColor: .playolaRed)
     case nil where block.type == "song":
       return makeRow(
-        block.title, block.artist, icon: Self.songIcon, tileColor: .playolaSurfaceMuted)
+        block.title, block.artist, icon: Self.songIcon, tileColor: .playolaSurfaceMuted,
+        artworkURL: block.imageUrl)
     case nil:
       return makeRow(block.title, voiceRowSubtitle, icon: Self.voiceIcon, tileColor: .playolaRed)
     }
