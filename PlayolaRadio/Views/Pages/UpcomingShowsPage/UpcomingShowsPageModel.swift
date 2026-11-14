@@ -22,6 +22,7 @@ class UpcomingShowsPageModel: ViewModel {
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
 
   // MARK: - Initialization
 
@@ -50,7 +51,9 @@ class UpcomingShowsPageModel: ViewModel {
 
   func seriesRowTapped() {}
 
-  func individualShowsRowTapped() {}
+  func individualShowsRowTapped() {
+    navigationCoordinator.push(.individualShowsPage(IndividualShowsPageModel(stationId: stationId)))
+  }
 
   // MARK: - View Helpers
 
@@ -67,27 +70,16 @@ class UpcomingShowsPageModel: ViewModel {
 
   // MARK: - Private Helpers
 
-  private static let lockLengthIsIrrelevantToCounting = 0
-
   private var regularSeriesIds: Set<String> {
     Set(series.filter { !$0.isOneTime }.map(\.id))
   }
 
   private var draftCount: Int {
-    episodes.filter { state(of: $0) == .draft }.count
+    episodes.filter(\.isDraft).count
   }
 
   private var comingUpEpisodes: [CuratorEpisode] {
-    episodes.filter { episode in
-      switch state(of: episode) {
-      case .scheduled, .locked: return true
-      case .draft, .aired: return false
-      }
-    }
-  }
-
-  private func state(of episode: CuratorEpisode) -> CuratorEpisodeState {
-    episode.state(now: now, lockMS: Self.lockLengthIsIrrelevantToCounting)
+    episodes.filter { $0.upcomingAiring(now: now) != nil }
   }
 
   private static func comingUpLabel(for count: Int) -> String {

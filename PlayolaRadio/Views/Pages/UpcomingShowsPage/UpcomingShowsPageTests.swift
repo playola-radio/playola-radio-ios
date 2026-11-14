@@ -240,16 +240,30 @@ struct UpcomingShowsPageTests {
     expectNoDifference(model.individualShowsCountLabel, "0 shows coming up")
   }
 
-  // MARK: - Inert Rows
+  // MARK: - Navigation
 
-  @Test func rowsDoNothingUntilTheirPagesExist() async {
+  @Test func seriesRowDoesNothingUntilItsPageExists() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let model = await makeModel()
 
     model.seriesRowTapped()
-    model.individualShowsRowTapped()
 
     #expect(coordinator.path.isEmpty)
+  }
+
+  @Test func individualShowsRowPushesIndividualShowsPage() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = await makeModel()
+
+    model.individualShowsRowTapped()
+
+    guard case .individualShowsPage(let pushedModel) = coordinator.path.last else {
+      Issue.record("Expected an individualShowsPage to be pushed")
+      return
+    }
+    expectNoDifference(pushedModel.stationId, stationId)
+    expectNoDifference(coordinator.path.count, 1)
   }
 }

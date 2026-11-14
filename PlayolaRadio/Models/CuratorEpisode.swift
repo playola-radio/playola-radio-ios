@@ -95,6 +95,18 @@ extension CuratorEpisode {
 
   var hasAudio: Bool { durationMS > 0 }
 
+  var isDraft: Bool { airings.isEmpty }
+
+  /// The next Airing that hasn't ended. Nil for a draft and for a Show whose every Airing has
+  /// ended. Upcoming's counts and the Individual Shows list both classify through this, so
+  /// they can't disagree; the lock length plays no part in whether a Show is still upcoming.
+  func upcomingAiring(now: Date) -> CuratorAiring? {
+    switch state(now: now, lockMS: 0) {
+    case .scheduled(let airing), .locked(let airing): return airing
+    case .draft, .aired: return nil
+    }
+  }
+
   /// The server locks a Show when any Airing has aired, is on air, or starts within
   /// `airingEditLockMS`, so a Show with one ended Airing and one future Airing is `.locked`
   /// (carrying the next Airing) even though the future Airing is still outside the window.
