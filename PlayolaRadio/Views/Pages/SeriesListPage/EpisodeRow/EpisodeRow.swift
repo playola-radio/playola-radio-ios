@@ -99,8 +99,10 @@ struct CalendarDateBadge: View {
 
 struct DraftDateBadge: View {
   var body: some View {
-    Image(systemName: "pencil.line")
-      .font(.system(size: 18, weight: .regular))
+    Image("RecordedShows-pencil-line")
+      .resizable()
+      .scaledToFit()
+      .frame(width: 16, height: 16)
       .foregroundColor(.playolaWarningAmber)
       .frame(width: 36, height: 44)
       .background(Color(hex: "#1a1a1a"))

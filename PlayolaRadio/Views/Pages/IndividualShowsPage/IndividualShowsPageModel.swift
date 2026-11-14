@@ -143,7 +143,7 @@ class IndividualShowsPageModel: ViewModel {
   private func draftRow(for episode: CuratorEpisode) -> IndividualShowRow {
     IndividualShowRow(
       id: episode.id, title: episode.title,
-      subtitle: ["Not scheduled yet", lengthLabel(for: episode)].compactMap { $0 }
+      subtitle: ["Not scheduled yet", episode.lengthLabel].compactMap { $0 }
         .joined(separator: " · "),
       seriesBadges: seriesBadges(for: episode), kind: .draft)
   }
@@ -155,7 +155,7 @@ class IndividualShowsPageModel: ViewModel {
       id: episode.id, title: episode.title,
       subtitle: [
         formatted(airing.airtime, "EEEE"), formatted(airing.airtime, "h:mm a"),
-        lengthLabel(for: episode),
+        episode.lengthLabel,
       ].compactMap { $0 }.joined(separator: " · "),
       seriesBadges: seriesBadges(for: episode),
       kind: .scheduled(airtime: airing.airtime, timeZone: timeZone))
@@ -165,11 +165,6 @@ class IndividualShowsPageModel: ViewModel {
     let owner = series.first { $0.id == episode.showId } ?? episode.show
     guard let owner, !owner.isOneTime else { return [] }
     return [owner.title]
-  }
-
-  private func lengthLabel(for episode: CuratorEpisode) -> String? {
-    guard episode.hasAudio else { return nil }
-    return "\(Int((Double(episode.durationMS) / 60_000).rounded())) min"
   }
 
   private func formatted(_ date: Date, _ format: String) -> String {
