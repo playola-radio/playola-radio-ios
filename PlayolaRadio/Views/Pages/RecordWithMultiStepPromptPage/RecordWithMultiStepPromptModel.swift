@@ -615,6 +615,12 @@ extension RecordWithMultiStepPromptModel {
     }
   }
 
+  static func recordedShowVoicetrack(stationId: String) -> RecordWithMultiStepPromptModel {
+    let model = askMeAnythingVoicetrack(stationId: stationId)
+    configureLiveShowUpload(model, stationId: stationId, title: "Voicetrack")
+    return model
+  }
+
   static func askMeAnythingVoicetrack(stationId: String) -> RecordWithMultiStepPromptModel {
     RecordWithMultiStepPromptModel(
       screenTitle: "Record Voicetrack",
