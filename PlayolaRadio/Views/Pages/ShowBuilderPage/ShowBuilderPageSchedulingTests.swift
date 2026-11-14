@@ -7,6 +7,7 @@ import ConcurrencyExtras
 import CustomDump
 import Dependencies
 import Foundation
+import PlayolaPlayer
 import Sharing
 import Testing
 
@@ -62,7 +63,7 @@ struct ShowBuilderPageSchedulingTests {
         StationSchedulingSettings(timezone: "America/Chicago", airingEditLockMS: 21_600_000)
       }
       $0.api.getListenerQuestions = { _, _ in [] }
-      $0.api.getCuratorEpisodes = { _, _, _ in [] }
+      $0.api.getAirings = { _, _ in [] }
       $0.errorReporting.reportError = { _, _ in }
       configure(&$0)
     } operation: {
@@ -124,10 +125,19 @@ struct ShowBuilderPageSchedulingTests {
   @Test func sheetListsSlotsNotTakenByOtherShows() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    let other = episode(id: "episode-2", airings: [airing(at: airtime)])
     let ownScheduled = episode(airings: [airing(at: airtime.addingTimeInterval(week))])
+    let takenByAnotherStationsSeries = Airing.mockWith(
+      id: "airing-2", episodeId: "episode-2", stationId: stationId, airtime: airtime,
+      episode: .mockWith(id: "episode-2", durationMS: 1_800_000))
+    let ownAiring = Airing.mockWith(
+      id: "airing-1", episodeId: "episode-1", stationId: stationId,
+      airtime: airtime.addingTimeInterval(week),
+      episode: .mockWith(id: "episode-1", durationMS: 1_115_000))
     let model = makeModel(current: LockIsolated(ownScheduled)) {
-      $0.api.getCuratorEpisodes = { _, _, _ in [other, ownScheduled] }
+      $0.api.getAirings = { _, requestedStationId in
+        #expect(requestedStationId == "station-1")
+        return [takenByAnotherStationsSeries, ownAiring]
+      }
     }
     await model.viewAppeared()
 

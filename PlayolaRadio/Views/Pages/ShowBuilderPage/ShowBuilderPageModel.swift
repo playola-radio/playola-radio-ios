@@ -481,17 +481,16 @@ class ShowBuilderPageModel: ViewModel {
   private func occupiedIntervals(excluding episodeId: String) async -> [DateInterval] {
     guard let jwt = auth.jwt else { return [] }
     do {
-      let episodes = try await api.getCuratorEpisodes(jwt, stationId, nil)
-      return episodes.filter { $0.id != episodeId }.flatMap { episode in
-        episode.airings.compactMap { airing in
-          let end =
-            airing.endTime ?? airing.airtime.addingTimeInterval(Double(episode.durationMS) / 1000)
-          return DateInterval(start: airing.airtime, end: max(end, airing.airtime))
-        }
+      let airings = try await api.getAirings(jwt, stationId)
+      return airings.filter { $0.episodeId != episodeId }.map { airing in
+        let start = airing.startTime ?? airing.airtime
+        let durationMS = airing.episode?.durationMS ?? 0
+        let end = airing.endTime ?? airing.airtime.addingTimeInterval(Double(durationMS) / 1000)
+        return DateInterval(start: start, end: max(end, start))
       }
     } catch {
       guard !isCancellation(error) else { return [] }
-      await report(error, endpoint: "getCuratorEpisodes")
+      await report(error, endpoint: "getAirings")
       return []
     }
   }
