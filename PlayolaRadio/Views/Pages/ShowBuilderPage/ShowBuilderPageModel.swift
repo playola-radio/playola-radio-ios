@@ -107,6 +107,8 @@ class ShowBuilderPageModel: ViewModel {
   var songRequestRowTitle: String { "Song request" }
   var songRequestRowSubtitle: String { "Waiting for the song" }
   var settingsLoadErrorMessage: String { "The show settings couldn’t load." }
+  var emptyShowAlertTitle: String { "Nothing to Schedule Yet" }
+  var emptyShowAlertMessage: String { "Add a voicetrack, a song or a Q/A before scheduling it." }
   var loadingOpacity: Double { isLoading ? 1 : 0 }
 
   // MARK: - User Actions
@@ -231,11 +233,24 @@ class ShowBuilderPageModel: ViewModel {
     }.value
   }
 
-  func scheduleButtonTapped() {}
+  func scheduleButtonTapped() async {
+    await presentScheduleSheet()
+  }
 
-  func changeTimeButtonTapped() {}
+  func changeTimeButtonTapped() async {
+    await presentScheduleSheet()
+  }
 
-  func unscheduleButtonTapped() {}
+  func unscheduleButtonTapped() async {
+    guard !isReadOnly, let airing = state.airing, let episode,
+      let settings = await resolvedSettings()
+    else { return }
+    let sheet = UnscheduleShowSheetModel(
+      episode: episode, airing: airing, series: episode.show, settings: settings,
+      unschedule: { [weak self] in try await self?.unschedule(airing) }
+    )
+    navigationCoordinator.presentedSheet = .unscheduleShow(sheet)
+  }
 
   func seriesRowTapped() {}
 
@@ -353,7 +368,7 @@ class ShowBuilderPageModel: ViewModel {
   var lockedBanners: IdentifiedArrayOf<ShowBuilderBanner> {
     guard !isReadOnly, case .locked = state else { return [] }
     let reason =
-      settings.map { "Shows lock \(Self.lockLength($0.airingEditLockMS)) before they air." }
+      settings.map { "Shows lock \($0.airingEditLockText) before they air." }
       ?? "This show is locked because it airs soon."
     return IdentifiedArray(uniqueElements: [
       ShowBuilderBanner(
@@ -439,6 +454,66 @@ class ShowBuilderPageModel: ViewModel {
       let position = self?.episode?.segments.count ?? 0
       self?.episode = try await api.addEpisodeSegments(jwt, episodeId, audioBlockIds, position)
     }
+  }
+
+  private func presentScheduleSheet() async {
+    guard !isReadOnly else { return }
+    guard let episode else {
+      presentedAlert = Self.alert(title: emptyShowAlertTitle, message: emptyShowAlertMessage)
+      return
+    }
+    guard let settings = await resolvedSettings() else { return }
+    let intervals = await occupiedIntervals(excluding: episode.id)
+    let sheet = withDependencies(from: self) {
+      ScheduleShowSheetModel(
+        episode: episode, series: episode.show, settings: settings, occupiedIntervals: intervals,
+        initialTime: state.airing?.airtime ?? slot,
+        schedule: { [weak self] airtime in try await self?.schedule(at: airtime) })
+    }
+    navigationCoordinator.presentedSheet = .scheduleShow(sheet)
+  }
+
+  private func resolvedSettings() async -> StationSchedulingSettings? {
+    if settings == nil, let jwt = auth.jwt { await loadSettings(jwt: jwt) }
+    return settings
+  }
+
+  private func occupiedIntervals(excluding episodeId: String) async -> [DateInterval] {
+    guard let jwt = auth.jwt else { return [] }
+    do {
+      let episodes = try await api.getCuratorEpisodes(jwt, stationId, nil)
+      return episodes.filter { $0.id != episodeId }.flatMap { episode in
+        episode.airings.compactMap { airing in
+          let end =
+            airing.endTime ?? airing.airtime.addingTimeInterval(Double(episode.durationMS) / 1000)
+          return DateInterval(start: airing.airtime, end: max(end, airing.airtime))
+        }
+      }
+    } catch {
+      guard !isCancellation(error) else { return [] }
+      await report(error, endpoint: "getCuratorEpisodes")
+      return []
+    }
+  }
+
+  private func schedule(at airtime: Date) async throws {
+    let failure = await enqueueSave(alertsOnFailure: false) {
+      [weak self, api, stationId] jwt, episodeId in
+      if let airing = self?.state.airing {
+        try await api.moveAiring(jwt, airing.id, airtime)
+      } else {
+        try await api.scheduleEpisode(jwt, episodeId, stationId, airtime)
+      }
+    }.value
+    if let failure { throw failure }
+  }
+
+  private func unschedule(_ airing: CuratorAiring) async throws {
+    let failure = await enqueueSave(alertsOnFailure: false) { [weak self, api] jwt, _ in
+      try await api.unscheduleAiring(jwt, airing.id)
+      self?.refusedAsLocked = false
+    }.value
+    if let failure { throw failure }
   }
 
   private func appendVoicetrackToShow(_ audioBlockId: String) async {
@@ -597,13 +672,6 @@ class ShowBuilderPageModel: ViewModel {
 
   private static func alert(title: String, message: String) -> PlayolaAlert {
     PlayolaAlert(title: title, message: message, dismissButton: .cancel(Text("OK")))
-  }
-
-  private static func lockLength(_ milliseconds: Int) -> String {
-    let minutes = milliseconds / 60_000
-    guard minutes % 60 == 0 else { return minutes == 1 ? "1 minute" : "\(minutes) minutes" }
-    let hours = minutes / 60
-    return hours == 1 ? "1 hour" : "\(hours) hours"
   }
 
   private static func clockText(_ milliseconds: Int) -> String {

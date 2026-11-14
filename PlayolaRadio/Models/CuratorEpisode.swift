@@ -81,6 +81,13 @@ struct StationSchedulingSettings: Codable, Equatable, Sendable {
     TimeZone(identifier: timezone)
       ?? TimeZone(identifier: Self.fallbackTimeZoneIdentifier) ?? .gmt
   }
+
+  var airingEditLockText: String {
+    let minutes = airingEditLockMS / 60_000
+    guard minutes % 60 == 0 else { return minutes == 1 ? "1 minute" : "\(minutes) minutes" }
+    let hours = minutes / 60
+    return hours == 1 ? "1 hour" : "\(hours) hours"
+  }
 }
 
 enum CuratorEpisodeState: Equatable {

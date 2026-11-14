@@ -103,6 +103,7 @@ extension Color {
   static var playolaTextTertiary: Color { Color(hex: "#999999") }
   static var playolaTextQuaternary: Color { Color(hex: "#888888") }
   static var playolaTextMuted: Color { Color(hex: "#AAAAAA") }
+  static var playolaTextFaint: Color { Color(hex: "#868686") }
   static var playolaTextDisabled: Color { playolaGray }
   static var playolaWarmTextSecondary: Color { Color(hex: "#D7BFBF") }
   static var playolaIconInactive: Color { Color(hex: "#BABABA") }

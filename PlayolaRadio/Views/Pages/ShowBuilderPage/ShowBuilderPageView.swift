@@ -110,7 +110,7 @@ struct ShowBuilderPageView: View {
       Spacer(minLength: 8)
       ForEach(model.changeTimeButtons, id: \.self) { title in
         Button {
-          model.changeTimeButtonTapped()
+          Task { await model.changeTimeButtonTapped() }
         } label: {
           Text(title)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 13))
@@ -327,7 +327,7 @@ struct ShowBuilderPageView: View {
     VStack(spacing: 0) {
       ForEach(model.scheduleButtons, id: \.self) { title in
         Button {
-          model.scheduleButtonTapped()
+          Task { await model.scheduleButtonTapped() }
         } label: {
           bottomButtonLabel(title, icon: "RecordedShows-calendar-clock")
             .foregroundColor(.white)
@@ -340,7 +340,7 @@ struct ShowBuilderPageView: View {
       }
       ForEach(model.unscheduleButtons, id: \.self) { title in
         Button {
-          model.unscheduleButtonTapped()
+          Task { await model.unscheduleButtonTapped() }
         } label: {
           bottomButtonLabel(title, icon: "RecordedShows-calendar-x")
             .foregroundColor(.playolaRed)
