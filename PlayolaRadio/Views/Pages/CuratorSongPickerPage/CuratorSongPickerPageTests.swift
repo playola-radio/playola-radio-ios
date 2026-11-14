@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  CuratorSongPickerPageTests.swift
 //  PlayolaRadio
@@ -398,6 +399,33 @@ struct CuratorSongPickerPageTests {
         #expect(model.searchResults.map(\.id) == ["b1"])
         #expect(model.songRequestResults.map(\.appleId) == ["req-a"])
         #expect(!model.isSearching)
+      }
+    }
+  }
+
+  @Test func pickerWithoutSongRequestsSearchesTheLibraryOnly() async {
+    await withMainSerialExecutor {
+      let clock = TestClock()
+      let requestSearches = LockIsolated(0)
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+
+      await withDependencies {
+        $0.continuousClock = clock
+        $0.date = .constant(Date())
+        $0.api.searchSongs = { _, _ in [self.audioBlock(id: "b1")] }
+        $0.api.searchSongRequests = { _, _ in
+          requestSearches.withValue { $0 += 1 }
+          return [self.songRequest(appleId: "req-a")]
+        }
+      } operation: {
+        let model = CuratorSongPickerPageModel(stationId: "s", offersSongRequests: false)
+        model.searchText = "test"
+
+        await clock.advance(by: .milliseconds(300))
+
+        expectNoDifference(model.searchResults.map(\.id), ["b1"])
+        expectNoDifference(model.songRequestResults.map(\.appleId), [])
+        expectNoDifference(requestSearches.value, 0)
       }
     }
   }

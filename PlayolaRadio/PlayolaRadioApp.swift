@@ -22,6 +22,7 @@ import UserNotifications
 extension Notification.Name {
   static let refreshSupportMessages = Notification.Name("refreshSupportMessages")
   static let scheduleUpdated = Notification.Name("scheduleUpdated")
+  static let recordedShowsChanged = Notification.Name("recordedShowsChanged")
 }
 
 /// Screenshot captures must stay deterministic: skip live startup work

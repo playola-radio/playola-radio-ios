@@ -109,6 +109,14 @@ final class MainContainerNavigationCoordinator {
     case amaQuestionPickerPage(AMAQuestionPickerPageModel)
     case amaAnswerQuestionPage(AMAAnswerQuestionPageModel)
     case recordWithMultiStepPromptPage(RecordWithMultiStepPromptModel)
+    case showBuilderPage(ShowBuilderPageModel)
+
+    var isQuestionAnswerHost: Bool {
+      switch self {
+      case .askMeAnythingLivePage, .showBuilderPage: return true
+      default: return false
+      }
+    }
 
     @MainActor @ViewBuilder
     var destinationView: some View {
@@ -163,6 +171,8 @@ final class MainContainerNavigationCoordinator {
         AMAAnswerQuestionPageView(model: model)
       case .recordWithMultiStepPromptPage(let model):
         RecordWithMultiStepPromptView(model: model)
+      case .showBuilderPage(let model):
+        ShowBuilderPageView(model: model)
       }
     }
   }
@@ -205,21 +215,11 @@ final class MainContainerNavigationCoordinator {
     self.path.removeAll()
   }
 
-  /// Pops the AMA question picker/answer sub-flow back to the live show page. Leaves the stack
-  /// untouched if no `.askMeAnythingLivePage` is present (nothing to return to).
-  func popToAskMeAnythingLive() {
-    guard
-      path.contains(where: {
-        if case .askMeAnythingLivePage = $0 { return true }
-        return false
-      })
-    else { return }
-    var newPath = path
-    while let last = newPath.last {
-      if case .askMeAnythingLivePage = last { break }
-      newPath.removeLast()
-    }
-    path = newPath
+  /// Pops the question picker/answer sub-flow back to the page that opened it: the live AMA
+  /// show or the recorded show builder. Leaves the stack untouched if neither is present.
+  func popToQuestionAnswerHost() {
+    guard let hostIndex = path.lastIndex(where: \.isQuestionAnswerHost) else { return }
+    path = Array(path.prefix(through: hostIndex))
   }
 
   func switchToBroadcastMode(stationId: String) {

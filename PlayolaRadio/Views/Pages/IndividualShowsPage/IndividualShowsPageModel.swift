@@ -66,11 +66,13 @@ class IndividualShowsPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.notificationCenter) var notificationCenter
   @ObservationIgnored @Dependency(\.toast) var toast
 
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
 
   // MARK: - Initialization
 
@@ -102,9 +104,27 @@ class IndividualShowsPageModel: ViewModel {
     await loadShows()
   }
 
-  func showRowTapped(_ row: IndividualShowRow) {}
+  func observeRecordedShowsChanges(onReady: @escaping @MainActor () -> Void = {}) async {
+    let notifications = notificationCenter.notifications(named: .recordedShowsChanged)
+    onReady()
+    for await notification in notifications {
+      guard !Task.isCancelled else { return }
+      guard notification.userInfo?["stationId"] as? String == stationId else { continue }
+      await loadShows()
+    }
+  }
 
-  func recordNewShowButtonTapped() {}
+  func showRowTapped(_ row: IndividualShowRow) {
+    navigationCoordinator.push(
+      .showBuilderPage(
+        ShowBuilderPageModel(stationId: stationId, episodeId: row.id, seriesId: nil, slot: nil)))
+  }
+
+  func recordNewShowButtonTapped() {
+    navigationCoordinator.push(
+      .showBuilderPage(
+        ShowBuilderPageModel(stationId: stationId, episodeId: nil, seriesId: nil, slot: nil)))
+  }
 
   // MARK: - View Helpers
 
