@@ -109,6 +109,8 @@ struct ShowBuilderPageView: View {
           .font(.custom(FontNames.Inter_400_Regular, size: 13))
           .foregroundColor(.playolaTextSecondary)
       }
+      .lineLimit(1)
+      .minimumScaleFactor(0.8)
       Spacer(minLength: 8)
       ForEach(model.changeTimeButtons, id: \.self) { title in
         Button {
