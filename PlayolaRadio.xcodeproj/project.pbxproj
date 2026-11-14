@@ -113,6 +113,11 @@
 		AB5100000000000000000B03 /* UpcomingShowsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5100000000000000000A02 /* UpcomingShowsPageView.swift */; };
 		AB5100000000000000000B04 /* UpcomingShowsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5100000000000000000A02 /* UpcomingShowsPageView.swift */; };
 		AB5100000000000000000B05 /* UpcomingShowsPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5100000000000000000A03 /* UpcomingShowsPageTests.swift */; };
+		AB5200000000000000000B01 /* IndividualShowsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5200000000000000000A01 /* IndividualShowsPageModel.swift */; };
+		AB5200000000000000000B02 /* IndividualShowsPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5200000000000000000A01 /* IndividualShowsPageModel.swift */; };
+		AB5200000000000000000B03 /* IndividualShowsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5200000000000000000A02 /* IndividualShowsPageView.swift */; };
+		AB5200000000000000000B04 /* IndividualShowsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5200000000000000000A02 /* IndividualShowsPageView.swift */; };
+		AB5200000000000000000B05 /* IndividualShowsPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5200000000000000000A03 /* IndividualShowsPageTests.swift */; };
 		AA10000000000000000000B6 /* ArtistDashboardPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */; };
 		AA10000000000000000000B7 /* ArtistDashboardPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */; };
 		AA10000000000000000000B8 /* ArtistDashboardPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A5 /* ArtistDashboardPageView.swift */; };
@@ -835,6 +840,9 @@
 		AB5100000000000000000A01 /* UpcomingShowsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingShowsPageModel.swift; sourceTree = "<group>"; };
 		AB5100000000000000000A02 /* UpcomingShowsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingShowsPageView.swift; sourceTree = "<group>"; };
 		AB5100000000000000000A03 /* UpcomingShowsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingShowsPageTests.swift; sourceTree = "<group>"; };
+		AB5200000000000000000A01 /* IndividualShowsPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndividualShowsPageModel.swift; sourceTree = "<group>"; };
+		AB5200000000000000000A02 /* IndividualShowsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndividualShowsPageView.swift; sourceTree = "<group>"; };
+		AB5200000000000000000A03 /* IndividualShowsPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndividualShowsPageTests.swift; sourceTree = "<group>"; };
 		AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageModel.swift; sourceTree = "<group>"; };
 		AA10000000000000000000A5 /* ArtistDashboardPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageView.swift; sourceTree = "<group>"; };
 		AA10000000000000000000A6 /* ArtistDashboardPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageTests.swift; sourceTree = "<group>"; };
@@ -1341,6 +1349,16 @@
 			path = YourLibraryPage;
 			sourceTree = "<group>";
 		};
+		AB5200000000000000000C01 /* IndividualShowsPage */ = {
+			isa = PBXGroup;
+			children = (
+				AB5200000000000000000A01 /* IndividualShowsPageModel.swift */,
+				AB5200000000000000000A02 /* IndividualShowsPageView.swift */,
+				AB5200000000000000000A03 /* IndividualShowsPageTests.swift */,
+			);
+			path = IndividualShowsPage;
+			sourceTree = "<group>";
+		};
 		AB5100000000000000000C01 /* UpcomingShowsPage */ = {
 			isa = PBXGroup;
 			children = (
@@ -1706,6 +1724,7 @@
 				FEED00000000000000000C2 /* StationSetupPage */,
 				AA10000000000000000000C1 /* ArtistStationPage */,
 				AB5100000000000000000C01 /* UpcomingShowsPage */,
+				AB5200000000000000000C01 /* IndividualShowsPage */,
 				CC0000000000000000000110 /* BreakersLibraryPage */,
 				CC0000000000000000000200 /* BreakerCategoryDetailPage */,
 				CC0000000000000000000300 /* MusicLibraryPage */,
@@ -2825,6 +2844,8 @@
 				AA10000000000000000000B3 /* ArtistStationPageView.swift in Sources */,
 				AB5100000000000000000B01 /* UpcomingShowsPageModel.swift in Sources */,
 				AB5100000000000000000B03 /* UpcomingShowsPageView.swift in Sources */,
+				AB5200000000000000000B01 /* IndividualShowsPageModel.swift in Sources */,
+				AB5200000000000000000B03 /* IndividualShowsPageView.swift in Sources */,
 				AA10000000000000000000B6 /* ArtistDashboardPageModel.swift in Sources */,
 				AA10000000000000000000B8 /* ArtistDashboardPageView.swift in Sources */,
 				FEED00000000000000000102 /* StationSetupPageModel.swift in Sources */,
@@ -3114,6 +3135,8 @@
 				AA10000000000000000000B4 /* ArtistStationPageView.swift in Sources */,
 				AB5100000000000000000B02 /* UpcomingShowsPageModel.swift in Sources */,
 				AB5100000000000000000B04 /* UpcomingShowsPageView.swift in Sources */,
+				AB5200000000000000000B02 /* IndividualShowsPageModel.swift in Sources */,
+				AB5200000000000000000B04 /* IndividualShowsPageView.swift in Sources */,
 				AA10000000000000000000B7 /* ArtistDashboardPageModel.swift in Sources */,
 				AA10000000000000000000B9 /* ArtistDashboardPageView.swift in Sources */,
 				FEED00000000000000000103 /* StationSetupPageModel.swift in Sources */,
@@ -3333,6 +3356,7 @@
 				D3219C1F2EDD22360008AFDA /* BroadcastPageTests.swift in Sources */,
 				AA10000000000000000000B5 /* ArtistStationPageTests.swift in Sources */,
 				AB5100000000000000000B05 /* UpcomingShowsPageTests.swift in Sources */,
+				AB5200000000000000000B05 /* IndividualShowsPageTests.swift in Sources */,
 				AA10000000000000000000BA /* ArtistDashboardPageTests.swift in Sources */,
 				FEED00000000000000000302 /* StationSetupPageTests.swift in Sources */,
 				FEED00000000000000000602 /* ArtistDashboardTabRootTests.swift in Sources */,

@@ -45,16 +45,20 @@ struct EpisodeRow: View {
 
 struct CalendarDateBadge: View {
   let date: Date
+  var timeZone: TimeZone = .current
 
-  private var monthString: String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "MMM"
-    return formatter.string(from: date).uppercased()
+  var monthString: String {
+    formatted("MMM").uppercased()
   }
 
-  private var dayString: String {
+  var dayString: String {
+    formatted("d")
+  }
+
+  private func formatted(_ format: String) -> String {
     let formatter = DateFormatter()
-    formatter.dateFormat = "d"
+    formatter.timeZone = timeZone
+    formatter.dateFormat = format
     return formatter.string(from: date)
   }
 
@@ -88,6 +92,23 @@ struct CalendarDateBadge: View {
       RoundedRectangle(cornerRadius: 6)
         .stroke(Color(hex: "#444444"), lineWidth: 1)
     )
+  }
+}
+
+// MARK: - Draft Date Badge
+
+struct DraftDateBadge: View {
+  var body: some View {
+    Image(systemName: "pencil.line")
+      .font(.system(size: 18, weight: .regular))
+      .foregroundColor(.playolaWarningAmber)
+      .frame(width: 36, height: 44)
+      .background(Color(hex: "#1a1a1a"))
+      .cornerRadius(6)
+      .overlay(
+        RoundedRectangle(cornerRadius: 6)
+          .stroke(Color(hex: "#444444"), lineWidth: 1)
+      )
   }
 }
 
