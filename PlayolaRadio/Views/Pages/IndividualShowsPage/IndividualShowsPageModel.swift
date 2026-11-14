@@ -71,6 +71,7 @@ class IndividualShowsPageModel: ViewModel {
   // MARK: - Shared State
 
   @ObservationIgnored @Shared(.auth) var auth
+  @ObservationIgnored @Shared(.mainContainerNavigationCoordinator) var navigationCoordinator
 
   // MARK: - Initialization
 
@@ -102,9 +103,17 @@ class IndividualShowsPageModel: ViewModel {
     await loadShows()
   }
 
-  func showRowTapped(_ row: IndividualShowRow) {}
+  func showRowTapped(_ row: IndividualShowRow) {
+    navigationCoordinator.push(
+      .showBuilderPage(
+        ShowBuilderPageModel(stationId: stationId, episodeId: row.id, seriesId: nil, slot: nil)))
+  }
 
-  func recordNewShowButtonTapped() {}
+  func recordNewShowButtonTapped() {
+    navigationCoordinator.push(
+      .showBuilderPage(
+        ShowBuilderPageModel(stationId: stationId, episodeId: nil, seriesId: nil, slot: nil)))
+  }
 
   // MARK: - View Helpers
 

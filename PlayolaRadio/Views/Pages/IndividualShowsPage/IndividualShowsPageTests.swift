@@ -373,16 +373,40 @@ struct IndividualShowsPageTests {
     expectNoDifference(model.emptyStateOpacity, 0)
   }
 
-  // MARK: - Inert Actions
+  // MARK: - Opening the Builder
 
-  @Test func rowAndRecordButtonDoNothingUntilTheBuilderExists() async {
+  @Test func tappingAShowOpensItInTheBuilder() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let model = await makeModel(episodes: [episode(id: "a", airingHours: [3])])
 
     model.showRowTapped(model.rows[0])
+
+    guard case .showBuilderPage(let builder) = coordinator.path.last else {
+      Issue.record("Expected the show builder to be pushed")
+      return
+    }
+    expectNoDifference(coordinator.path.count, 1)
+    expectNoDifference(builder.stationId, stationId)
+    expectNoDifference(builder.episodeId, "a")
+    expectNoDifference(builder.seriesId, nil)
+    expectNoDifference(builder.slot, nil)
+  }
+
+  @Test func recordNewShowOpensAnEmptyBuilder() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = await makeModel()
+
     model.recordNewShowButtonTapped()
 
-    #expect(coordinator.path.isEmpty)
+    guard case .showBuilderPage(let builder) = coordinator.path.last else {
+      Issue.record("Expected the show builder to be pushed")
+      return
+    }
+    expectNoDifference(coordinator.path.count, 1)
+    expectNoDifference(builder.stationId, stationId)
+    expectNoDifference(builder.episodeId, nil)
+    expectNoDifference(builder.seriesId, nil)
   }
 }
