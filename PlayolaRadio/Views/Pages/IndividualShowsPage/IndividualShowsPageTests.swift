@@ -83,8 +83,8 @@ struct IndividualShowsPageTests {
 
   // MARK: - Titles
 
-  @Test func individualShowsPageTextComesFromTheModel() async {
-    let model = await makeModel()
+  @Test func individualShowsPageTextComesFromTheModel() {
+    let model = IndividualShowsPageModel(stationId: "station-1")
 
     expectNoDifference(model.navigationTitle, "Individual Shows")
     expectNoDifference(model.recordNewShowButtonTitle, "Record a New Show")
@@ -279,6 +279,23 @@ struct IndividualShowsPageTests {
     expectNoDifference(
       auckland.rows.map(\.kind),
       [.scheduled(airtime: airing.airtime, timeZone: TimeZone(identifier: "Pacific/Auckland")!)])
+  }
+
+  @Test func draftRowsRenderADraftTileAndScheduledRowsACalendarTile() async {
+    let model = await makeModel(
+      episodes: [episode(id: "draft"), episode(id: "scheduled", airingHours: [3])])
+
+    let draft = model.rows[0]
+    let scheduled = model.rows[1]
+
+    expectNoDifference(draft.draftTileIDs, ["draft"])
+    expectNoDifference(draft.scheduledTiles, [])
+    expectNoDifference(draft.draftSubtitles, [draft.subtitle])
+    expectNoDifference(draft.scheduledSubtitles, [])
+    expectNoDifference(scheduled.draftTileIDs, [])
+    expectNoDifference(scheduled.scheduledTiles.map(\.id), ["scheduled"])
+    expectNoDifference(scheduled.draftSubtitles, [])
+    expectNoDifference(scheduled.scheduledSubtitles, [scheduled.subtitle])
   }
 
   // MARK: - Empty State

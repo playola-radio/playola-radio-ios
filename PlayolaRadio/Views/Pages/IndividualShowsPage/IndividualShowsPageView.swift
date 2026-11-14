@@ -82,13 +82,24 @@ struct IndividualShowsPageView: View {
       .accessibilityHidden(!model.isLoading)
   }
 
+  private func subtitleText(_ text: String, color: Color) -> some View {
+    Text(text)
+      .font(.custom(FontNames.Inter_400_Regular, size: 14))
+      .foregroundColor(color)
+  }
+
   private func rowView(_ row: IndividualShowRow) -> some View {
     VStack(spacing: 0) {
       Button {
         model.showRowTapped(row)
       } label: {
         HStack(spacing: 16) {
-          IndividualShowTile(kind: row.kind)
+          ForEach(row.draftTileIDs, id: \.self) { _ in
+            DraftDateBadge()
+          }
+          ForEach(row.scheduledTiles) { tile in
+            CalendarDateBadge(date: tile.airtime, timeZone: tile.timeZone)
+          }
           VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
               Text(row.title)
@@ -106,9 +117,12 @@ struct IndividualShowsPageView: View {
                   .cornerRadius(4)
               }
             }
-            Text(row.subtitle)
-              .font(.custom(FontNames.Inter_400_Regular, size: 14))
-              .foregroundColor(row.kind.subtitleColor)
+            ForEach(row.draftSubtitles, id: \.self) { subtitle in
+              subtitleText(subtitle, color: .playolaWarningAmber)
+            }
+            ForEach(row.scheduledSubtitles, id: \.self) { subtitle in
+              subtitleText(subtitle, color: .playolaGray)
+            }
           }
           Spacer(minLength: 0)
           Image(systemName: "chevron.right")
@@ -121,28 +135,6 @@ struct IndividualShowsPageView: View {
       .buttonStyle(.plain)
       Divider()
         .background(Color(hex: "#333333"))
-    }
-  }
-}
-
-private struct IndividualShowTile: View {
-  let kind: IndividualShowRow.Kind
-
-  var body: some View {
-    switch kind {
-    case .draft:
-      DraftDateBadge()
-    case .scheduled(let airtime, let timeZone):
-      CalendarDateBadge(date: airtime, timeZone: timeZone)
-    }
-  }
-}
-
-extension IndividualShowRow.Kind {
-  fileprivate var subtitleColor: Color {
-    switch self {
-    case .draft: return .playolaWarningAmber
-    case .scheduled: return .playolaGray
     }
   }
 }

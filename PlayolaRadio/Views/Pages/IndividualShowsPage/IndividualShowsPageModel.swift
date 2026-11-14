@@ -19,6 +19,41 @@ struct IndividualShowRow: Identifiable, Equatable {
   let subtitle: String
   let seriesBadges: [String]
   let kind: Kind
+
+  struct ScheduledTile: Identifiable, Equatable {
+    let id: String
+    let airtime: Date
+    let timeZone: TimeZone
+  }
+
+  var draftTileIDs: [String] {
+    switch kind {
+    case .draft: return [id]
+    case .scheduled: return []
+    }
+  }
+
+  var scheduledTiles: [ScheduledTile] {
+    switch kind {
+    case .draft: return []
+    case .scheduled(let airtime, let timeZone):
+      return [ScheduledTile(id: id, airtime: airtime, timeZone: timeZone)]
+    }
+  }
+
+  var draftSubtitles: [String] {
+    switch kind {
+    case .draft: return [subtitle]
+    case .scheduled: return []
+    }
+  }
+
+  var scheduledSubtitles: [String] {
+    switch kind {
+    case .draft: return []
+    case .scheduled: return [subtitle]
+    }
+  }
 }
 
 @MainActor
