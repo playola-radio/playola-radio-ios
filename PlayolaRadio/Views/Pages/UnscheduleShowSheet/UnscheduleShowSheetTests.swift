@@ -83,7 +83,7 @@ struct UnscheduleShowSheetTests {
       MainContainerNavigationCoordinator()
     let calls = LockIsolated(0)
     let model = makeModel { calls.withValue { $0 += 1 } }
-    $coordinator.withLock { $0.presentedSheet = .unscheduleShow(model) }
+    coordinator.presentedSheet = .unscheduleShow(model)
 
     model.keepScheduledTapped()
 
@@ -96,7 +96,7 @@ struct UnscheduleShowSheetTests {
       MainContainerNavigationCoordinator()
     let calls = LockIsolated(0)
     let model = makeModel { calls.withValue { $0 += 1 } }
-    $coordinator.withLock { $0.presentedSheet = .unscheduleShow(model) }
+    coordinator.presentedSheet = .unscheduleShow(model)
 
     await model.unscheduleConfirmed()
 
@@ -110,7 +110,7 @@ struct UnscheduleShowSheetTests {
     let message =
       "This show goes on the air in less than 2 minutes and can\u{2019}t be unscheduled."
     let model = makeModel { throw APIError.serverError(message) }
-    $coordinator.withLock { $0.presentedSheet = .unscheduleShow(model) }
+    coordinator.presentedSheet = .unscheduleShow(model)
 
     await model.unscheduleConfirmed()
 

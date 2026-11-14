@@ -107,6 +107,7 @@ class ShowBuilderPageModel: ViewModel {
   var songRequestRowTitle: String { "Song request" }
   var songRequestRowSubtitle: String { "Waiting for the song" }
   var settingsLoadErrorMessage: String { "The show settings couldn’t load." }
+  var airingsLoadErrorMessage: String { "Open slots couldn’t load." }
   var emptyShowAlertTitle: String { "Nothing to Schedule Yet" }
   var emptyShowAlertMessage: String { "Add a voicetrack, a song or a Q/A before scheduling it." }
   var loadingOpacity: Double { isLoading ? 1 : 0 }
@@ -458,13 +459,19 @@ class ShowBuilderPageModel: ViewModel {
 
   private func presentScheduleSheet() async {
     guard !isReadOnly else { return }
-    guard let episode else {
+    guard let episode, episode.hasAudio else {
       presentedAlert = Self.alert(title: emptyShowAlertTitle, message: emptyShowAlertMessage)
       return
     }
     guard let settings = await resolvedSettings() else { return }
     let hasSlotSuggestions = episode.show.map { !$0.isOneTime && $0.rrule != nil } ?? false
-    let intervals = hasSlotSuggestions ? await occupiedIntervals(excluding: episode.id) : []
+    let intervals: [DateInterval]
+    if hasSlotSuggestions {
+      guard let loadedIntervals = await occupiedIntervals(excluding: episode.id) else { return }
+      intervals = loadedIntervals
+    } else {
+      intervals = []
+    }
     let sheet = withDependencies(from: self) {
       ScheduleShowSheetModel(
         episode: episode, series: episode.show, settings: settings, occupiedIntervals: intervals,
@@ -479,8 +486,8 @@ class ShowBuilderPageModel: ViewModel {
     return settings
   }
 
-  private func occupiedIntervals(excluding episodeId: String) async -> [DateInterval] {
-    guard let jwt = auth.jwt else { return [] }
+  private func occupiedIntervals(excluding episodeId: String) async -> [DateInterval]? {
+    guard let jwt = auth.jwt else { return nil }
     do {
       let airings = try await api.getAirings(jwt, stationId)
       return airings.filter { $0.episodeId != episodeId }.map { airing in
@@ -490,9 +497,10 @@ class ShowBuilderPageModel: ViewModel {
         return DateInterval(start: start, end: max(end, start))
       }
     } catch {
-      guard !isCancellation(error) else { return [] }
+      guard !isCancellation(error) else { return nil }
       await report(error, endpoint: "getAirings")
-      return []
+      await toast.show(PlayolaToast(message: airingsLoadErrorMessage, buttonTitle: "OK"))
+      return nil
     }
   }
 

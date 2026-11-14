@@ -178,7 +178,7 @@ struct ScheduleShowSheetTests {
       MainContainerNavigationCoordinator()
     let scheduled = LockIsolated<[Date]>([])
     let model = makeModel { time in scheduled.withValue { $0.append(time) } }
-    $coordinator.withLock { $0.presentedSheet = .scheduleShow(model) }
+    coordinator.presentedSheet = .scheduleShow(model)
 
     await model.scheduleButtonTapped()
 
@@ -200,7 +200,7 @@ struct ScheduleShowSheetTests {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let other = PlayolaSheet.share(ShareSheetModel(items: ["x"]))
-    $coordinator.withLock { $0.presentedSheet = other }
+    coordinator.presentedSheet = other
     let model = makeModel()
 
     await model.scheduleButtonTapped()
@@ -213,7 +213,7 @@ struct ScheduleShowSheetTests {
       MainContainerNavigationCoordinator()
     let calls = LockIsolated(0)
     let model = makeModel { _ in calls.withValue { $0 += 1 } }
-    $coordinator.withLock { $0.presentedSheet = .scheduleShow(model) }
+    coordinator.presentedSheet = .scheduleShow(model)
 
     model.cancelButtonTapped()
 
@@ -270,7 +270,7 @@ struct ScheduleShowSheetTests {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let model = makeModel { _ in throw APIError.recordedShowLocked("This show is locked.") }
-    $coordinator.withLock { $0.presentedSheet = .scheduleShow(model) }
+    coordinator.presentedSheet = .scheduleShow(model)
 
     await model.scheduleButtonTapped()
 
@@ -279,12 +279,30 @@ struct ScheduleShowSheetTests {
     #expect(coordinator.presentedSheet == .scheduleShow(model))
   }
 
+  @Test func missingAudioRefusalDisablesScheduleUntilTimeChanges() async {
+    let model = makeModel { _ in throw APIError.serverError("No audio.") }
+
+    await model.scheduleButtonTapped()
+
+    expectNoDifference(model.errorLines, ["No audio."])
+    #expect(!model.isScheduleEnabled)
+  }
+
   @Test func connectivityFailureShowsMessageButAllowsRetry() async {
     let model = makeModel { _ in throw URLError(.notConnectedToInternet) }
 
     await model.scheduleButtonTapped()
 
     expectNoDifference(model.errorLines.count, 1)
+    #expect(model.isScheduleEnabled)
+  }
+
+  @Test func temporaryServerFailureShowsMessageButAllowsRetry() async {
+    let model = makeModel { _ in throw APIError.serverError("Something went wrong on our end.") }
+
+    await model.scheduleButtonTapped()
+
+    expectNoDifference(model.errorLines, ["Something went wrong on our end."])
     #expect(model.isScheduleEnabled)
   }
 

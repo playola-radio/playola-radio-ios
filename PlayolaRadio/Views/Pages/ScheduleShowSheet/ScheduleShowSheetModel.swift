@@ -94,7 +94,7 @@ class ScheduleShowSheetModel: ViewModel {
       return
     } catch {
       failure = ScheduleFailure(
-        time: airtime, message: error.localizedDescription, isRefusal: error is APIError)
+        time: airtime, message: error.localizedDescription, isRefusal: isTimeRefusal(error))
     }
   }
 
@@ -176,6 +176,17 @@ class ScheduleShowSheetModel: ViewModel {
   private var activeFailure: ScheduleFailure? {
     guard let failure, failure.time == chosenTime else { return nil }
     return failure
+  }
+
+  private func isTimeRefusal(_ error: Error) -> Bool {
+    switch error {
+    case APIError.recordedShowLocked:
+      return true
+    case APIError.serverError(let message):
+      return message.hasPrefix("This overlaps ") || message == "No audio."
+    default:
+      return false
+    }
   }
 
   private var possessiveTitle: String {

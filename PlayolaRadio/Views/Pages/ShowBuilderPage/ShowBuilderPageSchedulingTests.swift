@@ -36,9 +36,11 @@ struct ShowBuilderPageSchedulingTests {
       startTime: nil, endTime: nil)
   }
 
-  nonisolated private func episode(airings: [CuratorAiring] = []) -> CuratorEpisode {
+  nonisolated private func episode(
+    durationMS: Int = 1_115_000, airings: [CuratorAiring] = []
+  ) -> CuratorEpisode {
     CuratorEpisode(
-      id: "episode-1", showId: "series-1", title: "Tour Stories", durationMS: 1_115_000,
+      id: "episode-1", showId: "series-1", title: "Tour Stories", durationMS: durationMS,
       show: weeklySeries, segments: [], airings: airings)
   }
 
@@ -154,6 +156,37 @@ struct ShowBuilderPageSchedulingTests {
 
     #expect(coordinator.presentedSheet == nil)
     expectNoDifference(model.presentedAlert?.title, "Nothing to Schedule Yet")
+  }
+
+  @Test func scheduleWithAnEmptyDraftAsksForContentFirst() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeModel(current: LockIsolated(episode(durationMS: 0)))
+    await model.viewAppeared()
+
+    await model.scheduleButtonTapped()
+
+    #expect(coordinator.presentedSheet == nil)
+    expectNoDifference(model.presentedAlert?.title, "Nothing to Schedule Yet")
+  }
+
+  @Test func unavailableSlotSuggestionsShowAToastAndDoNotOpenTheSheet() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reports = LockIsolated(0)
+    let model = makeModel {
+      $0.api.getAirings = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    }
+    await model.viewAppeared()
+
+    await model.scheduleButtonTapped()
+
+    #expect(coordinator.presentedSheet == nil)
+    expectNoDifference(shownToasts.value.map(\.message), ["Open slots couldn’t load."])
+    expectNoDifference(reports.value, 1)
   }
 
   @Test func overlapRefusalStaysInTheSheetWithoutASecondAlert() async {
