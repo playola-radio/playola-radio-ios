@@ -109,7 +109,7 @@ struct DraftDateBadge: View {
       .cornerRadius(6)
       .overlay(
         RoundedRectangle(cornerRadius: 6)
-          .stroke(Color(hex: "#444444"), lineWidth: 1)
+          .stroke(Color.playolaSurfaceArtPlaceholder, lineWidth: 1)
       )
   }
 }

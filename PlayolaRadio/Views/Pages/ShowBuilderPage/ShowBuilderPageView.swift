@@ -147,7 +147,7 @@ struct ShowBuilderPageView: View {
       .padding(.vertical, 10)
       .overlay(
         RoundedRectangle(cornerRadius: 10)
-          .stroke(Color.playolaSurfaceControl, lineWidth: 1)
+          .stroke(model.seriesRowOutlineColor, lineWidth: 1)
       )
     }
     .buttonStyle(.plain)
@@ -239,8 +239,10 @@ struct ShowBuilderPageView: View {
     VStack(alignment: .leading, spacing: 14) {
       VStack(alignment: .leading, spacing: 5) {
         HStack(spacing: 7) {
-          Image(systemName: "plus.circle")
-            .font(.system(size: 18))
+          Image("AMA-circle-plus")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 18, height: 18)
             .foregroundColor(.playolaRed)
           Text(model.addSectionTitle)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
@@ -251,13 +253,13 @@ struct ShowBuilderPageView: View {
           .foregroundColor(.playolaTextSecondary)
       }
       HStack(spacing: 8) {
-        addAction(icon: "mic", label: model.voicetrackActionLabel) {
+        addAction(icon: "AMA-mic", label: model.voicetrackActionLabel) {
           model.voicetrackActionTapped()
         }
-        addAction(icon: "music.note", label: model.songActionLabel) {
+        addAction(icon: "AMA-music-2", label: model.songActionLabel) {
           model.songActionTapped()
         }
-        addAction(icon: "bubble.left.and.bubble.right", label: model.qaActionLabel) {
+        addAction(icon: "AMA-messages-square", label: model.qaActionLabel) {
           model.qaActionTapped()
         }
       }
@@ -282,8 +284,11 @@ struct ShowBuilderPageView: View {
               .fill(Color.playolaRed)
               .frame(width: 64, height: 64)
               .overlay(Circle().stroke(Color.playolaTextPrimary, lineWidth: 2))
-            Image(systemName: icon)
-              .font(.system(size: 24))
+            Image(icon)
+              .resizable()
+              .scaledToFit()
+              .frame(width: 28, height: 28)
+              .offset(x: -1, y: -2)
               .foregroundColor(.playolaTextPrimary)
           }
           ZStack {
@@ -291,8 +296,10 @@ struct ShowBuilderPageView: View {
               .fill(Color.playolaWarmSurface)
               .frame(width: 22, height: 22)
               .overlay(Circle().stroke(Color.playolaTextPrimary, lineWidth: 1.5))
-            Image(systemName: "plus")
-              .font(.system(size: 13, weight: .semibold))
+            Image("AMA-plus")
+              .resizable()
+              .scaledToFit()
+              .frame(width: 14, height: 14)
               .foregroundColor(.playolaTextPrimary)
           }
         }

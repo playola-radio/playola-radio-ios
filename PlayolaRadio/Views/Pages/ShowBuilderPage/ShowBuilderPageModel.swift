@@ -328,6 +328,13 @@ class ShowBuilderPageModel: ViewModel {
     return .playolaRed
   }
 
+  var seriesRowOutlineColor: Color {
+    guard let series = episode?.show, !series.isOneTime else {
+      return .playolaSurfaceArtPlaceholder
+    }
+    return .playolaSurfaceControl
+  }
+
   var seriesActionFontName: String {
     guard let series = episode?.show, !series.isOneTime else { return FontNames.Inter_400_Regular }
     return FontNames.Inter_600_SemiBold
