@@ -211,4 +211,16 @@ struct CuratorEpisodeTests {
     #expect(!makeEpisode(durationMS: 0).hasAudio)
     #expect(makeEpisode(durationMS: 1).hasAudio)
   }
+
+  @Test func lengthLabelRoundsDownToWholeMinutes() {
+    expectNoDifference(makeEpisode(durationMS: 1_115_000).lengthLabel, "18 min")
+  }
+
+  @Test func lengthLabelUnderAMinuteRoundsDownToZero() {
+    expectNoDifference(makeEpisode(durationMS: 59_999).lengthLabel, "0 min")
+  }
+
+  @Test func lengthLabelIsNilWithoutAudio() {
+    expectNoDifference(makeEpisode(durationMS: 0).lengthLabel, nil)
+  }
 }

@@ -29,6 +29,9 @@ struct IndividualShowsPageView: View {
     .task {
       await model.viewAppeared()
     }
+    .task {
+      await model.observeRecordedShowsChanges()
+    }
   }
 
   private var recordNewShowButton: some View {

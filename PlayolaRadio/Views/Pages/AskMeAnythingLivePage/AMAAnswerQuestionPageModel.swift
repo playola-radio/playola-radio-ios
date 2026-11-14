@@ -654,7 +654,7 @@ class AMAAnswerQuestionPageModel: ViewModel {
         await audioRecorder.deleteRecording(url)
         recordingURL = nil
       }
-      navigationCoordinator.popToAskMeAnythingLive()
+      navigationCoordinator.popToQuestionAnswerHost()
     } catch is CancellationError {
       submissionPhase = .failed(error: "Your answer was saved, but couldn't be added to this show.")
     } catch {

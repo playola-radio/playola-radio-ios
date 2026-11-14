@@ -266,4 +266,38 @@ struct UpcomingShowsPageTests {
     expectNoDifference(pushedModel.stationId, stationId)
     expectNoDifference(coordinator.path.count, 1)
   }
+
+  // MARK: - Recorded shows changes
+
+  @Test func recordedShowsChangedReloadsCounts() async {
+    let notificationCenter = NotificationCenter()
+    let latest = LockIsolated<[CuratorEpisode]>([])
+    let reloaded = AsyncStream<Void>.makeStream()
+    let model = await makeModel {
+      $0.notificationCenter = notificationCenter
+      $0.api.getCuratorEpisodes = { _, _, _ in
+        defer { reloaded.continuation.yield() }
+        return latest.value
+      }
+    }
+    var reloadIterator = reloaded.stream.makeAsyncIterator()
+    await reloadIterator.next()
+    let observerReady = AsyncStream<Void>.makeStream()
+    let observer = Task {
+      await model.observeRecordedShowsChanges { observerReady.continuation.yield() }
+    }
+    var readyIterator = observerReady.stream.makeAsyncIterator()
+    await readyIterator.next()
+
+    let upcoming = episode(id: "e1", seriesId: "one-time", airingHours: [2])
+    latest.setValue([upcoming])
+    notificationCenter.post(
+      name: .recordedShowsChanged, object: nil, userInfo: ["stationId": stationId])
+    await reloadIterator.next()
+    await Task.megaYield()
+    observer.cancel()
+    await observer.value
+
+    expectNoDifference(model.individualShowsCountLabel, "1 show coming up")
+  }
 }

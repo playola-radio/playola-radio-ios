@@ -373,16 +373,110 @@ struct IndividualShowsPageTests {
     expectNoDifference(model.emptyStateOpacity, 0)
   }
 
-  // MARK: - Inert Actions
+  // MARK: - Opening the Builder
 
-  @Test func rowAndRecordButtonDoNothingUntilTheBuilderExists() async {
+  @Test func tappingAShowOpensItInTheBuilder() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let model = await makeModel(episodes: [episode(id: "a", airingHours: [3])])
 
     model.showRowTapped(model.rows[0])
+
+    guard case .showBuilderPage(let builder) = coordinator.path.last else {
+      Issue.record("Expected the show builder to be pushed")
+      return
+    }
+    expectNoDifference(coordinator.path.count, 1)
+    expectNoDifference(builder.stationId, stationId)
+    expectNoDifference(builder.episodeId, "a")
+    expectNoDifference(builder.seriesId, nil)
+    expectNoDifference(builder.slot, nil)
+  }
+
+  @Test func recordNewShowOpensAnEmptyBuilder() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = await makeModel()
+
     model.recordNewShowButtonTapped()
 
-    #expect(coordinator.path.isEmpty)
+    guard case .showBuilderPage(let builder) = coordinator.path.last else {
+      Issue.record("Expected the show builder to be pushed")
+      return
+    }
+    expectNoDifference(coordinator.path.count, 1)
+    expectNoDifference(builder.stationId, stationId)
+    expectNoDifference(builder.episodeId, nil)
+    expectNoDifference(builder.seriesId, nil)
+  }
+
+  // MARK: - Recorded shows changes
+
+  private func observeRecordedShowsChanges(
+    _ model: IndividualShowsPageModel
+  ) async -> Task<Void, Never> {
+    let observerReady = AsyncStream<Void>.makeStream()
+    let task = Task {
+      await model.observeRecordedShowsChanges { observerReady.continuation.yield() }
+    }
+    var readyIterator = observerReady.stream.makeAsyncIterator()
+    await readyIterator.next()
+    return task
+  }
+
+  @Test func recordedShowsChangedReloadsList() async {
+    let notificationCenter = NotificationCenter()
+    let oldEpisode = episode(id: "e1", title: "Old Name")
+    let renamedEpisode = episode(id: "e1", title: "New Name")
+    let latest = LockIsolated([oldEpisode])
+    let reloaded = AsyncStream<Void>.makeStream()
+    let model = await makeModel {
+      $0.notificationCenter = notificationCenter
+      $0.api.getCuratorEpisodes = { _, _, _ in
+        defer { reloaded.continuation.yield() }
+        return latest.value
+      }
+    }
+    var reloadIterator = reloaded.stream.makeAsyncIterator()
+    await reloadIterator.next()
+    expectNoDifference(model.rows.map(\.title), ["Old Name"])
+    let observer = await observeRecordedShowsChanges(model)
+
+    latest.setValue([renamedEpisode])
+    notificationCenter.post(
+      name: .recordedShowsChanged, object: nil, userInfo: ["stationId": stationId])
+    await reloadIterator.next()
+    await Task.megaYield()
+    observer.cancel()
+    await observer.value
+
+    expectNoDifference(model.rows.map(\.title), ["New Name"])
+  }
+
+  @Test func recordedShowsChangedForOtherStationIsIgnored() async {
+    let notificationCenter = NotificationCenter()
+    let fetches = LockIsolated(0)
+    let reloaded = AsyncStream<Void>.makeStream()
+    let model = await makeModel {
+      $0.notificationCenter = notificationCenter
+      $0.api.getCuratorEpisodes = { _, _, _ in
+        fetches.withValue { $0 += 1 }
+        defer { reloaded.continuation.yield() }
+        return []
+      }
+    }
+    var reloadIterator = reloaded.stream.makeAsyncIterator()
+    await reloadIterator.next()
+    let observer = await observeRecordedShowsChanges(model)
+
+    notificationCenter.post(
+      name: .recordedShowsChanged, object: nil, userInfo: ["stationId": "other-station"])
+    notificationCenter.post(
+      name: .recordedShowsChanged, object: nil, userInfo: ["stationId": stationId])
+    await reloadIterator.next()
+    observer.cancel()
+    await observer.value
+
+    expectNoDifference(fetches.value, 2)
   }
 }

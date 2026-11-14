@@ -17,6 +17,7 @@ class UpcomingShowsPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
+  @ObservationIgnored @Dependency(\.notificationCenter) var notificationCenter
   @ObservationIgnored @Dependency(\.toast) var toast
 
   // MARK: - Shared State
@@ -47,6 +48,16 @@ class UpcomingShowsPageModel: ViewModel {
 
   func viewAppeared() async {
     await loadShows()
+  }
+
+  func observeRecordedShowsChanges(onReady: @escaping @MainActor () -> Void = {}) async {
+    let notifications = notificationCenter.notifications(named: .recordedShowsChanged)
+    onReady()
+    for await notification in notifications {
+      guard !Task.isCancelled else { return }
+      guard notification.userInfo?["stationId"] as? String == stationId else { continue }
+      await loadShows()
+    }
   }
 
   func seriesRowTapped() {}
