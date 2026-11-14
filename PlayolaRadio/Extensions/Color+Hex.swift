@@ -71,6 +71,7 @@ extension Color {
   static var playolaSurfaceTile: Color { Color(hex: "#262626") }
   static var playolaSurfaceRow: Color { Color(hex: "#333333") }
   static var playolaSurfaceControl: Color { Color(hex: "#444444") }
+  static var playolaSurfacePill: Color { Color(hex: "#5A5A5A") }
   static var playolaSurfaceMuted: Color { Color(hex: "#4A4A4A") }
   static var playolaSurfacePlaceholder: Color { Color(hex: "#666666") }
   static var playolaSurfaceArtPlaceholder: Color { Color(hex: "#4D4D4D") }

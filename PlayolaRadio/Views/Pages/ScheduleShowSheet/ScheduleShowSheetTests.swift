@@ -310,6 +310,35 @@ struct ScheduleShowSheetTests {
     expectNoDifference(model.stationCalendar.timeZone.identifier, "Pacific/Auckland")
   }
 
+  @Test func dayAndTimePillsShowTheWeekdayDateAndTime() {
+    let model = makeModel(initialTime: airtime)
+
+    expectNoDifference(model.dayPillLabel, "Sun, Nov 22")
+    expectNoDifference(model.timePillLabel, "7:00 PM")
+  }
+
+  @Test func dayPillSaysTodayForTheStationsCurrentDay() {
+    let laterToday = airtime.addingTimeInterval(-3 * 3600)
+    let model = makeModel(initialTime: laterToday, now: airtime.addingTimeInterval(-6 * 3600))
+
+    expectNoDifference(model.dayPillLabel, "Today, Nov 22")
+  }
+
+  @Test func dayPillUsesTheStationsCalendarDayForToday() {
+    let auckland = settings("Pacific/Auckland")
+    let model = makeModel(
+      settings: auckland, initialTime: airtime, now: airtime.addingTimeInterval(-3 * 3600))
+
+    expectNoDifference(model.dayPillLabel, "Today, Nov 23")
+  }
+
+  @Test func slotListShowsAtMostThreeRowsAtRest() {
+    let model = makeModel()
+
+    expectNoDifference(model.slotListHeight, 3 * model.slotRowHeight)
+    expectNoDifference(makeModel(series: series(isOneTime: true)).slotListHeight, 0)
+  }
+
   @Test func airsAtLineLeavesOutTheEndWhenThereIsNoAudioYet() {
     let model = makeModel(episode: episode(durationMS: 0))
 

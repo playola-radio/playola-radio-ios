@@ -463,7 +463,8 @@ class ShowBuilderPageModel: ViewModel {
       return
     }
     guard let settings = await resolvedSettings() else { return }
-    let intervals = await occupiedIntervals(excluding: episode.id)
+    let hasSlotSuggestions = episode.show.map { !$0.isOneTime && $0.rrule != nil } ?? false
+    let intervals = hasSlotSuggestions ? await occupiedIntervals(excluding: episode.id) : []
     let sheet = withDependencies(from: self) {
       ScheduleShowSheetModel(
         episode: episode, series: episode.show, settings: settings, occupiedIntervals: intervals,

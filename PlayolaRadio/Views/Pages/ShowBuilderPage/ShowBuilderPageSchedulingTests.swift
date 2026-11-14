@@ -36,11 +36,9 @@ struct ShowBuilderPageSchedulingTests {
       startTime: nil, endTime: nil)
   }
 
-  nonisolated private func episode(
-    id: String = "episode-1", airings: [CuratorAiring] = [], withAudio: Bool = true
-  ) -> CuratorEpisode {
+  nonisolated private func episode(airings: [CuratorAiring] = []) -> CuratorEpisode {
     CuratorEpisode(
-      id: id, showId: "series-1", title: "Tour Stories", durationMS: withAudio ? 1_115_000 : 0,
+      id: "episode-1", showId: "series-1", title: "Tour Stories", durationMS: 1_115_000,
       show: weeklySeries, segments: [], airings: airings)
   }
 
@@ -48,15 +46,14 @@ struct ShowBuilderPageSchedulingTests {
     episodeId: String? = "episode-1",
     current: LockIsolated<CuratorEpisode>? = nil,
     slot: Date? = nil,
-    now: Date? = nil,
     notificationCenter: NotificationCenter = NotificationCenter(),
     _ configure: (inout DependencyValues) -> Void = { _ in }
   ) -> ShowBuilderPageModel {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let loaded = current ?? LockIsolated(episode())
-    let resolvedNow = now ?? airtime.addingTimeInterval(-24 * 3600)
+    let now = airtime.addingTimeInterval(-24 * 3600)
     return withDependencies {
-      $0.date.now = resolvedNow
+      $0.date.now = now
       $0.notificationCenter = notificationCenter
       $0.api.getCuratorEpisode = { _, _ in loaded.value }
       $0.api.getStationSchedulingSettings = { _, _ in

@@ -55,7 +55,6 @@ struct UnscheduleShowSheetView: View {
       }
       .padding(.horizontal, 20)
       .padding(.top, 8)
-      .padding(.bottom, 34)
       .frame(maxWidth: .infinity, alignment: .leading)
     }
   }

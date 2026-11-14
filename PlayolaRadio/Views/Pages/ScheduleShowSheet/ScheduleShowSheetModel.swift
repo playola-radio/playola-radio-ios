@@ -119,7 +119,14 @@ class ScheduleShowSheetModel: ViewModel {
 
   var slotRowHeight: CGFloat { 68 }
 
-  var slotListHeight: CGFloat { min(CGFloat(slotRows.count), 3.5) * slotRowHeight }
+  var slotListHeight: CGFloat { min(CGFloat(slotRows.count), 3) * slotRowHeight }
+
+  var dayPillLabel: String {
+    let isToday = stationCalendar.isDate(chosenTime, inSameDayAs: now)
+    return formatted(chosenTime, isToday ? "'Today,' MMM d" : "EEE, MMM d")
+  }
+
+  var timePillLabel: String { formatted(chosenTime, "h:mm a") }
 
   var stationTimeZone: TimeZone { settings.timeZone }
 

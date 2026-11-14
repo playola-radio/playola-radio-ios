@@ -34,9 +34,11 @@ struct ScheduleShowSheetView: View {
           .foregroundColor(.playolaTextTertiary)
           .padding(.top, 20)
           .padding(.bottom, 8)
-        pickerRow(label: model.dayRowLabel, components: .date)
+        pickerRow(
+          label: model.dayRowLabel, pillText: model.dayPillLabel, components: .date)
         Spacer().frame(height: 8)
-        pickerRow(label: model.timeRowLabel, components: .hourAndMinute)
+        pickerRow(
+          label: model.timeRowLabel, pillText: model.timePillLabel, components: .hourAndMinute)
         ForEach(model.airsAtLines, id: \.self) { line in
           infoLine(icon: "RecordedShows-radio", text: line, color: .playolaTextSecondary)
         }
@@ -48,7 +50,6 @@ struct ScheduleShowSheetView: View {
         }
       }
       .padding(.horizontal, 20)
-      .padding(.bottom, 34)
       .frame(maxWidth: .infinity, alignment: .leading)
     }
   }
@@ -104,21 +105,35 @@ struct ScheduleShowSheetView: View {
     .buttonStyle(.plain)
   }
 
-  private func pickerRow(label: String, components: DatePickerComponents) -> some View {
+  private func pickerRow(label: String, pillText: String, components: DatePickerComponents)
+    -> some View
+  {
     HStack {
       Text(label)
         .font(.custom(FontNames.Inter_400_Regular, size: 15))
         .foregroundColor(.playolaTextPrimary)
       Spacer()
-      DatePicker("", selection: $model.pickedTime, displayedComponents: components)
-        .labelsHidden()
-        .datePickerStyle(.compact)
-        .environment(\.timeZone, model.stationTimeZone)
-        .environment(\.calendar, model.stationCalendar)
-        .colorScheme(.dark)
+      Text(pillText)
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
+        .foregroundColor(.playolaTextPrimary)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.playolaSurfacePill)
+        .cornerRadius(8)
+        .overlay {
+          DatePicker("", selection: $model.pickedTime, displayedComponents: components)
+            .labelsHidden()
+            .datePickerStyle(.compact)
+            .environment(\.timeZone, model.stationTimeZone)
+            .environment(\.calendar, model.stationCalendar)
+            .colorScheme(.dark)
+            .scaleEffect(x: 1.5, y: 1.5)
+            .opacity(0.011)
+            .blendMode(.destinationOver)
+        }
     }
     .padding(.horizontal, 14)
-    .padding(.vertical, 6)
+    .padding(.vertical, 12)
     .frame(maxWidth: .infinity)
     .background(Color.playolaSurfaceControl)
     .cornerRadius(10)
