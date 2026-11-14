@@ -415,6 +415,30 @@ struct ShowBuilderPageTests {
     expectNoDifference(moves.value, ["episode-1:s1->2", "episode-1:s3->0"])
   }
 
+  @Test func failedReorderRestoresTheSavedOrder() async {
+    let fetchCount = LockIsolated(0)
+    let loaded = episode(segments: [
+      segment("s1", position: 0), segment("s2", position: 1), segment("s3", position: 2),
+    ])
+    let model = makeModel(episode: loaded) {
+      $0.api.getCuratorEpisode = { _, _ in
+        let count = fetchCount.withValue {
+          $0 += 1
+          return $0
+        }
+        guard count == 1 else { throw ShowBuilderTestError() }
+        return loaded
+      }
+      $0.api.moveEpisodeSegment = { _, _, _, _ in throw ShowBuilderTestError() }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.viewAppeared()
+
+    await model.segmentsMoved(from: IndexSet(integer: 0), to: 3)
+
+    expectNoDifference(model.rows.map(\.id), ["s1", "s2", "s3"])
+  }
+
   @Test func removingASegmentSendsItsId() async {
     let removed = LockIsolated<[String]>([])
     let loaded = episode(segments: [segment("s1", position: 0), segment("s2", position: 1)])
@@ -448,6 +472,30 @@ struct ShowBuilderPageTests {
     await model.renameSaveButtonTapped()
 
     expectNoDifference(updates.value, [CuratorEpisodeUpdate(title: "Road Stories")])
+  }
+
+  @Test func renameKeepsTheShowContentWhenTheRefetchFails() async {
+    let fetchCount = LockIsolated(0)
+    let loaded = episode(segments: [segment("s1", position: 0), segment("s2", position: 1)])
+    let model = makeModel(episode: loaded) {
+      $0.api.getCuratorEpisode = { _, _ in
+        let count = fetchCount.withValue {
+          $0 += 1
+          return $0
+        }
+        guard count == 1 else { throw ShowBuilderTestError() }
+        return loaded
+      }
+      $0.api.updateEpisode = { [renamed = episode(title: "Road Stories")] _, _, _ in renamed }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.viewAppeared()
+
+    model.renameButtonTapped()
+    model.renameText = "Road Stories"
+    await model.renameSaveButtonTapped()
+
+    expectNoDifference(model.rows.map(\.id), ["s1", "s2"])
   }
 
   // MARK: - Errors

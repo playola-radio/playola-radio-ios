@@ -123,9 +123,8 @@ class ShowBuilderPageModel: ViewModel {
   func renameSaveButtonTapped() async {
     let title = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
     guard canRename, !title.isEmpty, title != navigationTitle else { return }
-    _ = await enqueueSave { [weak self, api] jwt, episodeId in
-      self?.episode = try await api.updateEpisode(
-        jwt, episodeId, CuratorEpisodeUpdate(title: title))
+    _ = await enqueueSave { [api] jwt, episodeId in
+      _ = try await api.updateEpisode(jwt, episodeId, CuratorEpisodeUpdate(title: title))
     }.value
   }
 
@@ -177,7 +176,12 @@ class ShowBuilderPageModel: ViewModel {
     reordered.move(fromOffsets: source, toOffset: destination)
     self.episode = episode.replacingSegments(reordered)
     _ = await enqueueSave { [weak self, api] jwt, episodeId in
-      self?.episode = try await api.moveEpisodeSegment(jwt, episodeId, segmentId, finalIndex)
+      do {
+        self?.episode = try await api.moveEpisodeSegment(jwt, episodeId, segmentId, finalIndex)
+      } catch {
+        self?.episode = episode
+        throw error
+      }
     }.value
   }
 
