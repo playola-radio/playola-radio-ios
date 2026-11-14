@@ -20,6 +20,8 @@ struct PlayolaAlert: Equatable, Identifiable, Hashable {
   nonisolated let message: String?
   let dismissButton: Alert.Button?
   let secondaryButton: Alert.Button?
+  let textFieldPlaceholder: String?
+  let textFieldText: Binding<String>?
   let primaryButtonText: String?
   let secondaryButtonText: String?
   let tertiaryButtonText: String?
@@ -37,6 +39,8 @@ struct PlayolaAlert: Equatable, Identifiable, Hashable {
     self.message = message
     self.dismissButton = dismissButton
     self.secondaryButton = secondaryButton
+    self.textFieldPlaceholder = nil
+    self.textFieldText = nil
     self.primaryButtonText = nil
     self.secondaryButtonText = nil
     self.tertiaryButtonText = nil
@@ -57,6 +61,8 @@ struct PlayolaAlert: Equatable, Identifiable, Hashable {
     self.message = message
     self.dismissButton = nil
     self.secondaryButton = nil
+    self.textFieldPlaceholder = nil
+    self.textFieldText = nil
     self.primaryButtonText = primaryButtonText
     self.secondaryButtonText = nil
     self.tertiaryButtonText = nil
@@ -77,6 +83,8 @@ struct PlayolaAlert: Equatable, Identifiable, Hashable {
     self.message = message
     self.dismissButton = nil
     self.secondaryButton = nil
+    self.textFieldPlaceholder = nil
+    self.textFieldText = nil
     self.primaryButtonText = primaryButtonText
     self.secondaryButtonText = secondaryButtonText
     self.tertiaryButtonText = nil
@@ -99,12 +107,36 @@ struct PlayolaAlert: Equatable, Identifiable, Hashable {
     self.message = message
     self.dismissButton = nil
     self.secondaryButton = nil
+    self.textFieldPlaceholder = nil
+    self.textFieldText = nil
     self.primaryButtonText = primaryButtonText
     self.secondaryButtonText = secondaryButtonText
     self.tertiaryButtonText = tertiaryButtonText
     self.primaryAction = primaryAction
     self.secondaryAction = secondaryAction
     self.tertiaryAction = tertiaryAction
+  }
+
+  init(
+    title: String,
+    textFieldPlaceholder: String,
+    text: Binding<String>,
+    primaryButtonText: String,
+    primaryAction: @escaping @MainActor () async -> Void,
+    secondaryButtonText: String
+  ) {
+    self.title = title
+    self.message = nil
+    self.dismissButton = nil
+    self.secondaryButton = nil
+    self.textFieldPlaceholder = textFieldPlaceholder
+    self.textFieldText = text
+    self.primaryButtonText = primaryButtonText
+    self.secondaryButtonText = secondaryButtonText
+    self.tertiaryButtonText = nil
+    self.primaryAction = primaryAction
+    self.secondaryAction = nil
+    self.tertiaryAction = nil
   }
 
   var hasThreeButtons: Bool {
@@ -142,6 +174,9 @@ struct PlayolaAlert: Equatable, Identifiable, Hashable {
 
   @ViewBuilder
   var alertButtons: some View {
+    if let textFieldPlaceholder, let textFieldText {
+      TextField(textFieldPlaceholder, text: textFieldText)
+    }
     if let primaryText = primaryButtonText {
       Button(primaryText) {
         Task { await self.primaryAction?() }

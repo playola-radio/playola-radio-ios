@@ -60,13 +60,6 @@ struct ShowBuilderPageView: View {
     }
     .task { await model.viewAppeared() }
     .playolaAlert($model.presentedAlert)
-    .alert(model.renameAlertTitle, isPresented: $model.isRenameAlertPresented) {
-      TextField(model.renameFieldPlaceholder, text: $model.renameText)
-      Button(model.renameCancelButtonTitle, role: .cancel) {}
-      Button(model.renameSaveButtonTitle) {
-        Task { await model.renameSaveButtonTapped() }
-      }
-    }
   }
 
   private var topSection: some View {

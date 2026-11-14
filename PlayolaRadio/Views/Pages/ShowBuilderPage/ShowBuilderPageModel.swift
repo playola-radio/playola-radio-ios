@@ -5,6 +5,7 @@
 
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import PlayolaPlayer
 import Sharing
 import SwiftUI
@@ -69,7 +70,6 @@ class ShowBuilderPageModel: ViewModel {
   var refusedAsLocked = false
   var isLoading = false
   var presentedAlert: PlayolaAlert?
-  var isRenameAlertPresented = false
   var renameText = ""
   private var pendingSaveCount = 0
   @ObservationIgnored private var lastOperation: Task<(any Error)?, Never>?
@@ -88,6 +88,7 @@ class ShowBuilderPageModel: ViewModel {
   var songActionLabel: String { "Song" }
   var qaActionLabel: String { "Q/A" }
   var removeRowLabel: String { "Remove" }
+  var settingsLoadErrorMessage: String { "The show settings couldn’t load." }
   var loadingOpacity: Double { isLoading ? 1 : 0 }
 
   // MARK: - User Actions
@@ -97,11 +98,11 @@ class ShowBuilderPageModel: ViewModel {
     async let settingsLoad: Void = loadSettings(jwt: jwt)
     if episodeId != nil, episode == nil {
       isLoading = true
+      defer { isLoading = false }
       _ = await enqueue { [self] in
         await loadEpisode(showsToastOnFailure: true)
         return nil
       }.value
-      isLoading = false
     }
     await settingsLoad
   }
@@ -117,14 +118,23 @@ class ShowBuilderPageModel: ViewModel {
   func renameButtonTapped() {
     guard canRename else { return }
     renameText = navigationTitle
-    isRenameAlertPresented = true
+    @Bindable var model = self
+    presentedAlert = PlayolaAlert(
+      title: renameAlertTitle,
+      textFieldPlaceholder: renameFieldPlaceholder,
+      text: $model.renameText,
+      primaryButtonText: renameSaveButtonTitle,
+      primaryAction: { [weak self] in await self?.renameSaveButtonTapped() },
+      secondaryButtonText: renameCancelButtonTitle)
   }
 
   func renameSaveButtonTapped() async {
     let title = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
     guard canRename, !title.isEmpty, title != navigationTitle else { return }
-    _ = await enqueueSave { [api] jwt, episodeId in
-      _ = try await api.updateEpisode(jwt, episodeId, CuratorEpisodeUpdate(title: title))
+    _ = await enqueueSave { [weak self, api] jwt, episodeId in
+      let updated = try await api.updateEpisode(
+        jwt, episodeId, CuratorEpisodeUpdate(title: title))
+      self?.episode = self?.episode?.mergingMetadata(from: updated) ?? updated
     }.value
   }
 
@@ -132,7 +142,7 @@ class ShowBuilderPageModel: ViewModel {
     guard canEditContent else { return }
     let recorder = RecordWithMultiStepPromptModel.recordedShowVoicetrack(stationId: stationId)
     recorder.onCompleted = { [weak self] audioBlock in
-      self?.appendToShow([audioBlock.id])
+      await self?.appendVoicetrackToShow(audioBlock.id)
     }
     navigationCoordinator.push(.recordWithMultiStepPromptPage(recorder))
   }
@@ -204,7 +214,7 @@ class ShowBuilderPageModel: ViewModel {
 
   var state: CuratorEpisodeState {
     guard let episode else { return .draft }
-    let state = episode.state(now: now, lockMS: settings?.airingEditLockMS ?? 0)
+    let state = episode.state(now: now, lockMS: settings?.airingEditLockMS ?? .max)
     if refusedAsLocked, case .scheduled(let airing) = state { return .locked(airing) }
     return state
   }
@@ -231,9 +241,10 @@ class ShowBuilderPageModel: ViewModel {
     return ["draft"]
   }
 
-  var calendarBadges: [ShowBuilderCalendarBadge] {
+  var calendarBadges: IdentifiedArrayOf<ShowBuilderCalendarBadge> {
     guard let airing = state.airing else { return [] }
-    return [ShowBuilderCalendarBadge(date: airing.airtime, timeZone: timeZone)]
+    return IdentifiedArray(
+      uniqueElements: [ShowBuilderCalendarBadge(date: airing.airtime, timeZone: timeZone)])
   }
 
   var headline: String {
@@ -293,16 +304,16 @@ class ShowBuilderPageModel: ViewModel {
     ]
   }
 
-  var lockedBanners: [ShowBuilderBanner] {
+  var lockedBanners: IdentifiedArrayOf<ShowBuilderBanner> {
     guard !isReadOnly, case .locked = state else { return [] }
     let reason =
       settings.map { "Shows lock \(Self.lockLength($0.airingEditLockMS)) before they air." }
       ?? "This show is locked because it airs soon."
-    return [
+    return IdentifiedArray(uniqueElements: [
       ShowBuilderBanner(
         title: "Locked",
         message: reason + " You can still rename it, change its series, or unschedule it.")
-    ]
+    ])
   }
 
   var readOnlyNotices: [String] {
@@ -312,12 +323,13 @@ class ShowBuilderPageModel: ViewModel {
 
   var totalDurationText: String { Self.clockText(episode?.durationMS ?? 0) }
 
-  var rows: [ShowBuilderSegmentRow] {
+  var rows: IdentifiedArrayOf<ShowBuilderSegmentRow> {
     let isEditable = canEditContent
-    return orderedSegments.map { segment in
-      ShowBuilderSegmentRow(
-        id: segment.id, data: Self.rowData(for: segment, isEditable: isEditable))
-    }
+    return IdentifiedArray(
+      uniqueElements: orderedSegments.map { segment in
+        ShowBuilderSegmentRow(
+          id: segment.id, data: Self.rowData(for: segment, isEditable: isEditable))
+      })
   }
 
   var scheduleButtons: [String] {
@@ -362,6 +374,19 @@ class ShowBuilderPageModel: ViewModel {
       let position = self?.episode?.segments.count ?? 0
       self?.episode = try await api.addEpisodeSegments(jwt, episodeId, audioBlockIds, position)
     }
+  }
+
+  private func appendVoicetrackToShow(_ audioBlockId: String) async {
+    guard let failure = await appendToShow([audioBlockId], alertsOnFailure: false).value else {
+      return
+    }
+    guard !isCancellation(failure) else { return }
+    presentedAlert = PlayolaAlert(
+      title: "Couldn’t Add Voicetrack",
+      message: failure.localizedDescription,
+      primaryButtonText: "Retry",
+      primaryAction: { [weak self] in await self?.appendVoicetrackToShow(audioBlockId) },
+      secondaryButtonText: "Cancel")
   }
 
   private func enqueue(
@@ -436,6 +461,7 @@ class ShowBuilderPageModel: ViewModel {
     } catch {
       guard !isCancellation(error) else { return }
       await report(error, endpoint: "getStationSchedulingSettings")
+      await toast.show(PlayolaToast(message: settingsLoadErrorMessage, buttonTitle: "OK"))
     }
   }
 
@@ -526,6 +552,12 @@ extension CuratorEpisodeState {
 }
 
 extension CuratorEpisode {
+  fileprivate func mergingMetadata(from updated: CuratorEpisode) -> CuratorEpisode {
+    CuratorEpisode(
+      id: updated.id, showId: updated.showId, title: updated.title,
+      durationMS: updated.durationMS, show: updated.show, segments: segments, airings: airings)
+  }
+
   fileprivate func replacingSegments(_ ordered: [CuratorEpisodeSegment]) -> CuratorEpisode {
     CuratorEpisode(
       id: id, showId: showId, title: title, durationMS: durationMS, show: show,

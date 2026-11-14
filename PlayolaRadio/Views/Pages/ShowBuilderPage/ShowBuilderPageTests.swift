@@ -236,7 +236,7 @@ struct ShowBuilderPageTests {
     #expect(!model.canRename)
     #expect(!model.canChangeSeries)
     model.renameButtonTapped()
-    #expect(!model.isRenameAlertPresented)
+    #expect(model.presentedAlert == nil)
 
     await model.viewAppeared()
 
@@ -279,6 +279,26 @@ struct ShowBuilderPageTests {
     expectNoDifference(requestedEpisodes.value, ["episode-1"])
     expectNoDifference(model.episode, loaded)
     expectNoDifference(model.settings, settings("America/New_York"))
+  }
+
+  @Test func failedSettingsLoadShowsOneMessageAndKeepsScheduledContentLocked() async {
+    let shownToasts = LockIsolated<[PlayolaToast]>([])
+    let reported = LockIsolated(0)
+    let loaded = episode(segments: [segment("s1", position: 0)], airings: [airing()])
+    let model = makeModel(
+      episode: loaded, now: airtime.addingTimeInterval(-24 * 3600)
+    ) {
+      $0.api.getStationSchedulingSettings = { _, _ in throw ShowBuilderTestError() }
+      $0.errorReporting.reportError = { _, _ in reported.withValue { $0 += 1 } }
+      $0.toast.show = { toast in shownToasts.withValue { $0.append(toast) } }
+    }
+
+    await model.viewAppeared()
+
+    #expect(!model.canEditContent)
+    expectNoDifference(
+      shownToasts.value.map(\.message), ["The show settings couldn’t load."])
+    expectNoDifference(reported.value, 1)
   }
 
   // MARK: - Content
@@ -396,6 +416,43 @@ struct ShowBuilderPageTests {
     expectNoDifference(positions.value, [1])
   }
 
+  @Test func failedVoicetrackAdditionCanRetryTheUploadedBlock() async throws {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let attempts = LockIsolated(0)
+    let loaded = episode(segments: [segment("s1", position: 0)])
+    let added = episode(segments: [
+      segment("s1", position: 0),
+      segment("s2", position: 1, audio: block("voicetrack-1", type: "voiceTrack")),
+    ])
+    let model = makeModel(episode: loaded) {
+      $0.api.getCuratorEpisode = { _, _ in attempts.value > 1 ? added : loaded }
+      $0.api.addEpisodeSegments = { _, _, ids, _ in
+        expectNoDifference(ids, ["voicetrack-1"])
+        let attempt = attempts.withValue {
+          $0 += 1
+          return $0
+        }
+        guard attempt > 1 else { throw ShowBuilderTestError() }
+        return added
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.viewAppeared()
+
+    model.voicetrackActionTapped()
+    guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+      Issue.record("Expected the voicetrack recorder to be pushed")
+      return
+    }
+    await recorder.onCompleted?(block("voicetrack-1", type: "voiceTrack"))
+    let retry = try #require(model.presentedAlert?.primaryAction)
+    await retry()
+
+    expectNoDifference(attempts.value, 2)
+    expectNoDifference(model.rows.map(\.id), ["s1", "s2"])
+  }
+
   @Test func reorderSendsNewPosition() async {
     let moves = LockIsolated<[String]>([])
     let loaded = episode(segments: [
@@ -466,7 +523,8 @@ struct ShowBuilderPageTests {
     await model.viewAppeared()
 
     model.renameButtonTapped()
-    #expect(model.isRenameAlertPresented)
+    expectNoDifference(model.presentedAlert?.title, "Rename Show")
+    expectNoDifference(model.presentedAlert?.textFieldPlaceholder, "Show name")
     expectNoDifference(model.renameText, "Tour Stories")
     model.renameText = "  Road Stories "
     await model.renameSaveButtonTapped()
@@ -495,6 +553,7 @@ struct ShowBuilderPageTests {
     model.renameText = "Road Stories"
     await model.renameSaveButtonTapped()
 
+    expectNoDifference(model.navigationTitle, "Road Stories")
     expectNoDifference(model.rows.map(\.id), ["s1", "s2"])
   }
 
@@ -708,7 +767,7 @@ struct ShowBuilderPageTests {
 
     model.renameButtonTapped()
     model.songActionTapped()
-    #expect(!model.isRenameAlertPresented)
+    #expect(model.presentedAlert == nil)
     #expect(coordinator.presentedSheet == nil)
   }
 }
