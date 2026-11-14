@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  ShowBuilderPageTests.swift
 //  PlayolaRadio
@@ -27,10 +28,12 @@ struct ShowBuilderPageTests {
   private let sixHoursMS = 21_600_000
   private let eighteenMinutesThirtyFiveMS = 1_115_000
 
-  private func block(_ id: String, title: String? = nil, type: String = "song") -> AudioBlock {
+  private func block(
+    _ id: String, title: String? = nil, type: String = "song", durationMS: Int = 180_000
+  ) -> AudioBlock {
     AudioBlock.mockWith(
-      id: id, title: title ?? "Song \(id)", artist: "Artist \(id)", durationMS: 180_000,
-      endOfMessageMS: 180_000, type: type)
+      id: id, title: title ?? "Song \(id)", artist: "Artist \(id)", durationMS: durationMS,
+      endOfMessageMS: durationMS, type: type)
   }
 
   private func segment(_ id: String, position: Int, audio: AudioBlock? = nil)
@@ -219,7 +222,7 @@ struct ShowBuilderPageTests {
       await model.viewAppeared()
       #expect(model.canReorder)
 
-      let removal = Task { await model.segmentDeleteTapped("s2") }
+      let removal = Task { await model.rowDeleteTapped("s2") }
       await Task.megaYield()
       #expect(!model.canReorder)
 
@@ -467,8 +470,8 @@ struct ShowBuilderPageTests {
     }
     await model.viewAppeared()
 
-    await model.segmentsMoved(from: IndexSet(integer: 0), to: 3)
-    await model.segmentsMoved(from: IndexSet(integer: 2), to: 0)
+    await model.rowsMoved(from: IndexSet(integer: 0), to: 3)
+    await model.rowsMoved(from: IndexSet(integer: 2), to: 0)
 
     expectNoDifference(moves.value, ["episode-1:s1->2", "episode-1:s3->0"])
   }
@@ -492,7 +495,7 @@ struct ShowBuilderPageTests {
     }
     await model.viewAppeared()
 
-    await model.segmentsMoved(from: IndexSet(integer: 0), to: 3)
+    await model.rowsMoved(from: IndexSet(integer: 0), to: 3)
 
     expectNoDifference(model.rows.map(\.id), ["s1", "s2", "s3"])
   }
@@ -508,7 +511,7 @@ struct ShowBuilderPageTests {
     }
     await model.viewAppeared()
 
-    await model.segmentDeleteTapped("s2")
+    await model.rowDeleteTapped("s2")
 
     expectNoDifference(removed.value, ["s2"])
   }
@@ -622,7 +625,7 @@ struct ShowBuilderPageTests {
     await model.viewAppeared()
     #expect(model.state == .scheduled(airing()))
 
-    await model.segmentDeleteTapped("s1")
+    await model.rowDeleteTapped("s1")
 
     expectNoDifference(model.presentedAlert?.message, "This show is locked because it airs soon.")
     expectNoDifference(model.state, .locked(airing()))
@@ -672,7 +675,7 @@ struct ShowBuilderPageTests {
     }
     await model.viewAppeared()
 
-    await model.segmentDeleteTapped("s1")
+    await model.rowDeleteTapped("s1")
 
     expectNoDifference(model.presentedAlert?.message, message)
     expectNoDifference(model.rows.map(\.id), ["s1"])
@@ -693,11 +696,14 @@ struct ShowBuilderPageTests {
     expectNoDifference(model.state, .locked(airing()))
     #expect(!model.canEditContent)
     expectNoDifference(model.addCardOpacity, 0)
-    expectNoDifference(model.rows.map(\.data.isEditable), [false])
+    expectNoDifference(model.rows.map(\.isEditable), [false])
     #expect(model.canRename)
     #expect(model.canChangeSeries)
     expectNoDifference(model.seriesTitle, "This One\u{2019}s For You")
     expectNoDifference(model.seriesActionText, "Change")
+    expectNoDifference(model.seriesTitleColor, .playolaTextPrimary)
+    expectNoDifference(model.seriesActionColor, .playolaRed)
+    expectNoDifference(model.seriesActionFontName, FontNames.Inter_600_SemiBold)
     expectNoDifference(model.unscheduleButtons, ["Unschedule"])
     expectNoDifference(model.scheduleButtons, [])
     expectNoDifference(model.changeTimeButtons, [])
@@ -726,7 +732,7 @@ struct ShowBuilderPageTests {
     model.songActionTapped()
     model.qaActionTapped()
     model.voicetrackActionTapped()
-    await model.segmentDeleteTapped("s1")
+    await model.rowDeleteTapped("s1")
 
     #expect(coordinator.path.isEmpty)
     #expect(coordinator.presentedSheet == nil)
@@ -739,10 +745,13 @@ struct ShowBuilderPageTests {
     expectNoDifference(draft.navigationTitle, "Tour Stories")
     expectNoDifference(draft.renameButtonTitle, "Rename")
     expectNoDifference(draft.headline, "Not scheduled yet")
-    expectNoDifference(draft.statusLine, "19 min \u{00B7} Changes save automatically")
+    expectNoDifference(draft.statusLine, "18 min \u{00B7} Changes save automatically")
     expectNoDifference(draft.lockLines, [])
     expectNoDifference(draft.seriesTitle, "Add to a series")
     expectNoDifference(draft.seriesActionText, "Optional")
+    expectNoDifference(draft.seriesTitleColor, .playolaTextSecondary)
+    expectNoDifference(draft.seriesActionColor, .playolaTextQuaternary)
+    expectNoDifference(draft.seriesActionFontName, FontNames.Inter_400_Regular)
     expectNoDifference(draft.yourShowTitle, "YOUR SHOW")
     expectNoDifference(draft.totalDurationText, "18:35")
     expectNoDifference(draft.addSectionTitle, "Add to Show")
@@ -753,7 +762,7 @@ struct ShowBuilderPageTests {
     let scheduled = makeModel(episode: episode(airings: [airing()]))
     await scheduled.viewAppeared()
     expectNoDifference(scheduled.headline, "Sunday, Nov 22 \u{00B7} 7:00 PM")
-    expectNoDifference(scheduled.statusLine, "19 min \u{00B7} Changes save automatically")
+    expectNoDifference(scheduled.statusLine, "18 min \u{00B7} Changes save automatically")
     expectNoDifference(scheduled.lockLines, ["You can make changes until Sun, Nov 22 at 1:00 PM"])
     expectNoDifference(scheduled.changeTimeButtons, ["Change"])
     expectNoDifference(scheduled.lockedBanners, [])
@@ -763,14 +772,14 @@ struct ShowBuilderPageTests {
     await locked.viewAppeared()
     expectNoDifference(locked.headline, "Sunday, Nov 22 \u{00B7} 7:00 PM")
     expectNoDifference(
-      locked.statusLine, "19 min \u{00B7} Airs at about 7:00 PM \u{00B7} locked")
+      locked.statusLine, "18 min \u{00B7} Airs at about 7:00 PM \u{00B7} locked")
     expectNoDifference(locked.lockLines, [])
 
     let onAir = makeModel(
       episode: episode(airings: [airing(startTime: airtime.addingTimeInterval(60))]),
       now: airtime.addingTimeInterval(120))
     await onAir.viewAppeared()
-    expectNoDifference(onAir.statusLine, "19 min \u{00B7} On air now")
+    expectNoDifference(onAir.statusLine, "18 min \u{00B7} On air now")
 
     let newShow = makeModel(episodeId: nil)
     await newShow.viewAppeared()
@@ -803,7 +812,7 @@ struct ShowBuilderPageTests {
     #expect(!model.canRename)
     #expect(!model.canChangeSeries)
     expectNoDifference(model.addCardOpacity, 0)
-    expectNoDifference(model.rows.map(\.data.isEditable), [false])
+    expectNoDifference(model.rows.map(\.isEditable), [false])
     expectNoDifference(model.scheduleButtons, [])
     expectNoDifference(model.unscheduleButtons, [])
     expectNoDifference(model.changeTimeButtons, [])
@@ -816,32 +825,109 @@ struct ShowBuilderPageTests {
     #expect(model.presentedAlert == nil)
     #expect(coordinator.presentedSheet == nil)
   }
+}
 
-  // MARK: - Question and answer rows
+// MARK: - Rows
 
-  private func voicetrack(_ id: String) -> AudioBlock {
-    block(id, title: "Voicetrack", type: "voicetrack")
+extension ShowBuilderPageTests {
+
+  private func voicetrack(_ id: String, durationMS: Int = 180_000) -> AudioBlock {
+    block(id, title: "Voicetrack", type: "voicetrack", durationMS: durationMS)
   }
 
   private func labels(_ model: ShowBuilderPageModel) -> [String] {
-    model.rows.map { "\($0.data.title) | \($0.data.subtitle) | \($0.data.iconSystemName)" }
+    model.rows.map { "\($0.title) | \($0.subtitle) | \($0.icon) | \($0.durationText)" }
   }
 
-  @Test func questionAndAnswerRowsAreLabeledQuestionAndAnswer() async {
-    let loaded = episode(segments: [
+  private func mayasQuestion() -> ListenerQuestion {
+    .mockWith(
+      id: "question-1", audioBlockId: "question-audio", status: .answered,
+      answerAudioBlockId: "answer-audio",
+      listener: .mockWith(firstName: "Maya", lastName: "Lopez"))
+  }
+
+  private func showWithQuestionAndAnswer() -> CuratorEpisode {
+    episode(segments: [
       segment("s1", position: 0),
-      segment("s2", position: 1, audio: voicetrack("question-audio")),
+      segment("s2", position: 1, audio: voicetrack("question-audio", durationMS: 40_000)),
+      segment("s3", position: 2, audio: voicetrack("answer-audio", durationMS: 44_000)),
+      segment("s4", position: 3),
+    ])
+  }
+
+  @Test func songAndVoicetrackRowsUseTheirTiles() async {
+    let loaded = episode(segments: [
+      segment("s1", position: 0, audio: voicetrack("intro", durationMS: 30_000)),
+      segment("s2", position: 1, audio: block("song", durationMS: 185_000)),
+    ])
+    let model = makeModel(episode: loaded)
+
+    await model.viewAppeared()
+
+    expectNoDifference(
+      labels(model),
+      ["Voicetrack | Your voice | AMA-mic | 0:30", "Song song | Artist song | AMA-music | 3:05"])
+    expectNoDifference(model.rows.map(\.tileColor), [.playolaRed, .playolaSurfaceMuted])
+    expectNoDifference(model.rows.map(\.handleIcons), [["AMA-menu"], ["AMA-menu"]])
+  }
+
+  @Test func lockedRowsShowOnlyTheirLength() async {
+    let loaded = episode(segments: [segment("s1", position: 0)], airings: [airing()])
+    let model = makeModel(episode: loaded, now: airtime.addingTimeInterval(-3600))
+
+    await model.viewAppeared()
+
+    expectNoDifference(model.rows.map(\.durationText), ["3:00"])
+    expectNoDifference(model.rows.map(\.handleIcons), [[]])
+  }
+
+  @Test func questionFollowedByItsAnswerShowsAsOneRow() async {
+    let model = makeModel(episode: showWithQuestionAndAnswer()) {
+      $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(
+      labels(model),
+      [
+        "Song block-s1 | Artist block-s1 | AMA-music | 3:00",
+        "Question and Answer: Maya | Question + answer | AMA-messages-square | 1:24",
+        "Song block-s4 | Artist block-s4 | AMA-music | 3:00",
+      ])
+    expectNoDifference(model.rows.map(\.segmentIds), [["s1"], ["s2", "s3"], ["s4"]])
+    expectNoDifference(
+      model.rows.map(\.tileColor), [.playolaSurfaceMuted, .playolaRed, .playolaSurfaceMuted])
+  }
+
+  @Test func questionAndAnswerFromAnUnknownListenerHasNoName() async {
+    let model = makeModel(episode: showWithQuestionAndAnswer()) {
+      $0.api.getListenerQuestions = { _, _ in
+        [
+          .mockWith(
+            id: "question-1", audioBlockId: "question-audio", status: .answered,
+            answerAudioBlockId: "answer-audio", listener: nil)
+        ]
+      }
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(model.rows.map(\.title)[1], "Question and Answer")
+  }
+
+  @Test func separatedQuestionAndAnswerShowAsTwoRows() async {
+    let loaded = episode(segments: [
+      segment("s1", position: 0, audio: voicetrack("question-audio")),
+      segment("s2", position: 1),
       segment("s3", position: 2, audio: voicetrack("answer-audio")),
       segment("s4", position: 3, audio: voicetrack("anonymous-question-audio")),
       segment("s5", position: 4, audio: voicetrack("plain-voicetrack")),
     ])
     let model = makeModel(episode: loaded) {
-      $0.api.getListenerQuestions = { _, _ in
+      $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in
         [
-          .mockWith(
-            id: "question-1", audioBlockId: "question-audio", status: .answered,
-            answerAudioBlockId: "answer-audio",
-            listener: .mockWith(firstName: "Maya", lastName: "Lopez")),
+          question,
           .mockWith(id: "question-2", audioBlockId: "anonymous-question-audio", listener: nil),
         ]
       }
@@ -852,22 +938,49 @@ struct ShowBuilderPageTests {
     expectNoDifference(
       labels(model),
       [
-        "Song block-s1 | Artist block-s1 | music.note",
-        "Question | From Maya | bubble.left.and.bubble.right",
-        "Answer | Your voice | bubble.left.and.bubble.right",
-        "Question | Listener question | bubble.left.and.bubble.right",
-        "Voicetrack | Your voice | mic",
+        "Question | From Maya | AMA-messages-square | 3:00",
+        "Song block-s2 | Artist block-s2 | AMA-music | 3:00",
+        "Answer | Your voice | AMA-messages-square | 3:00",
+        "Question | Listener question | AMA-messages-square | 3:00",
+        "Voicetrack | Your voice | AMA-mic | 3:00",
       ])
   }
 
-  @Test func newlyAddedQAndARowsAreLabeledWithoutRefetchingQuestions() async throws {
+  @Test func failedQuestionLookupFallsBackToVoicetrackRows() async {
+    let reported = LockIsolated<[String?]>([])
+    let shownToasts = LockIsolated(0)
+    let loaded = episode(segments: [
+      segment("s1", position: 0, audio: voicetrack("question-audio")),
+      segment("s2", position: 1, audio: voicetrack("answer-audio")),
+    ])
+    let model = makeModel(episode: loaded) {
+      $0.api.getListenerQuestions = { _, _ in throw ShowBuilderTestError() }
+      $0.errorReporting.reportError = { _, tags in
+        reported.withValue { $0.append(tags["endpoint"]) }
+      }
+      $0.toast.show = { _ in shownToasts.withValue { $0 += 1 } }
+    }
+
+    await model.viewAppeared()
+
+    expectNoDifference(
+      labels(model),
+      [
+        "Voicetrack | Your voice | AMA-mic | 3:00",
+        "Voicetrack | Your voice | AMA-mic | 3:00",
+      ])
+    expectNoDifference(reported.value, ["getListenerQuestions"])
+    expectNoDifference(shownToasts.value, 0)
+  }
+
+  @Test func newlyAddedQAndAShowsAsOneRowWithoutRefetchingQuestions() async throws {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let questionFetches = LockIsolated(0)
     let withQAndA = episode(segments: [
       segment("s1", position: 0),
-      segment("s2", position: 1, audio: voicetrack("question-audio")),
-      segment("s3", position: 2, audio: voicetrack("answer-audio")),
+      segment("s2", position: 1, audio: voicetrack("question-audio", durationMS: 40_000)),
+      segment("s3", position: 2, audio: voicetrack("answer-audio", durationMS: 44_000)),
     ])
     let model = makeModel(episode: episode(segments: [segment("s1", position: 0)])) {
       $0.api.getListenerQuestions = { _, _ in
@@ -890,38 +1003,127 @@ struct ShowBuilderPageTests {
         questionBlock: voicetrack("question-audio"), answerBlock: voicetrack("answer-audio")))
 
     expectNoDifference(
-      labels(model).suffix(2),
-      [
-        "Question | From Maya | bubble.left.and.bubble.right",
-        "Answer | Your voice | bubble.left.and.bubble.right",
-      ])
+      labels(model).last,
+      "Question and Answer: Maya | Question + answer | AMA-messages-square | 1:24")
+    expectNoDifference(model.rows.count, 2)
     expectNoDifference(questionFetches.value, 1)
   }
 
-  @Test func failedQuestionLookupFallsBackToVoicetrackLabels() async {
-    let reported = LockIsolated<[String?]>([])
-    let shownToasts = LockIsolated(0)
-    let loaded = episode(segments: [
-      segment("s1", position: 0, audio: voicetrack("question-audio")),
-      segment("s2", position: 1, audio: voicetrack("answer-audio")),
-    ])
+  @Test func movingTheQuestionAndAnswerRowDownMovesBothSegmentsInOrder() async {
+    let moves = LockIsolated<[String]>([])
+    let loaded = showWithQuestionAndAnswer()
     let model = makeModel(episode: loaded) {
-      $0.api.getListenerQuestions = { _, _ in throw ShowBuilderTestError() }
-      $0.errorReporting.reportError = { _, tags in
-        reported.withValue { $0.append(tags["endpoint"]) }
+      $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }
+      $0.api.moveEpisodeSegment = { _, _, segmentId, position in
+        moves.withValue { $0.append("\(segmentId)->\(position)") }
+        return loaded
       }
-      $0.toast.show = { _ in shownToasts.withValue { $0 += 1 } }
     }
-
     await model.viewAppeared()
 
-    expectNoDifference(
-      labels(model),
-      [
-        "Voicetrack | Your voice | mic",
-        "Voicetrack | Your voice | mic",
-      ])
-    expectNoDifference(reported.value, ["getListenerQuestions"])
-    expectNoDifference(shownToasts.value, 0)
+    await model.rowsMoved(from: IndexSet(integer: 1), to: 3)
+
+    expectNoDifference(moves.value, ["s2->3", "s3->3"])
+  }
+
+  @Test func movingTheQuestionAndAnswerRowUpMovesBothSegmentsInOrder() async {
+    let moves = LockIsolated<[String]>([])
+    let loaded = showWithQuestionAndAnswer()
+    let model = makeModel(episode: loaded) {
+      $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }
+      $0.api.moveEpisodeSegment = { _, _, segmentId, position in
+        moves.withValue { $0.append("\(segmentId)->\(position)") }
+        return loaded
+      }
+    }
+    await model.viewAppeared()
+
+    await model.rowsMoved(from: IndexSet(integer: 1), to: 0)
+
+    expectNoDifference(moves.value, ["s2->0", "s3->1"])
+  }
+
+  @Test func movedQuestionAndAnswerRowShowsTheNewOrderRightAway() async {
+    await withMainSerialExecutor {
+      let (moveGate, openMove) = AsyncStream<Void>.makeStream()
+      let loaded = showWithQuestionAndAnswer()
+      let model = makeModel(episode: loaded) {
+        $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }
+        $0.api.moveEpisodeSegment = { _, _, _, _ in
+          for await _ in moveGate { break }
+          return loaded
+        }
+      }
+      await model.viewAppeared()
+
+      let move = Task { await model.rowsMoved(from: IndexSet(integer: 1), to: 3) }
+      await Task.megaYield()
+      expectNoDifference(model.rows.map(\.segmentIds), [["s1"], ["s4"], ["s2", "s3"]])
+
+      openMove.finish()
+      await move.value
+    }
+  }
+
+  @Test func movingASingleRowPastTheQuestionAndAnswerRow() async {
+    let moves = LockIsolated<[String]>([])
+    let loaded = showWithQuestionAndAnswer()
+    let model = makeModel(episode: loaded) {
+      $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }
+      $0.api.moveEpisodeSegment = { _, _, segmentId, position in
+        moves.withValue { $0.append("\(segmentId)->\(position)") }
+        return loaded
+      }
+    }
+    await model.viewAppeared()
+
+    await model.rowsMoved(from: IndexSet(integer: 0), to: 2)
+    await model.rowsMoved(from: IndexSet(integer: 2), to: 1)
+
+    expectNoDifference(moves.value, ["s1->2", "s4->1"])
+  }
+
+  @Test func failedQuestionAndAnswerMoveRestoresTheSavedOrder() async {
+    let fetchCount = LockIsolated(0)
+    let loaded = showWithQuestionAndAnswer()
+    let model = makeModel(episode: loaded) {
+      $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }
+      $0.api.getCuratorEpisode = { _, _ in
+        let count = fetchCount.withValue {
+          $0 += 1
+          return $0
+        }
+        guard count == 1 else { throw ShowBuilderTestError() }
+        return loaded
+      }
+      $0.api.moveEpisodeSegment = { _, _, segmentId, _ in
+        guard segmentId == "s2" else { throw ShowBuilderTestError() }
+        return loaded
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.viewAppeared()
+
+    await model.rowsMoved(from: IndexSet(integer: 1), to: 3)
+
+    expectNoDifference(model.rows.map(\.segmentIds), [["s1"], ["s2", "s3"], ["s4"]])
+    #expect(model.presentedAlert != nil)
+  }
+
+  @Test func removingTheQuestionAndAnswerRowRemovesBothSegments() async {
+    let removed = LockIsolated<[String]>([])
+    let loaded = showWithQuestionAndAnswer()
+    let model = makeModel(episode: loaded) {
+      $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }
+      $0.api.removeEpisodeSegment = { _, _, segmentId in
+        removed.withValue { $0.append(segmentId) }
+        return loaded
+      }
+    }
+    await model.viewAppeared()
+
+    await model.rowDeleteTapped("s2")
+
+    expectNoDifference(removed.value, ["s2", "s3"])
   }
 }

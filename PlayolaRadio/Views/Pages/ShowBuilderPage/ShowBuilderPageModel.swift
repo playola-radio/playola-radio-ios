@@ -12,7 +12,15 @@ import SwiftUI
 
 struct ShowBuilderSegmentRow: Identifiable {
   let id: String
-  let data: AMAOpeningRowData
+  let segmentIds: [String]
+  let title: String
+  let subtitle: String
+  let icon: String
+  let tileColor: Color
+  let artworkURL: URL?
+  let durationText: String
+  let handleIcons: [String]
+  let isEditable: Bool
 }
 
 struct ShowBuilderBanner: Identifiable, Equatable {
@@ -90,11 +98,14 @@ class ShowBuilderPageModel: ViewModel {
   var songActionLabel: String { "Song" }
   var qaActionLabel: String { "Q/A" }
   var removeRowLabel: String { "Remove" }
+  var questionAnswerRowTitle: String { "Question and Answer" }
+  var questionAnswerRowSubtitle: String { "Question + answer" }
   var questionRowTitle: String { "Question" }
   var answerRowTitle: String { "Answer" }
-  var answerRowSubtitle: String { "Your voice" }
+  var voiceRowSubtitle: String { "Your voice" }
   var unknownAskerRowSubtitle: String { "Listener question" }
-  var questionAnswerIconSystemName: String { "bubble.left.and.bubble.right" }
+  var songRequestRowTitle: String { "Song request" }
+  var songRequestRowSubtitle: String { "Waiting for the song" }
   var settingsLoadErrorMessage: String { "The show settings couldn’t load." }
   var loadingOpacity: Double { isLoading ? 1 : 0 }
 
@@ -186,18 +197,27 @@ class ShowBuilderPageModel: ViewModel {
     navigationCoordinator.push(.amaQuestionPickerPage(picker))
   }
 
-  func segmentsMoved(from source: IndexSet, to destination: Int) async {
+  func rowsMoved(from source: IndexSet, to destination: Int) async {
     guard canReorder, let episode, let sourceIndex = source.first else { return }
-    let ordered = orderedSegments
-    guard ordered.indices.contains(sourceIndex) else { return }
-    let segmentId = ordered[sourceIndex].id
-    let finalIndex = destination > sourceIndex ? destination - 1 : destination
-    var reordered = ordered
-    reordered.move(fromOffsets: source, toOffset: destination)
-    self.episode = episode.replacingSegments(reordered)
+    let groups = segmentGroups
+    guard groups.indices.contains(sourceIndex) else { return }
+    var reorderedGroups = groups
+    reorderedGroups.move(fromOffsets: source, toOffset: destination)
+    let movedIds = groups[sourceIndex].map(\.id)
+    let newGroupIndex = destination > sourceIndex ? destination - 1 : destination
+    let oldStart = groups[..<sourceIndex].reduce(0) { $0 + $1.count }
+    let newStart = reorderedGroups[..<newGroupIndex].reduce(0) { $0 + $1.count }
+    let moves = movedIds.enumerated().map { offset, segmentId in
+      (segmentId, newStart < oldStart ? newStart + offset : newStart + movedIds.count - 1)
+    }
+    self.episode = episode.replacingSegments(reorderedGroups.flatMap { $0 })
     _ = await enqueueSave { [weak self, api] jwt, episodeId in
       do {
-        self?.episode = try await api.moveEpisodeSegment(jwt, episodeId, segmentId, finalIndex)
+        var updated = episode
+        for (segmentId, finalIndex) in moves {
+          updated = try await api.moveEpisodeSegment(jwt, episodeId, segmentId, finalIndex)
+        }
+        self?.episode = updated
       } catch {
         self?.episode = episode
         throw error
@@ -205,10 +225,14 @@ class ShowBuilderPageModel: ViewModel {
     }.value
   }
 
-  func segmentDeleteTapped(_ segmentId: String) async {
-    guard canEditContent else { return }
+  func rowDeleteTapped(_ rowId: String) async {
+    guard canEditContent, let segmentIds = rows[id: rowId]?.segmentIds else { return }
     _ = await enqueueSave { [weak self, api] jwt, episodeId in
-      self?.episode = try await api.removeEpisodeSegment(jwt, episodeId, segmentId)
+      var updated = self?.episode
+      for segmentId in segmentIds {
+        updated = try await api.removeEpisodeSegment(jwt, episodeId, segmentId)
+      }
+      self?.episode = updated
     }.value
   }
 
@@ -300,9 +324,19 @@ class ShowBuilderPageModel: ViewModel {
     return "Change"
   }
 
-  var seriesActionColor: Color {
+  var seriesTitleColor: Color {
     guard let series = episode?.show, !series.isOneTime else { return .playolaTextSecondary }
+    return .playolaTextPrimary
+  }
+
+  var seriesActionColor: Color {
+    guard let series = episode?.show, !series.isOneTime else { return .playolaTextQuaternary }
     return .playolaRed
+  }
+
+  var seriesActionFontName: String {
+    guard let series = episode?.show, !series.isOneTime else { return FontNames.Inter_400_Regular }
+    return FontNames.Inter_600_SemiBold
   }
 
   var lockLines: [String] {
@@ -336,10 +370,7 @@ class ShowBuilderPageModel: ViewModel {
   var rows: IdentifiedArrayOf<ShowBuilderSegmentRow> {
     let isEditable = canEditContent
     return IdentifiedArray(
-      uniqueElements: orderedSegments.map { segment in
-        ShowBuilderSegmentRow(
-          id: segment.id, data: rowData(for: segment, isEditable: isEditable))
-      })
+      uniqueElements: segmentGroups.map { row(for: $0, isEditable: isEditable) })
   }
 
   var scheduleButtons: [String] {
@@ -355,12 +386,15 @@ class ShowBuilderPageModel: ViewModel {
   // MARK: - Private Helpers
 
   private enum QuestionAnswerRole {
-    case question(askerFirstName: String?)
+    case question(askerFirstName: String?, answerAudioBlockId: String?)
     case answer
   }
 
   private static let unknownListenerName = "Listener"
-  private static let unknownRowDataId = UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+  private static let songIcon = "AMA-music"
+  private static let voiceIcon = "AMA-mic"
+  private static let questionAnswerIcon = "AMA-messages-square"
+  private static let dragHandleIcon = "AMA-menu"
 
   private var timeZone: TimeZone {
     settings?.timeZone
@@ -377,10 +411,23 @@ class ShowBuilderPageModel: ViewModel {
     Set(orderedSegments.compactMap(\.audioBlock).filter { $0.type == "song" }.map(\.id))
   }
 
-  private var lengthLabel: String? {
-    guard let episode, episode.hasAudio else { return nil }
-    return "\(Int((Double(episode.durationMS) / 60_000).rounded())) min"
+  private var segmentGroups: [[CuratorEpisodeSegment]] {
+    var groups: [[CuratorEpisodeSegment]] = []
+    for segment in orderedSegments {
+      if let previous = groups.last, previous.count == 1,
+        let questionBlockId = previous[0].audioBlock?.id,
+        case .question(_, let answerAudioBlockId?) = questionAnswerRoles[questionBlockId],
+        segment.audioBlock?.id == answerAudioBlockId
+      {
+        groups[groups.count - 1].append(segment)
+      } else {
+        groups.append([segment])
+      }
+    }
+    return groups
   }
+
+  private var lengthLabel: String? { episode?.lengthLabel }
 
   @discardableResult
   private func appendToShow(_ audioBlockIds: [String], alertsOnFailure: Bool = true)
@@ -490,7 +537,8 @@ class ShowBuilderPageModel: ViewModel {
       let questions = try await api.getListenerQuestions(jwt, stationId)
       for question in questions {
         questionAnswerRoles[question.audioBlockId] = .question(
-          askerFirstName: question.listener?.firstName)
+          askerFirstName: question.listener?.firstName,
+          answerAudioBlockId: question.answerAudioBlockId)
         if let answerId = question.answerAudioBlockId {
           questionAnswerRoles[answerId] = .answer
         }
@@ -505,7 +553,7 @@ class ShowBuilderPageModel: ViewModel {
     let askerFirstName =
       questionAnswer.listenerName == Self.unknownListenerName ? nil : questionAnswer.listenerName
     questionAnswerRoles[questionAnswer.questionBlock.id] = .question(
-      askerFirstName: askerFirstName)
+      askerFirstName: askerFirstName, answerAudioBlockId: questionAnswer.answerBlock.id)
     questionAnswerRoles[questionAnswer.answerBlock.id] = .answer
   }
 
@@ -561,43 +609,44 @@ class ShowBuilderPageModel: ViewModel {
     return String(format: "%d:%02d", total / 60, total % 60)
   }
 
-  private func rowData(for segment: CuratorEpisodeSegment, isEditable: Bool)
-    -> AMAOpeningRowData
+  private func row(for group: [CuratorEpisodeSegment], isEditable: Bool)
+    -> ShowBuilderSegmentRow
   {
-    let dataId = UUID(uuidString: segment.id) ?? Self.unknownRowDataId
-    let trailingIcon = isEditable ? "line.3.horizontal" : "lock"
-    guard let block = segment.audioBlock else {
-      return AMAOpeningRowData(
-        id: dataId, title: "Song request", subtitle: "Waiting for the song",
-        subtitleColor: .playolaTextDisabled, iconSystemName: "music.note", albumImageUrl: nil,
-        leadingArtworkOpacity: 0, leadingFallbackOpacity: 1, trailingText: "",
-        trailingIconSystemName: trailingIcon, processingOpacity: 0, completedOpacity: 1,
-        isEditable: isEditable)
+    func makeRow(
+      _ title: String, _ subtitle: String, icon: String, tileColor: Color,
+      artworkURL: URL? = nil
+    ) -> ShowBuilderSegmentRow {
+      let blocks = group.compactMap(\.audioBlock)
+      return ShowBuilderSegmentRow(
+        id: group[0].id, segmentIds: group.map(\.id), title: title, subtitle: subtitle,
+        icon: icon, tileColor: tileColor, artworkURL: artworkURL,
+        durationText: blocks.isEmpty ? "" : Self.clockText(blocks.reduce(0) { $0 + $1.durationMS }),
+        handleIcons: isEditable ? [Self.dragHandleIcon] : [], isEditable: isEditable)
     }
-    let isSong = block.type == "song"
-    let hasArtwork = isSong && block.imageUrl != nil
-    var title = block.title
-    var subtitle = isSong ? block.artist : "Your voice"
-    var iconSystemName = isSong ? "music.note" : "mic"
+    guard let block = group[0].audioBlock else {
+      return makeRow(
+        songRequestRowTitle, songRequestRowSubtitle, icon: Self.songIcon,
+        tileColor: .playolaSurfaceMuted)
+    }
     switch questionAnswerRoles[block.id] {
-    case .question(let askerFirstName):
-      title = questionRowTitle
-      subtitle = askerFirstName.map { "From \($0)" } ?? unknownAskerRowSubtitle
-      iconSystemName = questionAnswerIconSystemName
+    case .question(let askerFirstName, _) where group.count == 2:
+      return makeRow(
+        askerFirstName.map { "\(questionAnswerRowTitle): \($0)" } ?? questionAnswerRowTitle,
+        questionAnswerRowSubtitle, icon: Self.questionAnswerIcon, tileColor: .playolaRed)
+    case .question(let askerFirstName, _):
+      return makeRow(
+        questionRowTitle, askerFirstName.map { "From \($0)" } ?? unknownAskerRowSubtitle,
+        icon: Self.questionAnswerIcon, tileColor: .playolaRed)
     case .answer:
-      title = answerRowTitle
-      subtitle = answerRowSubtitle
-      iconSystemName = questionAnswerIconSystemName
+      return makeRow(
+        answerRowTitle, voiceRowSubtitle, icon: Self.questionAnswerIcon, tileColor: .playolaRed)
+    case nil where block.type == "song":
+      return makeRow(
+        block.title, block.artist, icon: Self.songIcon, tileColor: .playolaSurfaceMuted,
+        artworkURL: block.imageUrl)
     case nil:
-      break
+      return makeRow(block.title, voiceRowSubtitle, icon: Self.voiceIcon, tileColor: .playolaRed)
     }
-    return AMAOpeningRowData(
-      id: dataId, title: title, subtitle: subtitle,
-      subtitleColor: .playolaTextDisabled, iconSystemName: iconSystemName,
-      albumImageUrl: isSong ? block.imageUrl : nil, leadingArtworkOpacity: hasArtwork ? 1 : 0,
-      leadingFallbackOpacity: hasArtwork ? 0 : 1, trailingText: Self.clockText(block.durationMS),
-      trailingIconSystemName: trailingIcon, processingOpacity: 0, completedOpacity: 1,
-      isEditable: isEditable)
   }
 }
 

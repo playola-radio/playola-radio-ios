@@ -95,6 +95,12 @@ extension CuratorEpisode {
 
   var hasAudio: Bool { durationMS > 0 }
 
+  var lengthLabel: String? {
+    guard hasAudio else { return nil }
+    let minutes = durationMS / 60_000
+    return minutes == 0 ? "Under 1 min" : "\(minutes) min"
+  }
+
   var isDraft: Bool { airings.isEmpty }
 
   /// The next Airing that hasn't ended. Nil for a draft and for a Show whose every Airing has
