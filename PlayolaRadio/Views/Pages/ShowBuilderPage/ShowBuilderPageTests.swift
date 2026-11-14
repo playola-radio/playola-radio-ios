@@ -539,7 +539,8 @@ struct ShowBuilderPageTests {
     let observer = notificationCenter.addObserver(
       forName: .recordedShowsChanged, object: nil, queue: nil
     ) { notification in
-      postedStations.withValue { $0.append(notification.userInfo?["stationId"] as? String) }
+      let stationId = notification.userInfo?["stationId"] as? String
+      postedStations.withValue { $0.append(stationId) }
     }
     defer { notificationCenter.removeObserver(observer) }
     let model = makeModel {
