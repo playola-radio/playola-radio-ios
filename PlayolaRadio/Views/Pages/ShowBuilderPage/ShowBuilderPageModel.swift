@@ -9,7 +9,7 @@ import PlayolaPlayer
 import Sharing
 import SwiftUI
 
-struct ShowBuilderSegmentRow: Identifiable, Equatable {
+struct ShowBuilderSegmentRow: Identifiable {
   let id: String
   let data: AMAOpeningRowData
 }
@@ -20,10 +20,14 @@ struct ShowBuilderBanner: Identifiable, Equatable {
   let message: String
 }
 
-struct ShowBuilderCalendarBadge: Identifiable, Equatable {
+struct ShowBuilderCalendarBadge: Identifiable {
   var id: Date { date }
   let date: Date
   let timeZone: TimeZone
+}
+
+struct ShowBuilderNotSignedIn: LocalizedError {
+  var errorDescription: String? { "Please sign in to change your show." }
 }
 
 @MainActor
@@ -67,7 +71,8 @@ class ShowBuilderPageModel: ViewModel {
   var presentedAlert: PlayolaAlert?
   var isRenameAlertPresented = false
   var renameText = ""
-  @ObservationIgnored private var lastOperation: Task<Void, Never>?
+  private var pendingSaveCount = 0
+  @ObservationIgnored private var lastOperation: Task<(any Error)?, Never>?
 
   var navigationTitle: String { episode?.title ?? Self.newShowTitle }
   var renameButtonTitle: String { "Rename" }
@@ -92,18 +97,21 @@ class ShowBuilderPageModel: ViewModel {
     async let settingsLoad: Void = loadSettings(jwt: jwt)
     if episodeId != nil, episode == nil {
       isLoading = true
-      await enqueue { [self] in await loadEpisode(showsToastOnFailure: true) }.value
+      _ = await enqueue { [self] in
+        await loadEpisode(showsToastOnFailure: true)
+        return nil
+      }.value
       isLoading = false
     }
     await settingsLoad
   }
 
   func save(_ change: @escaping @MainActor (_ episodeId: String) async throws -> Void) async {
-    await enqueueSave { _, episodeId in try await change(episodeId) }.value
+    _ = await enqueueSave { _, episodeId in try await change(episodeId) }.value
   }
 
   func waitForPendingSaves() async {
-    await lastOperation?.value
+    _ = await lastOperation?.value
   }
 
   func renameButtonTapped() {
@@ -115,8 +123,9 @@ class ShowBuilderPageModel: ViewModel {
   func renameSaveButtonTapped() async {
     let title = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
     guard canRename, !title.isEmpty, title != navigationTitle else { return }
-    await enqueueSave { [api] jwt, episodeId in
-      _ = try await api.updateEpisode(jwt, episodeId, CuratorEpisodeUpdate(title: title))
+    _ = await enqueueSave { [weak self, api] jwt, episodeId in
+      self?.episode = try await api.updateEpisode(
+        jwt, episodeId, CuratorEpisodeUpdate(title: title))
     }.value
   }
 
@@ -151,13 +160,15 @@ class ShowBuilderPageModel: ViewModel {
         let blockIds =
           [questionAnswer.questionBlock.id, questionAnswer.answerBlock.id]
           + [questionAnswer.trailingBlock?.id].compactMap { $0 }
-        await appendToShow(blockIds).value
+        if let failure = await appendToShow(blockIds, alertsOnFailure: false).value {
+          throw failure
+        }
       })
     navigationCoordinator.push(.amaQuestionPickerPage(picker))
   }
 
   func segmentsMoved(from source: IndexSet, to destination: Int) async {
-    guard canEditContent, let episode, let sourceIndex = source.first else { return }
+    guard canReorder, let episode, let sourceIndex = source.first else { return }
     let ordered = orderedSegments
     guard ordered.indices.contains(sourceIndex) else { return }
     let segmentId = ordered[sourceIndex].id
@@ -165,15 +176,15 @@ class ShowBuilderPageModel: ViewModel {
     var reordered = ordered
     reordered.move(fromOffsets: source, toOffset: destination)
     self.episode = episode.replacingSegments(reordered)
-    await enqueueSave { [api] jwt, episodeId in
-      _ = try await api.moveEpisodeSegment(jwt, episodeId, segmentId, finalIndex)
+    _ = await enqueueSave { [weak self, api] jwt, episodeId in
+      self?.episode = try await api.moveEpisodeSegment(jwt, episodeId, segmentId, finalIndex)
     }.value
   }
 
   func segmentDeleteTapped(_ segmentId: String) async {
     guard canEditContent else { return }
-    await enqueueSave { [api] jwt, episodeId in
-      _ = try await api.removeEpisodeSegment(jwt, episodeId, segmentId)
+    _ = await enqueueSave { [weak self, api] jwt, episodeId in
+      self?.episode = try await api.removeEpisodeSegment(jwt, episodeId, segmentId)
     }.value
   }
 
@@ -198,14 +209,16 @@ class ShowBuilderPageModel: ViewModel {
 
   var canEditContent: Bool {
     switch state {
-    case .draft, .scheduled: return !isReadOnly
+    case .draft, .scheduled: return canRename
     case .locked, .aired: return false
     }
   }
 
-  var canRename: Bool { !isReadOnly }
+  var canReorder: Bool { canEditContent && pendingSaveCount == 0 }
 
-  var canChangeSeries: Bool { !isReadOnly }
+  var canRename: Bool { !isAwaitingFirstLoad && !isReadOnly }
+
+  var canChangeSeries: Bool { canRename }
 
   var addCardOpacity: Double { canEditContent ? 1 : 0 }
 
@@ -322,6 +335,8 @@ class ShowBuilderPageModel: ViewModel {
       ?? TimeZone(identifier: StationSchedulingSettings.fallbackTimeZoneIdentifier) ?? .gmt
   }
 
+  private var isAwaitingFirstLoad: Bool { episodeId != nil && episode == nil }
+
   private var orderedSegments: [CuratorEpisodeSegment] {
     (episode?.segments ?? []).sorted { $0.position < $1.position }
   }
@@ -336,51 +351,54 @@ class ShowBuilderPageModel: ViewModel {
   }
 
   @discardableResult
-  private func appendToShow(_ audioBlockIds: [String]) -> Task<Void, Never> {
-    enqueueSave { [weak self, api] jwt, episodeId in
+  private func appendToShow(_ audioBlockIds: [String], alertsOnFailure: Bool = true)
+    -> Task<(any Error)?, Never>
+  {
+    enqueueSave(alertsOnFailure: alertsOnFailure) { [weak self, api] jwt, episodeId in
       let position = self?.episode?.segments.count ?? 0
-      _ = try await api.addEpisodeSegments(jwt, episodeId, audioBlockIds, position)
+      self?.episode = try await api.addEpisodeSegments(jwt, episodeId, audioBlockIds, position)
     }
   }
 
-  @discardableResult
-  private func enqueue(_ operation: @escaping @MainActor () async -> Void) -> Task<Void, Never> {
+  private func enqueue(
+    _ operation: @escaping @MainActor () async -> (any Error)?
+  ) -> Task<(any Error)?, Never> {
     let previous = lastOperation
     let task = Task {
-      await previous?.value
-      await operation()
+      _ = await previous?.value
+      return await operation()
     }
     lastOperation = task
     return task
   }
 
   private func enqueueSave(
+    alertsOnFailure: Bool = true,
     _ change: @escaping @MainActor (_ jwt: String, _ episodeId: String) async throws -> Void
-  ) -> Task<Void, Never> {
-    enqueue { [self] in await runChange(change) }
+  ) -> Task<(any Error)?, Never> {
+    pendingSaveCount += 1
+    return enqueue { [self] in
+      defer { pendingSaveCount -= 1 }
+      let failure = await runChange(change)
+      if alertsOnFailure, let failure { presentSaveAlert(for: failure) }
+      return failure
+    }
   }
 
   private func runChange(
     _ change: @MainActor (_ jwt: String, _ episodeId: String) async throws -> Void
-  ) async {
-    guard let jwt = auth.jwt else {
-      presentedAlert = Self.alert(
-        title: "Not Signed In", message: "Please sign in to change your show.")
-      return
-    }
-    let id: String
+  ) async -> (any Error)? {
+    var failure: (any Error)?
     do {
-      id = try await resolveEpisodeId(jwt: jwt)
-    } catch {
-      await handleSaveFailure(error)
-      return
-    }
-    do {
+      guard let jwt = auth.jwt else { throw ShowBuilderNotSignedIn() }
+      let id = try await resolveEpisodeId(jwt: jwt)
       try await change(jwt, id)
     } catch {
-      await handleSaveFailure(error)
+      failure = error
+      await recordSaveFailure(error)
     }
     await loadEpisode(showsToastOnFailure: false)
+    return failure
   }
 
   private func resolveEpisodeId(jwt: String) async throws -> String {
@@ -417,15 +435,21 @@ class ShowBuilderPageModel: ViewModel {
     }
   }
 
-  private func handleSaveFailure(_ error: Error) async {
-    guard !isCancellation(error) else { return }
-    if case APIError.recordedShowLocked(let message) = error {
-      refusedAsLocked = true
-      presentedAlert = Self.alert(title: "Show Locked", message: message)
-      return
-    }
-    presentedAlert = Self.alert(title: "Couldn\u{2019}t Save", message: error.localizedDescription)
+  private func recordSaveFailure(_ error: Error) async {
+    guard !isCancellation(error), !(error is ShowBuilderNotSignedIn) else { return }
+    if case APIError.recordedShowLocked = error { refusedAsLocked = true }
     await report(error, endpoint: "showBuilderSave")
+  }
+
+  private func presentSaveAlert(for error: Error) {
+    guard !isCancellation(error) else { return }
+    let title =
+      switch error {
+      case is ShowBuilderNotSignedIn: "Not Signed In"
+      case APIError.recordedShowLocked: "Show Locked"
+      default: "Couldn\u{2019}t Save"
+      }
+    presentedAlert = Self.alert(title: title, message: error.localizedDescription)
   }
 
   private func isCancellation(_ error: Error) -> Bool {

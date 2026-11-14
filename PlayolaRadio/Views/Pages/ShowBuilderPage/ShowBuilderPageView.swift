@@ -18,7 +18,7 @@ struct ShowBuilderPageView: View {
         .listRowBackground(Color.clear)
       ForEach(model.rows) { row in
         AMAOpeningRowView(data: row.data)
-          .moveDisabled(!row.data.isEditable)
+          .moveDisabled(!model.canReorder)
           .swipeActions {
             Button(model.removeRowLabel, role: .destructive) {
               Task { await model.segmentDeleteTapped(row.id) }

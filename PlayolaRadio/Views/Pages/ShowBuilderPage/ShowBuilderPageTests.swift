@@ -168,6 +168,82 @@ struct ShowBuilderPageTests {
     expectNoDifference(changedIds.value, ["new-episode"])
   }
 
+  @Test func failedRefetchStillAddsTheNextVoicetrackAtTheEnd() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let positions = LockIsolated<[Int]>([])
+    let fetchCount = LockIsolated(0)
+    let empty = episode()
+    let afterFirst = episode(segments: [segment("s1", position: 0)])
+    let model = makeModel(episode: empty) {
+      $0.api.getCuratorEpisode = { _, _ in
+        let count = fetchCount.withValue {
+          $0 += 1
+          return $0
+        }
+        guard count == 1 else { throw ShowBuilderTestError() }
+        return empty
+      }
+      $0.api.addEpisodeSegments = { _, _, _, position in
+        positions.withValue { $0.append(position) }
+        return afterFirst
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.viewAppeared()
+
+    for blockId in ["voicetrack-a", "voicetrack-b"] {
+      model.voicetrackActionTapped()
+      guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+        Issue.record("Expected the voicetrack recorder to be pushed")
+        return
+      }
+      await recorder.onCompleted?(block(blockId, type: "voiceTrack"))
+    }
+    await model.waitForPendingSaves()
+
+    expectNoDifference(positions.value, [0, 1])
+  }
+
+  @Test func reorderingWaitsForPendingSaves() async {
+    await withMainSerialExecutor {
+      let (removeGate, openRemove) = AsyncStream<Void>.makeStream()
+      let loaded = episode(segments: [segment("s1", position: 0), segment("s2", position: 1)])
+      let model = makeModel(episode: loaded) {
+        $0.api.removeEpisodeSegment = { _, _, _ in
+          for await _ in removeGate { break }
+          return loaded
+        }
+      }
+      await model.viewAppeared()
+      #expect(model.canReorder)
+
+      let removal = Task { await model.segmentDeleteTapped("s2") }
+      await Task.megaYield()
+      #expect(!model.canReorder)
+
+      openRemove.yield()
+      openRemove.finish()
+      await removal.value
+      #expect(model.canReorder)
+    }
+  }
+
+  @Test func existingShowCannotBeEditedBeforeItLoads() async {
+    let model = makeModel()
+
+    #expect(!model.canEditContent)
+    #expect(!model.canRename)
+    #expect(!model.canChangeSeries)
+    model.renameButtonTapped()
+    #expect(!model.isRenameAlertPresented)
+
+    await model.viewAppeared()
+
+    #expect(model.canEditContent)
+    #expect(model.canRename)
+  }
+
   @Test func untouchedBuilderCreatesNothing() async {
     let created = LockIsolated(false)
     let model = makeModel(episodeId: nil) {
@@ -234,6 +310,33 @@ struct ShowBuilderPageTests {
 
     expectNoDifference(requests.value, [["question-audio", "answer-audio"]])
     expectNoDifference(positions.value, [2])
+  }
+
+  @Test func failedQAndAAdditionThrowsBackToTheAnswerPage() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeModel(episode: episode(segments: [segment("s1", position: 0)])) {
+      $0.api.addEpisodeSegments = { _, _, _, _ in
+        throw APIError.recordedShowLocked("This show is locked because it airs soon.")
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.viewAppeared()
+
+    model.qaActionTapped()
+    guard case .amaQuestionPickerPage(let picker) = coordinator.path.last else {
+      Issue.record("Expected the question picker to be pushed")
+      return
+    }
+    await #expect(throws: APIError.self) {
+      try await picker.addToShow(
+        AMAQuestionAnswer(
+          questionId: "question-1", listenerName: "Maya",
+          questionBlock: block("question-audio"), answerBlock: block("answer-audio")))
+    }
+
+    #expect(model.presentedAlert == nil)
+    #expect(model.refusedAsLocked)
   }
 
   @Test func songPickerOffersAvailableSongsOnly() async {
@@ -351,6 +454,7 @@ struct ShowBuilderPageTests {
 
   @Test func lockedRefusalSwitchesToLockedAndRefetches() async {
     let fetchCount = LockIsolated(0)
+    let reported = LockIsolated(0)
     let loaded = episode(segments: [segment("s1", position: 0)], airings: [airing()])
     let model = makeModel(episode: loaded) {
       $0.api.getCuratorEpisode = { _, _ in
@@ -360,6 +464,7 @@ struct ShowBuilderPageTests {
       $0.api.removeEpisodeSegment = { _, _, _ in
         throw APIError.recordedShowLocked("This show is locked because it airs soon.")
       }
+      $0.errorReporting.reportError = { _, _ in reported.withValue { $0 += 1 } }
     }
     await model.viewAppeared()
     #expect(model.state == .scheduled(airing()))
@@ -369,6 +474,7 @@ struct ShowBuilderPageTests {
     expectNoDifference(model.presentedAlert?.message, "This show is locked because it airs soon.")
     expectNoDifference(model.state, .locked(airing()))
     expectNoDifference(fetchCount.value, 2)
+    expectNoDifference(reported.value, 1)
   }
 
   @Test func failedSaveShowsAlertAndRefetches() async {
