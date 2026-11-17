@@ -34,3 +34,4 @@ DerivedData/
 LocalPackages/**/.build/
 .gstack/
 __pycache__/
+.qa-artifacts/

@@ -1,0 +1,20 @@
+version: 1
+platform: ios
+baseBranch: develop
+relevant: ["PlayolaRadio/**", "PlayolaRadio.xcodeproj/**"]
+requiresEvidence: ["PlayolaRadio/**", "PlayolaRadio.xcodeproj/**"]
+ignored: ["**/*Tests.swift", "PlayolaRadioTests/**", "**/*.md",
+          "docs/**", "design/**", "fastlane/**"]
+ios:
+  project: PlayolaRadio.xcodeproj
+  scheme: PlayolaRadio-Staging
+  configuration: Debug
+  productName: PlayolaRadio Staging.app
+  bundleId: fm.playola.playolaradio.staging
+  apiHost: https://admin-api-staging.playola.fm
+  deviceType: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
+  runtime: com.apple.CoreSimulator.SimRuntime.iOS-27-0
+  xcodePath: /Applications/Xcode-27.1.0.app
+  maestroPath: ~/.maestro/bin/maestro
+  javaHome: /opt/homebrew/opt/openjdk@17
+  secretsSource: ~/playola/playola-radio-ios
