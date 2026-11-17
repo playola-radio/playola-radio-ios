@@ -132,4 +132,11 @@ result.json  comment.md
 
 ## Measured run time
 
-MEASURED_RUN_TIME
+`make ux-evidence CASE=example-stations` on an Apple-silicon Mac with Xcode 27.1, measured 2026-11-16:
+
+- First run (empty package cache): 558 s (about 9½ minutes).
+- Second run (package cache warm): 537 s (about 9 minutes).
+
+About seven minutes of that is the two app builds (before and after), each from a clean build folder,
+so a warm package cache saves little. Each capture (create a simulator, install, sign in, screenshot,
+delete the simulator) takes under two minutes.
