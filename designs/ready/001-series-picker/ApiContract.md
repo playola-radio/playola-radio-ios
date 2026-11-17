@@ -8,6 +8,8 @@ Words: UX **Show** = backend `Episode`; UX **Series** = backend `Show`. A standa
 |---|---|---|---|
 | Unchanged | GET | `/v1/shows?stationIds=<stationId>` | The picker's list of Series |
 | Unchanged | POST | `/v1/shows` | New Series |
+| Unchanged | POST | `/v1/shows` (with `isOneTime: true`) | Creating an unsaved Show the first time a Series choice is committed (the builder's existing first-change creation) |
+| Unchanged | POST | `/v1/episodes` | Creating an unsaved Show inside a Series, when the builder was opened for a Series (the builder's existing first-change creation; no entry point in this design opens it that way) |
 | Unchanged | PUT | `/v1/episodes/:episodeId` | Join a Series, switch Series, remove from a Series |
 | Unchanged | GET | `/v1/stations/:stationId` | Station time zone for the New Series time |
 | Unchanged | GET | `/v1/episodes/:episodeId?includeSegments=true&includeAirings=true` | Builder refresh after a change or a refusal (already called by the builder) |
@@ -45,6 +47,47 @@ Every refusal is `{ "error": { "message": "…" } }`; the app shows `message` as
   | 400 | `rrule` longer than 255 characters or not the weekly form above |
   | 401 / 403 | signed out / not a station editor |
 
+## POST /v1/shows — create a standalone Show (unchanged)
+
+The builder's existing lazy creation for a brand-new Show (`createStandaloneEpisode`). This design adds no new caller; it only relies on it running once, before the first Series change on an unsaved Show.
+
+- **Auth:** station editor.
+- **Request** (the builder always sends the title "New Show"):
+  ```json
+  { "stationId": "1111…", "title": "New Show", "isOneTime": true }
+  ```
+- **Response `201`:** the hidden one-time Series wrapper with its single Show in `episodes`; the app uses `episodes[0]` as the Show.
+  ```json
+  { "id": "4444…", "stationId": "1111…", "title": "New Show", "isOneTime": true, "rrule": null,
+    "episodes": [{ "id": "5555…", "showId": "4444…", "title": "New Show", "durationMS": 0 }] }
+  ```
+- **Errors:**
+
+  | Status | When |
+  |---|---|
+  | 400 | blank title |
+  | 404 | the station doesn't exist |
+  | 401 / 403 | signed out / not a station editor |
+
+## POST /v1/episodes — create a Show inside a Series (unchanged)
+
+The builder's existing lazy creation when it was opened for a Series (`createEpisodeInSeries`). No entry point in this design opens the builder that way; listed because it is the other branch of the same first-change creation.
+
+- **Auth:** station editor of the Series' station.
+- **Request:**
+  ```json
+  { "showId": "2222…", "title": "New Show" }
+  ```
+- **Response `201`:** the new Show (`id`, `showId`, `title`, `durationMS`).
+- **Errors:**
+
+  | Status | When |
+  |---|---|
+  | 400 | blank title |
+  | 404 | the Series doesn't exist |
+  | 409 | the target is a one-time wrapper |
+  | 401 / 403 | signed out / not a station editor |
+
 ## PUT /v1/episodes/:episodeId
 
 - **Auth:** station editor of the Show's station. Never edit-locked (works on Locked Shows).
@@ -76,7 +119,7 @@ Every refusal is `{ "error": { "message": "…" } }`; the app shows `message` as
 ## GET /v1/stations/:stationId
 
 - **Auth:** authenticated.
-- **Response `200` — fields this design relies on:** `{ "timezone": "America/Chicago", "airingEditLockMS": 21600000 }` (server constants, the same for every station). `timezone` labels and interprets the New Series time.
+- **Response `200` — fields this design relies on:** `{ "timezone": "America/Chicago", "airingEditLockMS": 21600000 }` (server constants, the same for every station). `timezone` interprets the New Series time (no time-zone label is shown).
 - **Errors:** 401, 404.
 
 ## GET /v1/episodes/:episodeId
