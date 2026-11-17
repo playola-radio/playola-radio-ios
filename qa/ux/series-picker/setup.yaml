@@ -1,0 +1,28 @@
+appId: fm.playola.playolaradio.staging
+---
+# Open a new, unsaved show in the show builder. Only reads from the server: an unsaved show is
+# created only on its first change, and this case makes none.
+- extendedWaitUntil:
+    visible: "Station"
+    timeout: 60000
+- runFlow:
+    when:
+      visible: "Stay in the Loop?"
+    commands:
+      - tapOn: "No Thanks"
+- tapOn: "Station"
+- extendedWaitUntil:
+    visible: "Upcoming"
+    timeout: 30000
+- tapOn: "Upcoming"
+- extendedWaitUntil:
+    visible: "Individual Shows"
+    timeout: 30000
+- tapOn: "Individual Shows"
+- extendedWaitUntil:
+    visible: "Record a New Show"
+    timeout: 30000
+- tapOn: "Record a New Show"
+- extendedWaitUntil:
+    visible: "Add to a series"
+    timeout: 30000
