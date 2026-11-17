@@ -1,0 +1,4 @@
+appId: fm.playola.playolaradio.staging
+---
+# Runs after launch, before anything is captured: dismiss alerts and reach the first screen of the flow.
+- waitForAnimationToEnd

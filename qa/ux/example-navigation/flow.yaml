@@ -1,0 +1,4 @@
+appId: fm.playola.playolaradio.staging
+---
+# Only these steps are recorded; keep them to the interaction being shown.
+- assertVisible: "write your flow in qa/ux/example-navigation/flow.yaml"
