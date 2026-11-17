@@ -44,7 +44,7 @@ struct MainContainer: View {
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
           case .player, .feedbackSheet, .share, .artistSuggestion, .welcomeMessage,
-            .giveawayCongrats, .developerOptions, .claim:
+            .giveawayCongrats, .developerOptions, .claim, .seriesPicker:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
@@ -52,6 +52,7 @@ struct MainContainer: View {
         },
         set: { model.presentedSheetChanged(to: $0) }
       ),
+      onDismiss: { model.standardSheetDismissed() },
       content: { item in
         ZStack {
           switch item {
@@ -71,6 +72,8 @@ struct MainContainer: View {
             DeveloperOptionsSheetView(model: developerOptionsModel)
           case .claim(let claimModel):
             ClaimSheetView(model: claimModel)
+          case .seriesPicker(let pickerModel):
+            SeriesPickerSheetView(model: pickerModel)
           default:
             EmptyView()
           }
@@ -81,6 +84,7 @@ struct MainContainer: View {
           }
           .zIndex(1)  // Ensure toast appears above content
         }
+        .onAppear { model.standardSheetAppeared(item) }
       }
     )
     .fullScreenCover(

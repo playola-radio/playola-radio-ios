@@ -1774,3 +1774,67 @@ extension MainContainerTests {
     #expect(!isBroadcaster)
   }
 }
+
+// MARK: - Series Picker Dismissal Tests
+
+extension MainContainerTests {
+  private func makeSeriesPicker(dismissals: LockIsolated<Int>) -> SeriesPickerSheetModel {
+    let picker = SeriesPickerSheetModel(
+      stationId: "station-1", showTitle: "Tour Stories", currentSeries: nil, timeZone: .gmt)
+    picker.onDismissed = { dismissals.withValue { $0 += 1 } }
+    return picker
+  }
+
+  @Test func seriesPickerIsNotifiedOnlyWhenItsSheetIsGone() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let dismissals = LockIsolated(0)
+    let picker = makeSeriesPicker(dismissals: dismissals)
+    let model = MainContainerModel()
+    coordinator.presentedSheet = .seriesPicker(picker)
+    model.standardSheetAppeared(.seriesPicker(picker))
+
+    $coordinator.withLock { $0.presentedSheet = nil }
+    expectNoDifference(dismissals.value, 0)
+
+    model.standardSheetDismissed()
+    expectNoDifference(dismissals.value, 1)
+  }
+
+  @Test func swipingTheSeriesPickerAwayNotifiesItOnce() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let dismissals = LockIsolated(0)
+    let picker = makeSeriesPicker(dismissals: dismissals)
+    let model = MainContainerModel()
+    coordinator.presentedSheet = .seriesPicker(picker)
+    model.standardSheetAppeared(.seriesPicker(picker))
+    model.standardSheetAppeared(.seriesPicker(picker))
+
+    model.presentedSheetChanged(to: nil)
+    model.standardSheetDismissed()
+    model.standardSheetDismissed()
+
+    expectNoDifference(dismissals.value, 1)
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  @Test func replacingTheSeriesPickerNotifiesOnlyTheReplacedPicker() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let olderDismissals = LockIsolated(0)
+    let newerDismissals = LockIsolated(0)
+    let older = makeSeriesPicker(dismissals: olderDismissals)
+    let newer = makeSeriesPicker(dismissals: newerDismissals)
+    let model = MainContainerModel()
+    coordinator.presentedSheet = .seriesPicker(older)
+    model.standardSheetAppeared(.seriesPicker(older))
+
+    coordinator.presentedSheet = .seriesPicker(newer)
+    model.standardSheetAppeared(.seriesPicker(newer))
+    model.standardSheetDismissed()
+
+    expectNoDifference(olderDismissals.value, 1)
+    expectNoDifference(newerDismissals.value, 0)
+  }
+}
