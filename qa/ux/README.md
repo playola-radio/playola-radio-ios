@@ -73,10 +73,10 @@ appId: fm.playola.playolaradio.staging
 
 ## Commands
 
-Record a case against the merge base with `origin/develop` ("before") and the current `HEAD` ("after"):
+Use this command to check the setup with the example case against the merge base with `origin/develop` ("before") and the current `HEAD` ("after"). The example is expected to be identical, so `ALLOW_IDENTICAL=1` prevents that expected result from failing the setup check; do not use it for real visual changes.
 
 ```bash
-make ux-evidence CASE=example-stations
+make ux-evidence CASE=example-stations ALLOW_IDENTICAL=1
 ```
 
 It refuses to run with uncommitted changes under `PlayolaRadio/`, `PlayolaRadio.xcodeproj/` or `qa/ux/<case-id>/`. Each revision is checked out into a temporary git worktree under `~/.cache/playola-ux/ios/` and built for the simulator (Swift packages are cached in `~/.cache/playola-ux/ios/spm`); then each is installed on a new simulator the run creates and deletes. Only one iOS recording runs at a time per machine. A run removes its own simulators, worktrees and temp directory on exit, including on Ctrl-C (which stops xcodebuild or Maestro first). It never touches a simulator it did not create.
