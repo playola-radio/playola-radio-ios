@@ -1,6 +1,6 @@
 # UX evidence (iPhone app)
 
-Records before/after screenshots of a change to the iPhone app and attaches them to the PR. One device (iPhone 17 Pro, iOS 27.0 simulator, light appearance, status bar fixed at 9:41), against the staging server, signed in with a saved staging session. Screenshots only: video (`functional`) cases are not supported on iOS yet.
+Records before/after screenshots (`visual` cases) or videos (`functional` cases) of a change to the iPhone app and attaches them to the PR. One device (iPhone 17 Pro, iOS 27.0 simulator, light appearance, status bar fixed at 9:41), against the staging server, signed in with a saved staging session.
 
 ## Setup
 
@@ -47,13 +47,19 @@ qa/ux/<case-id>/
 ```yaml
 version: 1
 id: stations-list-spacing       # must equal the folder name
-classification: visual          # iOS supports visual only
+classification: visual          # visual (screenshots) | functional (video)
 before:
   policy: required              # required | not-applicable
   reason: ...                   # required text when not-applicable
 ```
 
-`make ux-evidence-new` does not create iOS cases yet. Copy `qa/ux/example-stations/` and edit it. Case ids are lowercase letters, digits and hyphens.
+Create one with:
+
+```bash
+make ux-evidence-new CASE=<case-id> CLASSIFICATION=<visual|functional> BEFORE=<required|not-applicable> [REASON="..."]
+```
+
+It writes `evidence.yaml`, `setup.yaml` and `flow.yaml`. The new `flow.yaml` fails on purpose (`write your flow in qa/ux/<case-id>/flow.yaml`) until you replace its last step. Case ids are lowercase letters, digits and hyphens. `qa/ux/example-stations/` (visual) and `qa/ux/example-navigation/` (functional) are worked examples.
 
 ## The flow
 
@@ -67,7 +73,9 @@ appId: fm.playola.playolaradio.staging
 
 - The tool launches the app (keeping the injected session, and denying every system permission prompt so none covers the screen), runs `setup.yaml` if present, then `flow.yaml`. Both revisions run the same files from your current checkout.
 - `setup.yaml` gets the app to the starting screen and dismisses first-launch prompts. On a fresh install the app asks "Stay in the Loop?" after the first screen; the example taps "No Thanks", which only saves a local setting.
-- `flow.yaml` must have at least one `takeScreenshot: <name>` step. Names are lowercase letters, digits and hyphens, each used once; saved as `before-<name>.png` / `after-<name>.png`. Base and head must produce the same names.
+- A visual case's `flow.yaml` must have at least one `takeScreenshot: <name>` step. Names are lowercase letters, digits and hyphens, each used once; saved as `before-<name>.png` / `after-<name>.png`. Base and head must produce the same names.
+- A functional case's video shows `flow.yaml` only. Recording starts once setup has finished and the recorder reports it is recording (the flow's first step waits for that), and stops once the flow's last step has finished, so the video opens on the screen setup left and ends on the flow's final screen. Make `setup.yaml` leave the app on the flow's first screen with every prompt dismissed. The video is H.264 with no audio and must be at most 10 MiB (10,485,760 bytes); keep flows short.
+- Never show account details: do not open the profile tab, or any screen with the account's name or email, in a flow.
 - No fixed sleeps. Wait with `extendedWaitUntil: { visible: "<text>", timeout: 30000 }` on text that appears on screen once it has loaded. Do not match station names or other staging data that can change.
 - Recordings must not write to the server: do not start playback, follow, like, edit the profile or send anything. The session belongs to a real staging account.
 
@@ -116,7 +124,8 @@ Use it only when no "before" exists on the base commit: the screen or feature is
 `.qa-artifacts/<case-id>/` (git-ignored):
 
 ```text
-before-<shot>.png  after-<shot>.png  compare-<shot>.png
+before-<shot>.png  after-<shot>.png  compare-<shot>.png   # visual
+before.mp4  after.mp4                                    # functional
 result.json  comment.md
 ```
 
@@ -127,6 +136,7 @@ result.json  comment.md
 - "missing Secrets….xcconfig": copy the four files into `secretsSource`'s `PlayolaRadio/Config/` (see `make setup-conductor`).
 - "simulator runtime … is not installed" or "cannot run …": install the runtime named in `qa/ux/config.yaml`, or change `ios.runtime` / `ios.deviceType`.
 - "another iOS recording is running (pid N)": wait for it. A lock left by a process that has exited is taken over automatically.
+- "the simulator video recorder did not start within 8 s" or "simctl recordVideo failed": the recorder could not capture the simulator's screen; rerun, and if it repeats, check that the Xcode in `qa/ux/config.yaml` can run `xcrun simctl io <udid> recordVideo` on a booted simulator.
 - "the Maestro flow failed": the last lines of Maestro's output are printed; usually a `tapOn` or `extendedWaitUntil` text that did not appear.
 - Leftovers after a hard kill (kill -9, power loss): `xcrun simctl list devices | grep playola-ux-` then `xcrun simctl delete <udid>` for each, `git worktree prune`, and delete everything in `~/.cache/playola-ux/ios/` except `spm`.
 
@@ -140,3 +150,8 @@ result.json  comment.md
 About seven minutes of that is the two app builds (before and after), each from a clean build folder,
 so a warm package cache saves little. Each capture (create a simulator, install, sign in, screenshot,
 delete the simulator) takes under two minutes.
+
+`make ux-evidence CASE=example-navigation` (functional, video), same Mac, measured 2026-11-16: 553 s
+(about 9 minutes); three runs took 553–603 s. Its two videos are about 6–9 s long and about 370 KB
+each (`before.mp4` 367,495 bytes, `after.mp4` 374,394 bytes), far under the 10 MiB limit. Recording the
+video adds only seconds to a capture; the builds still dominate.
