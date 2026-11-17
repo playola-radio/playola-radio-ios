@@ -151,7 +151,7 @@ About seven minutes of that is the two app builds (before and after), each from 
 so a warm package cache saves little. Each capture (create a simulator, install, sign in, screenshot,
 delete the simulator) takes under two minutes.
 
-`make ux-evidence CASE=example-navigation` (functional, video), same Mac, measured 2026-11-16: 553 s
-(about 9 minutes); three runs took 553–603 s. Its two videos are about 6–9 s long and about 370 KB
-each (`before.mp4` 367,495 bytes, `after.mp4` 374,394 bytes), far under the 10 MiB limit. Recording the
-video adds only seconds to a capture; the builds still dominate.
+`make ux-evidence CASE=example-navigation` (functional, video), same Mac, measured 2026-11-16: 520 s
+(about 8½ minutes); five runs took 520–795 s on a heavily loaded machine. Its two videos are about 6½ s long
+and about 370 KB each (`before.mp4` 368,263 bytes, `after.mp4` 367,004 bytes), far under the 10 MiB limit.
+Recording the video adds only seconds to a capture; the builds still dominate.
