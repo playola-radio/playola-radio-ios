@@ -1,4 +1,11 @@
 appId: fm.playola.playolaradio.staging
 ---
-# Only these steps are recorded; keep them to the interaction being shown.
-- assertVisible: "write your flow in qa/ux/example-navigation/flow.yaml"
+# Tab navigation only: nothing is played, liked or changed, and the profile tab is never opened.
+- tapOn: "Your Library"
+- extendedWaitUntil:
+    visible: "Listening History"
+    timeout: 30000
+- tapOn: "Radio Stations"
+- extendedWaitUntil:
+    visible: "Search stations"
+    timeout: 30000

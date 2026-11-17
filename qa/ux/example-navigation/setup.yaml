@@ -1,4 +1,12 @@
 appId: fm.playola.playolaradio.staging
 ---
-# Runs after launch, before anything is captured: dismiss alerts and reach the first screen of the flow.
-- waitForAnimationToEnd
+# Open Radio Stations and dismiss the first-launch notification prompt ("No Thanks" only saves a local
+# setting), so the recording starts on a settled stations list.
+- tapOn: "Radio Stations"
+- extendedWaitUntil:
+    visible: "Stay in the Loop?"
+    timeout: 60000
+- tapOn: "No Thanks"
+- extendedWaitUntil:
+    visible: "Search stations"
+    timeout: 30000
