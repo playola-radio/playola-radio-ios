@@ -26,7 +26,7 @@ the files into `CHANGELOG.md` at release time.
 
 - The tool lives in `playola-radio/ai-skills`; clone it to `~/playola/playola-skills` (or set `UX_EVIDENCE_HOME` to its `ux-evidence/tool` folder). First time on a machine: `make ux-evidence-setup`, then sign in to the Staging app in a simulator and run `make ux-evidence-ios-login` (add `DEVICE=<udid>` when more than one booted simulator has it).
 - If the branch changes anything under `PlayolaRadio/` or `PlayolaRadio.xcodeproj/`, then before the PR is opened either `make ux-evidence-verify` passes or the PR body contains `UX evidence: none — <reason>`.
-- The agent that implemented the change writes the case under `qa/ux/` and runs `make ux-evidence CASE=<case-id>`. Start by copying `qa/ux/example-stations/` (iOS cases are visual only, and `ux-evidence-new` is not available here yet), then edit `evidence.yaml`, `setup.yaml` and `flow.yaml`.
+- The agent that implemented the change writes the case under `qa/ux/` and runs `make ux-evidence CASE=<case-id>`. Create it with `make ux-evidence-new CASE=<case-id> CLASSIFICATION=<visual|functional> BEFORE=<required|not-applicable>` (visual = screenshots, functional = a video of `flow.yaml` only), then edit `setup.yaml` and `flow.yaml`; `qa/ux/example-stations/` and `qa/ux/example-navigation/` are examples. Never show the profile tab or account details in a flow.
 - Right after the PR is created, run `make ux-evidence-publish PR=<number>`. After any later push, run `make ux-evidence-verify`; if stale, re-record and publish again. Both steps apply only when the branch has evidence cases; a PR using `UX evidence: none — <reason>` skips both.
 - A failed "before" run is a failure to fix, never a reason to switch to `not-applicable`.
 - See `qa/ux/README.md`.

@@ -60,7 +60,7 @@ setup-conductor:
 			|| cp $(ORIGINAL_REPO)/PlayolaRadio/Config/$$f.xcconfig PlayolaRadio/Config/$$f.xcconfig; \
 	done
 
-.PHONY: ux-evidence ux-evidence-setup ux-evidence-verify ux-evidence-publish ux-evidence-ios-login
+.PHONY: ux-evidence ux-evidence-setup ux-evidence-verify ux-evidence-publish ux-evidence-new ux-evidence-ios-login
 
 # The tool lives in the shared skills repo (playola-radio/ai-skills); this repo keeps only its cases in qa/ux/.
 UX_EVIDENCE_HOME ?= $(HOME)/playola/playola-skills/ux-evidence/tool
@@ -84,6 +84,11 @@ ux-evidence-publish:
 	@test -n "$(PR)" || { echo "Usage: make ux-evidence-publish PR=<number>"; exit 2; }
 	$(UX_EVIDENCE_REQUIRE_TOOL)
 	$(UX_EVIDENCE) publish --pr "$(PR)"
+
+ux-evidence-new:
+	@test -n "$(CASE)" || { echo 'Usage: make ux-evidence-new CASE=<id> CLASSIFICATION=<visual|functional> BEFORE=<required|not-applicable> [REASON="..."]'; exit 2; }
+	$(UX_EVIDENCE_REQUIRE_TOOL)
+	$(UX_EVIDENCE) new --case "$(CASE)" --classification "$(CLASSIFICATION)" --before "$(BEFORE)" $(if $(REASON),--reason "$$REASON")
 
 # Saves a staging session from a simulator where you are signed in to the staging app; DEVICE picks one.
 ux-evidence-ios-login:
