@@ -88,7 +88,7 @@ ux-evidence-publish:
 ux-evidence-new:
 	@test -n "$(CASE)" || { echo 'Usage: make ux-evidence-new CASE=<id> CLASSIFICATION=<visual|functional> BEFORE=<required|not-applicable> [REASON="..."]'; exit 2; }
 	$(UX_EVIDENCE_REQUIRE_TOOL)
-	REASON='$(REASON)' $(UX_EVIDENCE) new --case "$(CASE)" --classification "$(CLASSIFICATION)" --before "$(BEFORE)" $(if $(REASON),--reason "$$REASON")
+	$(UX_EVIDENCE) new --case "$(CASE)" --classification "$(CLASSIFICATION)" --before "$(BEFORE)" $(if $(REASON),--reason "$$REASON")
 
 # Saves a staging session from a simulator where you are signed in to the staging app; DEVICE picks one.
 ux-evidence-ios-login:
