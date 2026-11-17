@@ -33,6 +33,15 @@ in `changelog.d/README.md`; check with `make changelog-check`). Pure chores add
 no file and say so in the PR's Changelog section. `scripts/release.sh` collects
 the files into `CHANGELOG.md` at release time.
 
+## UX evidence
+
+- The tool lives in `playola-radio/ai-skills`; clone it to `~/playola/playola-skills` (or set `UX_EVIDENCE_HOME` to its `ux-evidence/tool` folder). First time on a machine: `make ux-evidence-setup`, then sign in to the Staging app in a simulator and run `make ux-evidence-ios-login` (add `DEVICE=<udid>` when more than one booted simulator has it).
+- If the branch changes anything under `PlayolaRadio/` or `PlayolaRadio.xcodeproj/`, then before the PR is opened either `make ux-evidence-verify` passes or the PR body contains `UX evidence: none — <reason>`.
+- The agent that implemented the change writes the case under `qa/ux/` and runs `make ux-evidence CASE=<case-id>`. Start by copying `qa/ux/example-stations/` (iOS cases are visual only, and `ux-evidence-new` is not available here yet), then edit `evidence.yaml`, `setup.yaml` and `flow.yaml`.
+- Right after the PR is created, run `make ux-evidence-publish PR=<number>`. After any later push, run `make ux-evidence-verify`; if stale, re-record and publish again. Both steps apply only when the branch has evidence cases; a PR using `UX evidence: none — <reason>` skips both.
+- A failed "before" run is a failure to fix, never a reason to switch to `not-applicable`.
+- See `qa/ux/README.md`.
+
 ## NEVER NEVER NEVER gate a feature to an environment
 
 **Do not gate any user-facing feature so that it behaves differently in production than in staging/development.** Absolutely never write code of the form `Config.shared.environment != .production` (or any equivalent) to turn a feature on in staging while leaving it dark in production.
