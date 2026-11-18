@@ -1,15 +1,31 @@
 appId: fm.playola.playolaradio.staging
 ---
-# Open a new, unsaved show in the show builder. Only reads from the server: an unsaved show is
+# Switch to broadcasting mode from the profile tab (forgotten on relaunch, so it is done here), then
+# open a new, unsaved show in the show builder. Only reads from the server: an unsaved show is
 # created only on its first change, and this case makes none.
 - extendedWaitUntil:
-    visible: "Station"
+    visible: "Your Profile"
     timeout: 60000
 - runFlow:
     when:
       visible: "Stay in the Loop?"
     commands:
       - tapOn: "No Thanks"
+- tapOn: "Your Profile"
+- extendedWaitUntil:
+    visible: "Switch to Broadcasting Mode"
+    timeout: 30000
+- tapOn: "Switch to Broadcasting Mode"
+- runFlow:
+    when:
+      visible: "Choose Station"
+    commands:
+      - tapOn:
+          text: ".+ - .+"
+          index: 0
+- extendedWaitUntil:
+    visible: "Station"
+    timeout: 30000
 - tapOn: "Station"
 - extendedWaitUntil:
     visible: "Upcoming"
