@@ -65,7 +65,7 @@ struct SeriesPickerSheetTests {
     expectNoDifference(picker.subtitle, "Tour Stories will show up on the series page.")
     expectNoDifference(
       picker.rows.map(\.title), ["This One\u{2019}s For You", "Kitchen Table Songs"])
-    expectNoDifference(picker.rows.map(\.isChecked), [false, false])
+    expectNoDifference(picker.rows.map(\.accessoryIcon), ["chevron.right", "chevron.right"])
     expectNoDifference(picker.newSeriesRows.map(\.title), ["New Series"])
     expectNoDifference(
       picker.newSeriesRows.map(\.subtitle), ["Name it and choose when it repeats"])
@@ -87,7 +87,7 @@ struct SeriesPickerSheetTests {
     expectNoDifference(picker.title, "Series")
     expectNoDifference(
       picker.subtitle, "Changing the series doesn\u{2019}t change when Tour Stories airs.")
-    expectNoDifference(picker.rows.map(\.isChecked), [true, false])
+    expectNoDifference(picker.rows.map(\.accessoryIcon), ["checkmark", "chevron.right"])
     expectNoDifference(picker.removeButtons, ["Remove from This One\u{2019}s For You"])
   }
 

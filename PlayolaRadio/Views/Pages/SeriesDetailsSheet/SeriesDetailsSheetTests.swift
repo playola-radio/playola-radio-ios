@@ -8,6 +8,7 @@ import CustomDump
 import Dependencies
 import Foundation
 import Sharing
+import SwiftUI
 import Testing
 
 @testable import PlayolaRadio
@@ -32,7 +33,6 @@ struct SeriesDetailsSheetTests {
   ) -> SeriesDetailsSheetModel {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     return withDependencies {
-      $0.date.now = Date(timeIntervalSince1970: 1_800_000_000)
       $0.notificationCenter = NotificationCenter()
       configure(&$0)
     } operation: {
@@ -84,6 +84,21 @@ struct SeriesDetailsSheetTests {
     expectNoDifference(details.minute, 15)
   }
 
+  @Test func halfPastTwoIsSelectableOnTheSpringForwardDay() {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = chicago
+    let springForwardMorning = calendar.date(
+      from: DateComponents(year: 2027, month: 3, day: 14, hour: 9))!
+    let details = makeDetails { $0.date.now = springForwardMorning }
+    details.hour = 2
+    details.minute = 30
+
+    let components = calendar.dateComponents([.hour, .minute], from: details.startTime)
+
+    expectNoDifference(components.hour, 2)
+    expectNoDifference(components.minute, 30)
+  }
+
   // MARK: - Save Enabled
 
   @Test func saveIsDisabledWithoutAName() {
@@ -116,7 +131,11 @@ struct SeriesDetailsSheetTests {
 
     expectNoDifference(details.selectedDays, [.tuesday, .thursday])
     expectNoDifference(
-      details.dayOptions.map(\.isSelected), [false, false, true, false, true, false, false])
+      details.dayOptions.map(\.fillColor),
+      [
+        .playolaSurfaceControl, .playolaSurfaceControl, .playolaRed, .playolaSurfaceControl,
+        .playolaRed, .playolaSurfaceControl, .playolaSurfaceControl,
+      ])
 
     details.dayTapped(.tuesday)
     expectNoDifference(details.selectedDays, [.thursday])

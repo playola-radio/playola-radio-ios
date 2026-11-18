@@ -13,7 +13,6 @@ struct SeriesPickerRow: Identifiable, Equatable {
   let id: String
   let title: String
   let subtitle: String
-  let isChecked: Bool
   let accessoryIcon: String
   let accessoryColor: Color
 }
@@ -171,7 +170,7 @@ class SeriesPickerSheetModel: ViewModel {
     let isChecked = series.id == currentSeries?.id
     return SeriesPickerRow(
       id: series.id, title: series.title, subtitle: Self.scheduleText(series.rrule),
-      isChecked: isChecked, accessoryIcon: isChecked ? "checkmark" : "chevron.right",
+      accessoryIcon: isChecked ? "checkmark" : "chevron.right",
       accessoryColor: isChecked ? .playolaRed : .playolaTextTertiary)
   }
 

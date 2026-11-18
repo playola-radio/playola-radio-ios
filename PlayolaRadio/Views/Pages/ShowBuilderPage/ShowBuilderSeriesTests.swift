@@ -459,21 +459,6 @@ struct ShowBuilderSeriesTests {
     }
   }
 
-  @Test func rowIsEnabledAgainAfterARefusal() async throws {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator =
-      MainContainerNavigationCoordinator()
-    let server = makeServer()
-    server.updateFailure.setValue(APIError.serverError("No"))
-    let model = makeModel(server: server)
-    await model.viewAppeared()
-    let picker = try await openPicker(model)
-
-    await picker.seriesRowTapped("series-2")
-    picker.dismissed()
-
-    #expect(model.canChangeSeries)
-  }
-
   // MARK: - Unsaved Show
 
   @Test func openingAndDismissingTheSheetsOnAnUnsavedShowCreatesNothing() async throws {

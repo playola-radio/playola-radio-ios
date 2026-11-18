@@ -25,7 +25,6 @@ enum SeriesRepeatOption: String, CaseIterable, Identifiable, Hashable {
 struct SeriesDayOption: Identifiable, Equatable {
   let id: Locale.Weekday
   let letter: String
-  let isSelected: Bool
   let fillColor: Color
 }
 
@@ -36,7 +35,6 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
   // MARK: - Dependencies
 
   @ObservationIgnored @Dependency(\.api) var api
-  @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
   @ObservationIgnored @Dependency(\.notificationCenter) var notificationCenter
 
@@ -143,16 +141,16 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
 
   var dayOptions: [SeriesDayOption] {
     Self.sundayFirst.map { day, letter in
-      let isSelected = selectedDays.contains(day)
-      return SeriesDayOption(
-        id: day, letter: letter, isSelected: isSelected,
-        fillColor: isSelected ? .playolaRed : .playolaSurfaceControl)
+      SeriesDayOption(
+        id: day, letter: letter,
+        fillColor: selectedDays.contains(day) ? .playolaRed : .playolaSurfaceControl)
     }
   }
 
   var startTime: Date {
     get {
-      calendar.date(bySettingHour: hour, minute: minute, second: 0, of: now) ?? now
+      let wallClock = DateComponents(year: 2001, month: 1, day: 1, hour: hour, minute: minute)
+      return calendar.date(from: wallClock) ?? .distantPast
     }
     set {
       let components = calendar.dateComponents([.hour, .minute], from: newValue)
