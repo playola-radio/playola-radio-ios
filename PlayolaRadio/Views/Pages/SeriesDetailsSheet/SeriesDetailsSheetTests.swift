@@ -87,9 +87,7 @@ struct SeriesDetailsSheetTests {
   @Test func halfPastTwoIsSelectableOnTheSpringForwardDay() {
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = chicago
-    let springForwardMorning = calendar.date(
-      from: DateComponents(year: 2027, month: 3, day: 14, hour: 9))!
-    let details = makeDetails { $0.date.now = springForwardMorning }
+    let details = makeDetails()
     details.hour = 2
     details.minute = 30
 

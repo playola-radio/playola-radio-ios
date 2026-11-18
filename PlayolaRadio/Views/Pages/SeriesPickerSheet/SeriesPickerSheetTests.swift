@@ -12,8 +12,6 @@ import Testing
 
 @testable import PlayolaRadio
 
-private struct SeriesPickerTestError: Error {}
-
 @Suite(.freshSharedState)
 @MainActor
 struct SeriesPickerSheetTests {

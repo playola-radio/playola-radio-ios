@@ -69,7 +69,7 @@ private final class FakeSeriesServer: Sendable {
         }
       let saved = episode.value.map { $0.withShow(joined) }
       episode.setValue(saved)
-      return saved.map { $0.withShow(joined).withoutContent() } ?? createdShow
+      return saved.map { $0.withoutContent() } ?? createdShow
     }
   }
 
