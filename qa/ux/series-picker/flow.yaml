@@ -1,0 +1,17 @@
+appId: fm.playola.playolaradio.staging
+---
+# Opens the series picker and the New Series sheet, then cancels. Nothing is picked or saved.
+- tapOn: "Add to a series"
+- extendedWaitUntil:
+    visible: "New Series"
+    timeout: 30000
+- takeScreenshot: series-picker
+- tapOn: "New Series"
+- extendedWaitUntil:
+    visible: "REPEATS"
+    timeout: 30000
+- takeScreenshot: new-series
+- tapOn: "Cancel"
+- extendedWaitUntil:
+    visible: "Add to a series"
+    timeout: 30000

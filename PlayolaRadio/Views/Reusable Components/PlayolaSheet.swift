@@ -37,4 +37,5 @@ enum PlayolaSheet: Hashable, Identifiable, Equatable {
   case giveawayCongrats(GiveawayCongratsSheetModel)
   case developerOptions(DeveloperOptionsSheetModel)
   case claim(ClaimSheetModel)
+  case seriesPicker(SeriesPickerSheetModel)
 }

@@ -80,9 +80,12 @@ class ShowBuilderPageModel: ViewModel {
   var isLoading = false
   var presentedAlert: PlayolaAlert?
   var renameText = ""
+  var isSavingSeries = false
   private var pendingSaveCount = 0
   private var questionAnswerRoles: [String: QuestionAnswerRole] = [:]
   @ObservationIgnored private var lastOperation: Task<(any Error)?, Never>?
+  @ObservationIgnored private var seriesSheetsAreOpen = false
+  @ObservationIgnored private var finishedSeriesChange: FinishedSeriesChange?
 
   var navigationTitle: String { episode?.title ?? Self.newShowTitle }
   var renameButtonTitle: String { "Rename" }
@@ -237,7 +240,18 @@ class ShowBuilderPageModel: ViewModel {
 
   func unscheduleButtonTapped() {}
 
-  func seriesRowTapped() {}
+  func seriesRowTapped() {
+    guard canChangeSeries else { return }
+    let picker = withDependencies(from: self) {
+      SeriesPickerSheetModel(
+        stationId: stationId, showTitle: navigationTitle, currentSeries: episode?.show,
+        timeZone: timeZone)
+    }
+    picker.onSeriesChange = { [weak self] change in await self?.seriesChangeCommitted(change) }
+    picker.onDismissed = { [weak self] in self?.seriesSheetsDismissed() }
+    seriesSheetsAreOpen = true
+    $navigationCoordinator.withLock { $0.presentedSheet = .seriesPicker(picker) }
+  }
 
   // MARK: - View Helpers
 
@@ -261,7 +275,7 @@ class ShowBuilderPageModel: ViewModel {
 
   var canRename: Bool { !isAwaitingFirstLoad && !isReadOnly }
 
-  var canChangeSeries: Bool { canRename }
+  var canChangeSeries: Bool { canRename && !isSavingSeries }
 
   var addCardOpacity: Double { canEditContent ? 1 : 0 }
 
@@ -386,6 +400,10 @@ class ShowBuilderPageModel: ViewModel {
   }
 
   // MARK: - Private Helpers
+
+  private struct FinishedSeriesChange {
+    let failure: (any Error)?
+  }
 
   private enum QuestionAnswerRole {
     case question(askerFirstName: String?, answerAudioBlockId: String?)
@@ -563,6 +581,29 @@ class ShowBuilderPageModel: ViewModel {
     guard !isCancellation(error), !(error is ShowBuilderNotSignedIn) else { return }
     if case APIError.recordedShowLocked = error { refusedAsLocked = true }
     await report(error, endpoint: "showBuilderSave")
+  }
+
+  private func seriesChangeCommitted(_ change: SeriesChange) async {
+    isSavingSeries = true
+    let failure = await enqueueSave(alertsOnFailure: false) { [weak self, api] jwt, episodeId in
+      let updated = try await api.updateEpisode(
+        jwt, episodeId, CuratorEpisodeUpdate(series: change))
+      self?.episode = self?.episode?.mergingMetadata(from: updated) ?? updated
+    }.value
+    finishedSeriesChange = FinishedSeriesChange(failure: failure)
+    finishSeriesChangeIfSettled()
+  }
+
+  private func seriesSheetsDismissed() {
+    seriesSheetsAreOpen = false
+    finishSeriesChangeIfSettled()
+  }
+
+  private func finishSeriesChangeIfSettled() {
+    guard !seriesSheetsAreOpen, let finished = finishedSeriesChange else { return }
+    finishedSeriesChange = nil
+    isSavingSeries = false
+    if let failure = finished.failure { presentSaveAlert(for: failure) }
   }
 
   private func presentSaveAlert(for error: Error) {
