@@ -12,7 +12,7 @@ appId: fm.playola.playolaradio.staging
     timeout: 30000
 - tapOn: "Series name"
 - inputText: "UX Evidence Series"
-- hideKeyboard
+- tapOn: "REPEATS"
 - tapOn: "Tuesday"
 - tapOn: "Thursday"
 - tapOn: "Save"
