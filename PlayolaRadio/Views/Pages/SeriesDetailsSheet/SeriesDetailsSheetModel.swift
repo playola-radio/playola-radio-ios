@@ -5,6 +5,7 @@
 
 import Dependencies
 import Foundation
+import IdentifiedCollections
 import Sharing
 import SwiftUI
 
@@ -25,6 +26,8 @@ enum SeriesRepeatOption: String, CaseIterable, Identifiable, Hashable {
 struct SeriesDayOption: Identifiable, Equatable {
   let id: Locale.Weekday
   let letter: String
+  let accessibilityLabel: String
+  let accessibilityTraits: AccessibilityTraits
   let fillColor: Color
 }
 
@@ -79,7 +82,9 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
     "Pick the days your series airs. Open slots will show up on the series page \u{2014} "
       + "they\u{2019}re only suggestions."
   }
-  var repeatOptions: [SeriesRepeatOption] { SeriesRepeatOption.allCases }
+  var repeatOptions: IdentifiedArrayOf<SeriesRepeatOption> {
+    IdentifiedArray(uniqueElements: SeriesRepeatOption.allCases)
+  }
 
   // MARK: - User Actions
 
@@ -139,12 +144,15 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
 
   var scheduleSections: [String] { repeatOption == .everyWeek ? ["schedule"] : [] }
 
-  var dayOptions: [SeriesDayOption] {
-    Self.sundayFirst.map { day, letter in
-      SeriesDayOption(
-        id: day, letter: letter,
-        fillColor: selectedDays.contains(day) ? .playolaRed : .playolaSurfaceControl)
-    }
+  var dayOptions: IdentifiedArrayOf<SeriesDayOption> {
+    IdentifiedArray(
+      uniqueElements: Self.sundayFirst.map { day, name in
+        let isSelected = selectedDays.contains(day)
+        return SeriesDayOption(
+          id: day, letter: String(name.prefix(1)), accessibilityLabel: name,
+          accessibilityTraits: isSelected ? .isSelected : [],
+          fillColor: isSelected ? .playolaRed : .playolaSurfaceControl)
+      })
   }
 
   var startTime: Date {
@@ -167,8 +175,8 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
   // MARK: - Private Helpers
 
   private static let sundayFirst: [(Locale.Weekday, String)] = [
-    (.sunday, "S"), (.monday, "M"), (.tuesday, "T"), (.wednesday, "W"), (.thursday, "T"),
-    (.friday, "F"), (.saturday, "S"),
+    (.sunday, "Sunday"), (.monday, "Monday"), (.tuesday, "Tuesday"), (.wednesday, "Wednesday"),
+    (.thursday, "Thursday"), (.friday, "Friday"), (.saturday, "Saturday"),
   ]
 
   private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }

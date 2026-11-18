@@ -416,46 +416,44 @@ struct ShowBuilderSeriesTests {
     }
   }
 
-  @Test func rowStaysDisabledUntilTheChangeFinishesAndTheSheetIsGone() async throws {
+  @Test(arguments: [true, false])
+  func rowStaysDisabledUntilTheChangeFinishesAndTheSheetIsGone(dismissFirst: Bool) async throws {
     try await withMainSerialExecutor {
       @Shared(.mainContainerNavigationCoordinator) var coordinator =
         MainContainerNavigationCoordinator()
-      for dismissFirst in [true, false] {
-        $coordinator.withLock { $0.presentedSheet = nil }
-        let (gate, open) = AsyncStream<Void>.makeStream()
-        let server = makeServer()
-        let model = makeModel(server: server) {
-          let update = $0.api.updateEpisode
-          $0.api.updateEpisode = { jwt, id, change in
-            for await _ in gate { break }
-            return try await update(jwt, id, change)
-          }
+      let (gate, open) = AsyncStream<Void>.makeStream()
+      let server = makeServer()
+      let model = makeModel(server: server) {
+        let update = $0.api.updateEpisode
+        $0.api.updateEpisode = { jwt, id, change in
+          for await _ in gate { break }
+          return try await update(jwt, id, change)
         }
-        await model.viewAppeared()
-        let picker = try await openPicker(model)
-
-        let pick = Task { await picker.seriesRowTapped("series-2") }
-        await Task.megaYield()
-        #expect(!model.canChangeSeries)
-        model.seriesRowTapped()
-        #expect(coordinator.presentedSheet == nil)
-
-        if dismissFirst {
-          picker.dismissed()
-          #expect(!model.canChangeSeries)
-          open.yield()
-          open.finish()
-          await pick.value
-        } else {
-          open.yield()
-          open.finish()
-          await pick.value
-          #expect(!model.canChangeSeries)
-          picker.dismissed()
-        }
-
-        #expect(model.canChangeSeries)
       }
+      await model.viewAppeared()
+      let picker = try await openPicker(model)
+
+      let pick = Task { await picker.seriesRowTapped("series-2") }
+      await Task.megaYield()
+      #expect(!model.canChangeSeries)
+      model.seriesRowTapped()
+      #expect(coordinator.presentedSheet == nil)
+
+      if dismissFirst {
+        picker.dismissed()
+        #expect(!model.canChangeSeries)
+        open.yield()
+        open.finish()
+        await pick.value
+      } else {
+        open.yield()
+        open.finish()
+        await pick.value
+        #expect(!model.canChangeSeries)
+        picker.dismissed()
+      }
+
+      #expect(model.canChangeSeries)
     }
   }
 

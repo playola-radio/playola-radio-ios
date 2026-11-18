@@ -130,7 +130,7 @@ class SeriesPickerSheetModel: ViewModel {
 
   var loadingSpinners: [String] { isLoading ? ["loading"] : [] }
 
-  var newSeriesRows: [SeriesPickerNewSeriesRow] {
+  var newSeriesRows: IdentifiedArrayOf<SeriesPickerNewSeriesRow> {
     guard !isLoading else { return [] }
     return [
       SeriesPickerNewSeriesRow(title: "New Series", subtitle: "Name it and choose when it repeats")

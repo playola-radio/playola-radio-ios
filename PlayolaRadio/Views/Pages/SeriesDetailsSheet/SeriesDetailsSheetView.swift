@@ -115,6 +115,8 @@ struct SeriesDetailsSheetView: View {
               .clipShape(Circle())
           }
           .buttonStyle(.plain)
+          .accessibilityLabel(day.accessibilityLabel)
+          .accessibilityAddTraits(day.accessibilityTraits)
           .frame(maxWidth: .infinity)
         }
       }

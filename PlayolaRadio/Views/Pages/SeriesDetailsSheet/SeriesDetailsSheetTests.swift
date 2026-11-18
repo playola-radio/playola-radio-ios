@@ -129,6 +129,9 @@ struct SeriesDetailsSheetTests {
 
     expectNoDifference(details.selectedDays, [.tuesday, .thursday])
     expectNoDifference(
+      details.dayOptions.filter { $0.accessibilityTraits == .isSelected }.map(\.accessibilityLabel),
+      ["Tuesday", "Thursday"])
+    expectNoDifference(
       details.dayOptions.map(\.fillColor),
       [
         .playolaSurfaceControl, .playolaSurfaceControl, .playolaRed, .playolaSurfaceControl,
