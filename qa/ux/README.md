@@ -78,7 +78,7 @@ appId: fm.playola.playolaradio.staging
 - Never build or record the production app. The tool refuses any app or server other than the Staging ones.
 - The session is the owner's own staging account, so a flow may open the profile tab and switch to broadcasting mode (the only way to the Station tab; it is forgotten on relaunch, so do it in `setup.yaml`).
 - No fixed sleeps. Wait with `extendedWaitUntil: { visible: "<text>", timeout: 30000 }` on text that appears on screen once it has loaded. Do not match station names or other staging data that can change.
-- A flow may create and change things on staging. It must not use source-tape actions (recording or uploading an intro): those reach production even from the Staging app.
+- A flow may create and change things on staging.
 
 ## Commands
 
