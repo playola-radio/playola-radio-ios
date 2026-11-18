@@ -1,0 +1,7 @@
+version: 1
+id: series-picker-actions
+classification: functional
+before:
+  policy: not-applicable
+  reason: The series picker and New Series sheets are new; before this change the
+    show builder's series row opened nothing.
