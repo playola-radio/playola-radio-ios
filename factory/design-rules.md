@@ -1,7 +1,7 @@
-- **Backend:** models and endpoints live in the playola monorepo. From another repo, read them at `/Users/brian/playola/playola` and record its `develop` SHA in `Design.md`.
+- **Backend:** models and endpoints live in the playola monorepo, expected at `../playola` (ask the owner for the path if it isn't there). Read them there and record its `develop` SHA in `Design.md`.
 - **Canvas:** the repo's `design/*.pen`, read and changed only through the pencil MCP, never with file tools. `get_app_state` failing means Pen.app is not running: ask the owner to open it. Never skip the screens silently.
-- **Read what exists:** `docs/context/` feature docs, the backend's `MODEL.md` and `ENDPOINTS.md` files, and the current screens on the canvas.
+- **Read what exists:** the domain map at `../playola/docs/context/`, the backend's `MODEL.md` and `ENDPOINTS.md` files, and the current screens on the canvas.
 - **New frames** go in a labelled zone on the canvas, following `design/DESIGN_STATUS.md`.
 - **Backend conventions:** REST resources, `PUT` never `PATCH`.
-- **Export** every approved frame as PNG into `screenshots/` (pencil `Export`, absolute path, then rename each file to `<screen>--<state>.png`).
-- **Ship:** commit the canvas file with the design folder.
+- **Export** every approved frame as PNG into the design folder's `screenshots/` (pencil `Export`, absolute path, then rename each file to `<screen>--<state>.png`). Also refresh `design/exports/` and `design/DESIGN_STATUS.md` the way `design/README.md` says (PNGs named `<screen-name>--<nodeId>.png`, then `python3 design/export-specs.py`), so implementation agents never build from stale exports.
+- **Ship:** commit the canvas file, `design/DESIGN_STATUS.md` and `design/exports/` with the design folder.
