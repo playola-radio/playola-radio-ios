@@ -1,0 +1,12 @@
+appId: fm.playola.playolaradio.staging
+---
+- extendedWaitUntil:
+    visible: "All"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "Search stations"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "Don't see your artist? Suggest a station"
+    timeout: 30000
+- takeScreenshot: stations-list

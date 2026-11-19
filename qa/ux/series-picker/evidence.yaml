@@ -1,0 +1,7 @@
+version: 1
+id: series-picker
+classification: visual
+before:
+  policy: not-applicable
+  reason: The series picker and New Series sheets are new screens; before this
+    change the show builder's series row opened nothing.

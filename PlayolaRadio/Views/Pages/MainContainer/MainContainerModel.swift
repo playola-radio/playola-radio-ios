@@ -69,6 +69,7 @@ class MainContainerModel: ViewModel {
 
   var presentedAlert: PlayolaAlert?
   var presentedToast: PlayolaToast?
+  @ObservationIgnored private var shownStandardSheets: [PlayolaSheet] = []
 
   var homeTabTitle: String { "Home" }
   var stationsTabTitle: String { "Radio Stations" }
@@ -339,6 +340,18 @@ class MainContainerModel: ViewModel {
       claimModel.laterTapped()
     }
     $mainContainerNavigationCoordinator.withLock { $0.presentedSheet = newSheet }
+  }
+
+  func standardSheetAppeared(_ sheet: PlayolaSheet) {
+    guard shownStandardSheets.last != sheet else { return }
+    shownStandardSheets.append(sheet)
+  }
+
+  func standardSheetDismissed() {
+    guard !shownStandardSheets.isEmpty else { return }
+    if case .seriesPicker(let picker) = shownStandardSheets.removeFirst() {
+      picker.dismissed()
+    }
   }
 
   func checkAndShowRatingPromptIfNeeded() {
