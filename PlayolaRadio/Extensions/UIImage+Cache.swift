@@ -8,13 +8,17 @@
 import UIKit
 
 extension UIImage {
-  static func image(from url: URL?) async -> UIImage? {
+  /// With `maxPixelSize`, the bitmap is decoded as a thumbnail no larger than that on
+  /// its long edge instead of at full resolution.
+  static func image(from url: URL?, maxPixelSize: CGFloat? = nil) async -> UIImage? {
     guard let url else { return nil }
 
     let cache = URLCache.shared
     let request = URLRequest(url: url)
 
-    if let data = cache.cachedResponse(for: request)?.data, let image = UIImage(data: data) {
+    if let data = cache.cachedResponse(for: request)?.data,
+      let image = decode(data, maxPixelSize: maxPixelSize)
+    {
       return image
     }
 
@@ -22,7 +26,7 @@ extension UIImage {
       let (data, response) = try await URLSession.shared.data(for: request)
       guard let httpResponse = response as? HTTPURLResponse,
         200...299 ~= httpResponse.statusCode,
-        let image = UIImage(data: data)
+        let image = decode(data, maxPixelSize: maxPixelSize)
       else {
         return nil
       }
@@ -33,5 +37,10 @@ extension UIImage {
     } catch {
       return nil
     }
+  }
+
+  private static func decode(_ data: Data, maxPixelSize: CGFloat?) -> UIImage? {
+    guard let maxPixelSize else { return UIImage(data: data) }
+    return CarPlayImageLoader.downsampledImage(from: data, maxPixelSize: maxPixelSize)
   }
 }
