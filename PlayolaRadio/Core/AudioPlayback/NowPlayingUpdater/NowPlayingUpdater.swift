@@ -217,10 +217,11 @@ class NowPlayingUpdater {
 
   private func updatePlaybackState(for status: StationPlayer.PlaybackStatus) {
     // Track listening sessions based on state transitions
+    let previousStatus = lastPlaybackStatus
     Task {
       await trackListeningSession(
         currentStatus: status,
-        previousStatus: lastPlaybackStatus
+        previousStatus: previousStatus
       )
     }
     lastPlaybackStatus = status

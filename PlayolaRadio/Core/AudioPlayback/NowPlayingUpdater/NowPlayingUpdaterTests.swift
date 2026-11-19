@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 8/14/25.
 //
 
+import ConcurrencyExtras
 import CustomDump
 import Dependencies
 import Foundation
@@ -502,6 +503,58 @@ struct NowPlayingUpdaterTests {
       return
     }
     #expect(startedInfo.id == stationB.id)
+  }
+
+  // Regression: updatePlaybackState read lastPlaybackStatus inside its Task, after
+  // it was overwritten, so sessions never ended or switched. Drives the real `$state`.
+  private func eventsTracked(
+    playing station: AnyStation, then next: StationPlayer.PlaybackStatus
+  ) async -> [AnalyticsEvent] {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    await withMainSerialExecutor {
+      let (stationPlayer, updater) = withDependencies {
+        $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+        $0.date = .constant(Date())
+      } operation: {
+        let stationPlayer = StationPlayer()
+        stationPlayer.state = StationPlayer.State(playbackStatus: .playing(station))
+        return (stationPlayer, NowPlayingUpdater(stationPlayer: stationPlayer))
+      }
+      await Task.megaYield()
+      stationPlayer.state = StationPlayer.State(playbackStatus: next)
+      await Task.megaYield()
+      withExtendedLifetime(updater) {}
+    }
+    return capturedEvents.value
+  }
+
+  @Test
+  func testStoppingAfterPlayingThroughPlayerStateEndsListeningSession() async {
+    let stationA = AnyStation.mock
+    let events = await eventsTracked(playing: stationA, then: .stopped)
+    expectNoDifference(
+      events,
+      [
+        .listeningSessionStarted(station: StationInfo(from: stationA), renderBackend: nil),
+        .listeningSessionEnded(station: StationInfo(from: stationA), sessionLengthSec: 0),
+      ])
+  }
+
+  @Test
+  func testPlayingNewStationThroughPlayerStateTracksStationSwitch() async {
+    let (stationA, stationB) = (AnyStation.mock, makeTestStation2())
+    let events = await eventsTracked(playing: stationA, then: .playing(stationB))
+    expectNoDifference(
+      events,
+      [
+        .listeningSessionStarted(station: StationInfo(from: stationA), renderBackend: nil),
+        .listeningSessionEnded(station: StationInfo(from: stationA), sessionLengthSec: 0),
+        .switchedStation(
+          from: StationInfo(from: stationA), to: StationInfo(from: stationB),
+          timeBeforeSwitchSec: 0,
+          reason: .userInitiated),
+        .listeningSessionStarted(station: StationInfo(from: stationB), renderBackend: nil),
+      ])
   }
 
   @Test
