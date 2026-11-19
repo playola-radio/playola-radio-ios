@@ -1,0 +1,1 @@
+{ "afterPush": { "command": "make ux-evidence-publish PR={pr}", "whenChanged": ".qa-artifacts/*/result.json" } }
