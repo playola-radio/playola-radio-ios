@@ -77,7 +77,7 @@ appId: fm.playola.playolaradio.staging
 - A functional case's video shows `flow.yaml` only. Recording starts once setup has finished and the recorder reports it is recording (the flow's first step waits for that), and stops once the flow's last step has finished, so the video opens on the screen setup left and ends on the flow's final screen. Make `setup.yaml` leave the app on the flow's first screen with every prompt dismissed. The video is H.264 with no audio and must be at most 10 MiB (10,485,760 bytes); keep flows short.
 - Never show account details: do not open the profile tab, or any screen with the account's name or email, in a flow.
 - No fixed sleeps. Wait with `extendedWaitUntil: { visible: "<text>", timeout: 30000 }` on text that appears on screen once it has loaded. Do not match station names or other staging data that can change.
-- Recordings must not write to the server: do not start playback, follow, like, edit the profile or send anything. The session belongs to a real staging account.
+- A flow may create and change things on staging, including the taps that save. Never build or record the production app.
 
 ## Commands
 
