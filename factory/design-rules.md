@@ -1,0 +1,7 @@
+- **Backend:** models and endpoints live in the playola monorepo. From another repo, read them at `/Users/brian/playola/playola` and record its `develop` SHA in `Design.md`.
+- **Canvas:** the repo's `design/*.pen`, read and changed only through the pencil MCP, never with file tools. `get_app_state` failing means Pen.app is not running: ask the owner to open it. Never skip the screens silently.
+- **Read what exists:** `docs/context/` feature docs, the backend's `MODEL.md` and `ENDPOINTS.md` files, and the current screens on the canvas.
+- **New frames** go in a labelled zone on the canvas, following `design/DESIGN_STATUS.md`.
+- **Backend conventions:** REST resources, `PUT` never `PATCH`.
+- **Export** every approved frame as PNG into `screenshots/` (pencil `Export`, absolute path, then rename each file to `<screen>--<state>.png`).
+- **Ship:** commit the canvas file with the design folder.

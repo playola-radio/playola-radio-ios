@@ -1,0 +1,3 @@
+Where the repo's rules call for UX evidence: a PR that delivers "Done when" items records a `functional` case (video) whose flow carries those items out from start to finish on staging, including the taps that save. `visual` (screenshots) is only for a restyle of a screen that already works. Make whatever staging data the flow needs to show a realistic screen. Name in your summary any item the recording does not show, and why.
+
+A review finding: UX evidence (the cases under `qa/ux/`) that is screenshots where this PR delivers "Done when" items, or whose flow stops before carrying those items out.
