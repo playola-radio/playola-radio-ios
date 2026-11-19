@@ -559,13 +559,13 @@ extension NowPlayingUpdater {
       (.paused(let station), .startingNewStation):
       if let startTime = sessionStartTime {
         let duration = now.timeIntervalSince(startTime)
+        sessionStartTime = nil
         await analytics.track(
           .listeningSessionEnded(
             station: StationInfo(from: station),
             sessionLengthSec: Int(duration)
           )
         )
-        sessionStartTime = nil
       }
 
     // Track errors
