@@ -42,13 +42,23 @@ appId: fm.playola.playolaradio.staging
     text: "Save"
     enabled: false
 - tapOn: "Cancel"
+# Back to Upcoming and in again, so the list starts at the top whatever earlier runs added to it.
+- tapOn: "Series"
+- extendedWaitUntil:
+    visible: "Create a New Series"
+    timeout: 30000
+- tapOn: "Upcoming"
+- extendedWaitUntil:
+    visible: "Individual Shows"
+    timeout: 30000
 - tapOn: "Series"
 - extendedWaitUntil:
     visible: "Create a New Series"
     timeout: 30000
 - scrollUntilVisible:
     element: "This One.s For You"
-    direction: UP
+    direction: DOWN
+    centerElement: true
 - tapOn: "This One.s For You"
 - extendedWaitUntil:
     visible: "NOT SCHEDULED YET"
