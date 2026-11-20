@@ -9,7 +9,7 @@ The tool lives in the shared skills repo, [`playola-radio/ai-skills`](https://gi
 - Node 24 or newer.
 - The skills repo cloned at `~/playola/playola-skills` (`git pull` there to update the tool). To use a checkout elsewhere, set `UX_EVIDENCE_HOME` to its `ux-evidence/tool` folder, e.g. `make ux-evidence-verify UX_EVIDENCE_HOME=/path/to/ux-evidence/tool`.
 - `make ux-evidence-setup` (installs the tool's packages in the tool folder). Rerun it after the tool's packages change.
-- Xcode at the `xcodePath` in `qa/ux/config.yaml`, with the iOS 27.0 simulator runtime installed (Xcode > Settings > Components).
+- Any Xcode 27 in `/Applications`, with an iOS 27 simulator runtime installed (Xcode > Settings > Components, or `xcodebuild -downloadPlatform iOS`). `xcodeVersion` and `iosVersion` in `qa/ux/config.yaml` name the major version; a recording uses the newest of each on the machine and reports which it used. To hold everyone to one exact version, give `xcodePath` and `runtime` instead.
 - Maestro at `~/.maestro/bin/maestro` (`curl -fsSL https://get.maestro.mobile.dev | bash`) and Java 17 at `/opt/homebrew/opt/openjdk@17` (`brew install openjdk@17`).
 - ffmpeg on your `PATH`.
 - `gh` 2.104.0 or newer (for `publish`).
@@ -78,7 +78,7 @@ appId: fm.playola.playolaradio.staging
 - Never build or record the production app. The tool refuses any app or server other than the Staging ones.
 - The session is the owner's own staging account, so a flow may open the profile tab and switch to broadcasting mode (the only way to the Station tab; it is forgotten on relaunch, so do it in `setup.yaml`).
 - No fixed sleeps. Wait with `extendedWaitUntil: { visible: "<text>", timeout: 30000 }` on text that appears on screen once it has loaded. Do not match station names or other staging data that can change.
-- A flow may create and change things on staging.
+- A flow may create and change things on staging, including the taps that save.
 
 ## Commands
 
@@ -135,7 +135,8 @@ result.json  comment.md
 - "UX evidence tool missing": clone `playola-radio/ai-skills` to `~/playola/playola-skills`, or set `UX_EVIDENCE_HOME`, then run `make ux-evidence-setup`.
 - "no saved staging session", "rejected the saved session" or "expires … less than 30 minutes from now": sign in to the Staging app in a simulator and run `make ux-evidence-ios-login`.
 - "missing Secrets….xcconfig": copy the four files into `secretsSource`'s `PlayolaRadio/Config/` (see `make setup-conductor`).
-- "simulator runtime … is not installed" or "cannot run …": install the runtime named in `qa/ux/config.yaml`, or change `ios.runtime` / `ios.deviceType`.
+- "no Xcode 27 is installed" or "no iOS 27 simulator runtime that can run …": install one; any 27.x will do.
+- "simulator runtime … is not installed" or "cannot run …" (only when `ios.runtime` names an exact runtime): install that runtime, or change `ios.runtime` / `ios.deviceType`.
 - "another iOS recording is running (pid N)": wait for it. A lock left by a process that has exited is taken over automatically.
 - "the simulator video recorder did not start within 8 s" or "simctl recordVideo failed": the recorder could not capture the simulator's screen; rerun, and if it repeats, check that the Xcode in `qa/ux/config.yaml` can run `xcrun simctl io <udid> recordVideo` on a booted simulator.
 - "the Maestro flow failed": the last lines of Maestro's output are printed; usually a `tapOn` or `extendedWaitUntil` text that did not appear.

@@ -13,8 +13,8 @@ ios:
   bundleId: fm.playola.playolaradio.staging
   apiHost: https://admin-api-staging.playola.fm
   deviceType: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
-  runtime: com.apple.CoreSimulator.SimRuntime.iOS-27-0
-  xcodePath: /Applications/Xcode-27.1.0.app
+  iosVersion: "27"
+  xcodeVersion: "27"
   maestroPath: ~/.maestro/bin/maestro
   javaHome: /opt/homebrew/opt/openjdk@17
   secretsSource: ~/playola/playola-radio-ios
