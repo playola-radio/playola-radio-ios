@@ -44,7 +44,8 @@ struct MainContainer: View {
         get: {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
           case .player, .feedbackSheet, .share, .artistSuggestion, .welcomeMessage,
-            .giveawayCongrats, .developerOptions, .claim, .seriesPicker:
+            .giveawayCongrats, .developerOptions, .claim, .scheduleShow, .unscheduleShow,
+            .seriesPicker:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
@@ -72,6 +73,10 @@ struct MainContainer: View {
             DeveloperOptionsSheetView(model: developerOptionsModel)
           case .claim(let claimModel):
             ClaimSheetView(model: claimModel)
+          case .scheduleShow(let scheduleModel):
+            ScheduleShowSheetView(model: scheduleModel)
+          case .unscheduleShow(let unscheduleModel):
+            UnscheduleShowSheetView(model: unscheduleModel)
           case .seriesPicker(let pickerModel):
             SeriesPickerSheetView(model: pickerModel)
           default:

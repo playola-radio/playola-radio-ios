@@ -134,6 +134,19 @@
 		AB5300000000000000000B03 /* ShowBuilderPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A02 /* ShowBuilderPageView.swift */; };
 		AB5300000000000000000B04 /* ShowBuilderPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A02 /* ShowBuilderPageView.swift */; };
 		AB5300000000000000000B05 /* ShowBuilderPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A03 /* ShowBuilderPageTests.swift */; };
+		AB5300000000000000000B06 /* ScheduleShowSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A04 /* ScheduleShowSheetModel.swift */; };
+		AB5300000000000000000B07 /* ScheduleShowSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A04 /* ScheduleShowSheetModel.swift */; };
+		AB5300000000000000000B08 /* ScheduleShowSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A05 /* ScheduleShowSheetView.swift */; };
+		AB5300000000000000000B09 /* ScheduleShowSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A05 /* ScheduleShowSheetView.swift */; };
+		AB5300000000000000000B0A /* ScheduleShowSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A06 /* ScheduleShowSheetTests.swift */; };
+		AB5300000000000000000B0B /* UnscheduleShowSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A07 /* UnscheduleShowSheetModel.swift */; };
+		AB5300000000000000000B0C /* UnscheduleShowSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A07 /* UnscheduleShowSheetModel.swift */; };
+		AB5300000000000000000B0D /* UnscheduleShowSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A08 /* UnscheduleShowSheetView.swift */; };
+		AB5300000000000000000B0E /* UnscheduleShowSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A08 /* UnscheduleShowSheetView.swift */; };
+		AB5300000000000000000B0F /* UnscheduleShowSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A09 /* UnscheduleShowSheetTests.swift */; };
+		AB5300000000000000000B10 /* ShowBuilderPageSchedulingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A0A /* ShowBuilderPageSchedulingTests.swift */; };
+		AB5300000000000000000B11 /* FittedSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A0B /* FittedSheet.swift */; };
+		AB5300000000000000000B12 /* FittedSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5300000000000000000A0B /* FittedSheet.swift */; };
 		AA10000000000000000000B6 /* ArtistDashboardPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */; };
 		AA10000000000000000000B7 /* ArtistDashboardPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */; };
 		AA10000000000000000000B8 /* ArtistDashboardPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000000A5 /* ArtistDashboardPageView.swift */; };
@@ -869,6 +882,14 @@
 		AB5300000000000000000A02 /* ShowBuilderPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowBuilderPageView.swift; sourceTree = "<group>"; };
 		A51E00152F2A000000C0FFEE /* ShowBuilderSeriesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowBuilderSeriesTests.swift; sourceTree = "<group>"; };
 		AB5300000000000000000A03 /* ShowBuilderPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowBuilderPageTests.swift; sourceTree = "<group>"; };
+		AB5300000000000000000A04 /* ScheduleShowSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleShowSheetModel.swift; sourceTree = "<group>"; };
+		AB5300000000000000000A05 /* ScheduleShowSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleShowSheetView.swift; sourceTree = "<group>"; };
+		AB5300000000000000000A06 /* ScheduleShowSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleShowSheetTests.swift; sourceTree = "<group>"; };
+		AB5300000000000000000A07 /* UnscheduleShowSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnscheduleShowSheetModel.swift; sourceTree = "<group>"; };
+		AB5300000000000000000A08 /* UnscheduleShowSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnscheduleShowSheetView.swift; sourceTree = "<group>"; };
+		AB5300000000000000000A09 /* UnscheduleShowSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnscheduleShowSheetTests.swift; sourceTree = "<group>"; };
+		AB5300000000000000000A0A /* ShowBuilderPageSchedulingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowBuilderPageSchedulingTests.swift; sourceTree = "<group>"; };
+		AB5300000000000000000A0B /* FittedSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FittedSheet.swift; sourceTree = "<group>"; };
 		AA10000000000000000000A4 /* ArtistDashboardPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageModel.swift; sourceTree = "<group>"; };
 		AA10000000000000000000A5 /* ArtistDashboardPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageView.swift; sourceTree = "<group>"; };
 		AA10000000000000000000A6 /* ArtistDashboardPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardPageTests.swift; sourceTree = "<group>"; };
@@ -1405,12 +1426,33 @@
 			path = IndividualShowsPage;
 			sourceTree = "<group>";
 		};
+		AB5300000000000000000C02 /* ScheduleShowSheet */ = {
+			isa = PBXGroup;
+			children = (
+				AB5300000000000000000A04 /* ScheduleShowSheetModel.swift */,
+				AB5300000000000000000A05 /* ScheduleShowSheetView.swift */,
+				AB5300000000000000000A06 /* ScheduleShowSheetTests.swift */,
+			);
+			path = ScheduleShowSheet;
+			sourceTree = "<group>";
+		};
+		AB5300000000000000000C03 /* UnscheduleShowSheet */ = {
+			isa = PBXGroup;
+			children = (
+				AB5300000000000000000A07 /* UnscheduleShowSheetModel.swift */,
+				AB5300000000000000000A08 /* UnscheduleShowSheetView.swift */,
+				AB5300000000000000000A09 /* UnscheduleShowSheetTests.swift */,
+			);
+			path = UnscheduleShowSheet;
+			sourceTree = "<group>";
+		};
 		AB5300000000000000000C01 /* ShowBuilderPage */ = {
 			isa = PBXGroup;
 			children = (
 				AB5300000000000000000A01 /* ShowBuilderPageModel.swift */,
 				AB5300000000000000000A02 /* ShowBuilderPageView.swift */,
 				AB5300000000000000000A03 /* ShowBuilderPageTests.swift */,
+				AB5300000000000000000A0A /* ShowBuilderPageSchedulingTests.swift */,
 				A51E00152F2A000000C0FFEE /* ShowBuilderSeriesTests.swift */,
 			);
 			path = ShowBuilderPage;
@@ -1783,6 +1825,8 @@
 				AB5100000000000000000C01 /* UpcomingShowsPage */,
 				AB5200000000000000000C01 /* IndividualShowsPage */,
 				AB5300000000000000000C01 /* ShowBuilderPage */,
+				AB5300000000000000000C02 /* ScheduleShowSheet */,
+				AB5300000000000000000C03 /* UnscheduleShowSheet */,
 				CC0000000000000000000110 /* BreakersLibraryPage */,
 				CC0000000000000000000200 /* BreakerCategoryDetailPage */,
 				CC0000000000000000000300 /* MusicLibraryPage */,
@@ -1845,6 +1889,7 @@
 				D35EFC222F17D4CC000F64A4 /* LiveBadge.swift */,
 				D3FACE010000000000000001 /* InDevelopmentBadge.swift */,
 				D3FACE020000000000000001 /* RemoteArtwork.swift */,
+				AB5300000000000000000A0B /* FittedSheet.swift */,
 				B2D0E0122F90000000C0FFEE /* UpsideDownKeyboard */,
 				B2D0E1122F90000000C0FFEE /* UpsideDownNotificationBanner */,
 				08ADAD1D81BB6EC593D0BC58 /* FlipToRecord */,
@@ -2912,6 +2957,11 @@
 				AB5200000000000000000B03 /* IndividualShowsPageView.swift in Sources */,
 				AB5300000000000000000B01 /* ShowBuilderPageModel.swift in Sources */,
 				AB5300000000000000000B03 /* ShowBuilderPageView.swift in Sources */,
+				AB5300000000000000000B06 /* ScheduleShowSheetModel.swift in Sources */,
+				AB5300000000000000000B08 /* ScheduleShowSheetView.swift in Sources */,
+				AB5300000000000000000B0B /* UnscheduleShowSheetModel.swift in Sources */,
+				AB5300000000000000000B0D /* UnscheduleShowSheetView.swift in Sources */,
+				AB5300000000000000000B11 /* FittedSheet.swift in Sources */,
 				AA10000000000000000000B6 /* ArtistDashboardPageModel.swift in Sources */,
 				AA10000000000000000000B8 /* ArtistDashboardPageView.swift in Sources */,
 				FEED00000000000000000102 /* StationSetupPageModel.swift in Sources */,
@@ -3209,6 +3259,11 @@
 				AB5200000000000000000B04 /* IndividualShowsPageView.swift in Sources */,
 				AB5300000000000000000B02 /* ShowBuilderPageModel.swift in Sources */,
 				AB5300000000000000000B04 /* ShowBuilderPageView.swift in Sources */,
+				AB5300000000000000000B07 /* ScheduleShowSheetModel.swift in Sources */,
+				AB5300000000000000000B09 /* ScheduleShowSheetView.swift in Sources */,
+				AB5300000000000000000B0C /* UnscheduleShowSheetModel.swift in Sources */,
+				AB5300000000000000000B0E /* UnscheduleShowSheetView.swift in Sources */,
+				AB5300000000000000000B12 /* FittedSheet.swift in Sources */,
 				AA10000000000000000000B7 /* ArtistDashboardPageModel.swift in Sources */,
 				AA10000000000000000000B9 /* ArtistDashboardPageView.swift in Sources */,
 				FEED00000000000000000103 /* StationSetupPageModel.swift in Sources */,
@@ -3430,6 +3485,9 @@
 				AB5100000000000000000B05 /* UpcomingShowsPageTests.swift in Sources */,
 				AB5200000000000000000B05 /* IndividualShowsPageTests.swift in Sources */,
 				AB5300000000000000000B05 /* ShowBuilderPageTests.swift in Sources */,
+				AB5300000000000000000B0A /* ScheduleShowSheetTests.swift in Sources */,
+				AB5300000000000000000B0F /* UnscheduleShowSheetTests.swift in Sources */,
+				AB5300000000000000000B10 /* ShowBuilderPageSchedulingTests.swift in Sources */,
 				A51E00162F2A000000C0FFEE /* ShowBuilderSeriesTests.swift in Sources */,
 				AA10000000000000000000BA /* ArtistDashboardPageTests.swift in Sources */,
 				FEED00000000000000000302 /* StationSetupPageTests.swift in Sources */,

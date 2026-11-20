@@ -71,6 +71,7 @@ extension Color {
   static var playolaSurfaceTile: Color { Color(hex: "#262626") }
   static var playolaSurfaceRow: Color { Color(hex: "#333333") }
   static var playolaSurfaceControl: Color { Color(hex: "#444444") }
+  static var playolaSurfacePill: Color { Color(hex: "#5A5A5A") }
   static var playolaSurfaceMuted: Color { Color(hex: "#4A4A4A") }
   static var playolaSurfacePlaceholder: Color { Color(hex: "#666666") }
   static var playolaSurfaceArtPlaceholder: Color { Color(hex: "#4D4D4D") }
@@ -103,6 +104,7 @@ extension Color {
   static var playolaTextTertiary: Color { Color(hex: "#999999") }
   static var playolaTextQuaternary: Color { Color(hex: "#888888") }
   static var playolaTextMuted: Color { Color(hex: "#AAAAAA") }
+  static var playolaTextFaint: Color { Color(hex: "#868686") }
   static var playolaTextDisabled: Color { playolaGray }
   static var playolaWarmTextSecondary: Color { Color(hex: "#D7BFBF") }
   static var playolaIconInactive: Color { Color(hex: "#BABABA") }
