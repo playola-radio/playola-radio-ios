@@ -26,6 +26,9 @@ appId: fm.playola.playolaradio.staging
 - scrollUntilVisible:
     element: "No upcoming shows."
     direction: DOWN
+# A tap while the list still glides only stops it.
+- waitForAnimationToEnd:
+    timeout: 3000
 - tapOn: "Porch Sessions"
 - extendedWaitUntil:
     visible: "No drafts in this series."
@@ -59,6 +62,9 @@ appId: fm.playola.playolaradio.staging
     element: "This One.s For You"
     direction: DOWN
     centerElement: true
+# A tap while the list still glides only stops it.
+- waitForAnimationToEnd:
+    timeout: 3000
 - tapOn: "This One.s For You"
 - extendedWaitUntil:
     visible: "NOT SCHEDULED YET"
