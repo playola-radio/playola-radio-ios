@@ -16,20 +16,23 @@ appId: fm.playola.playolaradio.staging
 - extendedWaitUntil:
     visible: "REPEATS"
     timeout: 30000
+# Each run names its Series apart, since earlier runs' Series stay on staging.
+- evalScript: ${output.seriesName = 'Porch Sessions ' + Date.now() % 100000}
 - tapOn: "Series name"
-- inputText: "Porch Sessions"
+- inputText: ${output.seriesName}
 - tapOn: "No schedule"
 - tapOn: "Save"
 - scrollUntilVisible:
-    element: "Porch Sessions"
+    element: ${output.seriesName}
     direction: DOWN
+    centerElement: true
 - scrollUntilVisible:
     element: "No upcoming shows."
     direction: DOWN
 # A tap while the list still glides only stops it.
 - waitForAnimationToEnd:
     timeout: 3000
-- tapOn: "Porch Sessions"
+- tapOn: ${output.seriesName}
 - extendedWaitUntil:
     visible: "No drafts in this series."
     timeout: 30000
