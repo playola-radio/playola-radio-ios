@@ -26,6 +26,8 @@ appId: fm.playola.playolaradio.staging
 - scrollUntilVisible:
     element: "Add Tour Stories"
     direction: UP
+- waitForAnimationToEnd:
+    timeout: 3000
 - tapOn: "Add Tour Stories"
 - extendedWaitUntil:
     notVisible: "OR ADD ONE OF YOUR SHOWS"
@@ -47,6 +49,8 @@ appId: fm.playola.playolaradio.staging
 - scrollUntilVisible:
     element: "Add Back Porch Requests"
     direction: DOWN
+- waitForAnimationToEnd:
+    timeout: 3000
 - tapOn: "Add Back Porch Requests"
 - extendedWaitUntil:
     notVisible: "OR ADD ONE OF YOUR SHOWS"
@@ -61,6 +65,8 @@ appId: fm.playola.playolaradio.staging
 - scrollUntilVisible:
     element: "Add Songs From the Road"
     direction: DOWN
+- waitForAnimationToEnd:
+    timeout: 3000
 - tapOn: "Add Songs From the Road"
 - extendedWaitUntil:
     notVisible: "OR ADD ONE OF YOUR SHOWS"
@@ -152,6 +158,8 @@ appId: fm.playola.playolaradio.staging
 - scrollUntilVisible:
     element: "Add Holiday Hangout"
     direction: DOWN
+- waitForAnimationToEnd:
+    timeout: 3000
 - tapOn: "Add Holiday Hangout"
 - extendedWaitUntil:
     visible: "Locks right away"
