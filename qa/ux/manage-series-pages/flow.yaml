@@ -56,9 +56,14 @@ appId: fm.playola.playolaradio.staging
 - tapOn: "OK"
 - assertVisible: "Edit Series"
 - assertVisible: "Porch Porch Porch.*"
+- tapOn: "Cancel"
+- tapOn: "Edit"
+- extendedWaitUntil:
+    visible: "Edit Series"
+    timeout: 30000
 - tapOn:
     below: "NAME"
-- eraseText: 300
+- eraseText: 40
 - inputText: ${output.seriesName + ' Live'}
 - tapOn: "Save"
 - extendedWaitUntil:
