@@ -570,7 +570,7 @@ struct AddShowToSeriesSheetTests {
     let posts = observePosts(on: center)
     let model = await makeModel(slot: nearSlot, episodes: [tourStories], finishes: finishes) {
       $0.notificationCenter = center
-      $0.api.scheduleEpisode = { _, _, _, airtime in
+      $0.api.scheduleEpisode = { _, _, _, _ in
         requests.withValue { $0.append("schedule") }
       }
       $0.api.updateEpisode = { [tourStories] _, _, _ in

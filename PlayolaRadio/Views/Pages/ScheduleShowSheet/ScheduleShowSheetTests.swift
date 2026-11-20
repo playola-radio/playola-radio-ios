@@ -329,6 +329,35 @@ struct ScheduleShowSheetTests {
     makeModel().dismissed()
   }
 
+  /// An Add a show sheet for a draft whose slot (`airtime`) is an hour away, inside the lock.
+  private func makeNearSlotAdd(
+    scheduleGate: AsyncStream<Void>, joinGate: AsyncStream<Void>,
+    requests: LockIsolated<[String]>, finishes: LockIsolated<[AddShowToSeriesFailure?]>
+  ) -> AddShowToSeriesSheetModel {
+    let draft = CuratorEpisode(
+      id: "draft", showId: "other", title: "Tour Stories", durationMS: 1_115_000, show: nil,
+      segments: [], airings: [])
+    return withDependencies {
+      $0.date.now = airtime.addingTimeInterval(-3600)
+      $0.notificationCenter = NotificationCenter()
+      $0.errorReporting.reportError = { _, _ in }
+      $0.api.getCuratorEpisodes = { _, _, _ in [draft] }
+      $0.api.scheduleEpisode = { _, _, _, _ in
+        requests.withValue { $0.append("schedule") }
+        for await _ in scheduleGate { break }
+      }
+      $0.api.updateEpisode = { _, _, _ in
+        requests.withValue { $0.append("join") }
+        for await _ in joinGate { break }
+        throw APIError.serverError("Series not found.")
+      }
+    } operation: {
+      AddShowToSeriesSheetModel(
+        stationId: "station-1", series: series(), slot: airtime, settings: settings(),
+        airings: [], onAddFinished: { failure in finishes.withValue { $0.append(failure) } })
+    }
+  }
+
   @Test func aNearSlotAddCannotBeCancelledDuringEitherStepAndAlertsAfterClosing() async {
     await withMainSerialExecutor {
       @Shared(.auth) var auth = Auth(jwt: "test-jwt")
@@ -338,28 +367,8 @@ struct ScheduleShowSheetTests {
       let (joinGate, openJoin) = AsyncStream<Void>.makeStream()
       let requests = LockIsolated<[String]>([])
       let finishes = LockIsolated<[AddShowToSeriesFailure?]>([])
-      let draft = CuratorEpisode(
-        id: "draft", showId: "other", title: "Tour Stories", durationMS: 1_115_000, show: nil,
-        segments: [], airings: [])
-      let addShow = withDependencies {
-        $0.date.now = airtime.addingTimeInterval(-3600)
-        $0.notificationCenter = NotificationCenter()
-        $0.errorReporting.reportError = { _, _ in }
-        $0.api.getCuratorEpisodes = { _, _, _ in [draft] }
-        $0.api.scheduleEpisode = { _, _, _, _ in
-          requests.withValue { $0.append("schedule") }
-          for await _ in scheduleGate { break }
-        }
-        $0.api.updateEpisode = { _, _, _ in
-          requests.withValue { $0.append("join") }
-          for await _ in joinGate { break }
-          throw APIError.serverError("Series not found.")
-        }
-      } operation: {
-        AddShowToSeriesSheetModel(
-          stationId: "station-1", series: series(), slot: airtime, settings: settings(),
-          airings: [], onAddFinished: { failure in finishes.withValue { $0.append(failure) } })
-      }
+      let addShow = makeNearSlotAdd(
+        scheduleGate: scheduleGate, joinGate: joinGate, requests: requests, finishes: finishes)
       await addShow.viewAppeared()
       coordinator.presentedSheet = .addShowToSeries(addShow)
       await addShow.addButtonTapped("draft")
