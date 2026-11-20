@@ -390,6 +390,7 @@ struct ScheduleShowSheetTests {
       openJoin.finish()
       await save.value
 
+      expectNoDifference(schedule.errorLines, [])
       #expect(coordinator.presentedSheet == nil)
       expectNoDifference(finishes.value.count, 0)
       schedule.dismissed()

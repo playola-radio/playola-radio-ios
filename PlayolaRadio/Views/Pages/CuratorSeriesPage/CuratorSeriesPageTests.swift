@@ -495,15 +495,11 @@ struct CuratorSeriesPageTests {
   @Test func addAShowAfterAFailedFirstLoadLoadsSettingsAndAiringsFirst() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    let failFirstLoad = LockIsolated(true)
     let requests = LockIsolated<[String]>([])
     let scheduled = episode("scheduled", at: [stationTime(2026, 11, 8, 19)])
     let airings = stationAirings([scheduled])
     let model = await makeModel {
-      $0.api.getCuratorSeriesById = { [self] _, _ in
-        if failFirstLoad.value { throw CuratorSeriesPageTestError() }
-        return series(rrule: sundaySeven)
-      }
+      $0.api.getCuratorSeriesById = { _, _ in throw CuratorSeriesPageTestError() }
       $0.api.getAirings = { _, _ in
         requests.withValue { $0.append("airings") }
         return airings

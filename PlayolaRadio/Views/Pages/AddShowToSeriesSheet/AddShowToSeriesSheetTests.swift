@@ -96,6 +96,10 @@ struct AddShowToSeriesSheetTests {
       $0.api.getCuratorEpisodes = { _, _, _ in episodes }
       $0.api.scheduleEpisode = { _, _, _, _ in }
       $0.api.moveAiring = { _, _, _ in }
+      $0.api.getCuratorEpisode = { _, id in
+        guard let episode = episodes.first(where: { $0.id == id }) else { throw AddShowTestError() }
+        return episode
+      }
       $0.api.updateEpisode = { [episodes] _, id, _ in
         episodes.first { $0.id == id } ?? episodes[0]
       }
@@ -631,12 +635,18 @@ struct AddShowToSeriesSheetTests {
     expectNoDifference(finishes.value, [nil])
   }
 
-  @Test func aJoinFailureInTheScheduleSheetAlertsAfterItCloses() async {
+  @Test func aRetryAfterAFailedScheduleThatCommittedMovesTheNewAiring() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
-    let finishes = LockIsolated<[AddShowToSeriesFailure?]>([])
-    let model = await makeModel(slot: nearSlot, episodes: [tourStories], finishes: finishes) {
-      $0.api.updateEpisode = { _, _, _ in throw APIError.serverError("Series not found.") }
+    let requests = LockIsolated<[String]>([])
+    let committed = episode("tour-stories", title: "Tour Stories", at: [nearSlot])
+    let model = await makeModel(slot: nearSlot, episodes: [tourStories]) {
+      $0.api.scheduleEpisode = { _, _, _, _ in
+        requests.withValue { $0.append("schedule") }
+        throw URLError(.timedOut)
+      }
+      $0.api.getCuratorEpisode = { _, _ in committed }
+      $0.api.moveAiring = { _, airingId, _ in requests.withValue { $0.append("move \(airingId)") } }
     }
     coordinator.presentedSheet = .addShowToSeries(model)
     await model.addButtonTapped("tour-stories")
@@ -646,17 +656,10 @@ struct AddShowToSeriesSheetTests {
     }
 
     await schedule.scheduleButtonTapped()
+    schedule.pickedTime = nearSlot.addingTimeInterval(3600)
+    await schedule.scheduleButtonTapped()
 
-    expectNoDifference(schedule.errorLines, [])
-    #expect(coordinator.presentedSheet == nil)
-    expectNoDifference(finishes.value.count, 0)
-    schedule.dismissed()
-    expectNoDifference(
-      finishes.value,
-      [
-        AddShowToSeriesFailure(
-          title: "Scheduled, but Not in This One\u{2019}s For You", message: "Series not found.")
-      ])
+    expectNoDifference(requests.value, ["schedule", "move tour-stories-airing-0"])
   }
 
   @Test func cancellingTheScheduleSheetBeforeSchedulingDoesNothing() async {

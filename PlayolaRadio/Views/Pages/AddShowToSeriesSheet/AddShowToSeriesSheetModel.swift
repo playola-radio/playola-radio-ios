@@ -251,15 +251,18 @@ class AddShowToSeriesSheetModel: ViewModel {
         episode: episode, series: series, settings: settings,
         occupiedIntervals: occupiedIntervals(from: airings, excludingEpisodeId: episode.id),
         initialTime: slot,
-        schedule: { airtime in try await self.scheduleFromScheduleSheet(episode, at: airtime) },
+        schedule: { airtime in try await self.scheduleFromScheduleSheet(episode.id, at: airtime) },
         dismissed: { self.scheduleSheetDismissed() })
     }
     $navigationCoordinator.withLock { $0.presentedSheet = .scheduleShow(sheet) }
   }
 
   /// The Schedule sheet's closure: a step 1 refusal throws so the sheet shows it inline and stays
-  /// open; a join failure is kept for the alert after the sheet closes.
-  private func scheduleFromScheduleSheet(_ episode: CuratorEpisode, at airtime: Date) async throws {
+  /// open; a join failure is kept for the alert after the sheet closes. A failed step 1 may still
+  /// have committed, so the Show is refetched first: a retry then moves that airing rather than
+  /// creating a second one.
+  private func scheduleFromScheduleSheet(_ episodeId: String, at airtime: Date) async throws {
+    guard let episode = episodes.first(where: { $0.id == episodeId }) else { return }
     hasRunSteps = true
     isRunningSteps = true
     defer {
@@ -271,11 +274,19 @@ class AddShowToSeriesSheetModel: ViewModel {
       try await moveOrSchedule(episode, at: airtime, jwt: jwt)
     } catch {
       if !isCancellation(error) { await report(error, endpoint: "scheduleInSeriesSlot") }
+      await refreshEpisode(episodeId, jwt: jwt)
       postRecordedShowsChanged()
       throw error
     }
     keptFailure = await join(episode, jwt: jwt, failureTitle: scheduledButNotInSeriesTitle)
     postRecordedShowsChanged()
+  }
+
+  private func refreshEpisode(_ episodeId: String, jwt: String) async {
+    guard let fresh = try? await api.getCuratorEpisode(jwt, episodeId),
+      let index = episodes.firstIndex(where: { $0.id == episodeId })
+    else { return }
+    episodes[index] = fresh
   }
 
   private func scheduleSheetDismissed() {
