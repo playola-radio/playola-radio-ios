@@ -24,7 +24,7 @@ appId: fm.playola.playolaradio.staging
 - tapOn: "Save"
 - scrollUntilVisible:
     element: ${output.seriesName}
-    direction: DOWN
+    direction: UP
     centerElement: true
 - scrollUntilVisible:
     element: "No upcoming shows."
