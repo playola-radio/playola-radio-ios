@@ -60,7 +60,10 @@ class UpcomingShowsPageModel: ViewModel {
     }
   }
 
-  func seriesRowTapped() {}
+  func seriesRowTapped() {
+    navigationCoordinator.push(
+      .curatorSeriesListPage(CuratorSeriesListPageModel(stationId: stationId)))
+  }
 
   func individualShowsRowTapped() {
     navigationCoordinator.push(.individualShowsPage(IndividualShowsPageModel(stationId: stationId)))

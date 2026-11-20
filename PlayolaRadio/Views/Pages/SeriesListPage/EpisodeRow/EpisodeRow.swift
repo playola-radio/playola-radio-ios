@@ -46,6 +46,8 @@ struct EpisodeRow: View {
 struct CalendarDateBadge: View {
   let date: Date
   var timeZone: TimeZone = .current
+  var headerColor = Color(hex: "#ef6962")
+  var dayColor = Color.white
 
   var monthString: String {
     formatted("MMM").uppercased()
@@ -71,12 +73,12 @@ struct CalendarDateBadge: View {
         .tracking(1.2)
         .frame(maxWidth: .infinity)
         .padding(.vertical, 2)
-        .background(Color(hex: "#ef6962"))
+        .background(headerColor)
 
       // Day number - gradient background with white text
       Text(dayString)
         .font(.custom(FontNames.Inter_700_Bold, size: 13))
-        .foregroundColor(.white)
+        .foregroundColor(dayColor)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
           LinearGradient(
