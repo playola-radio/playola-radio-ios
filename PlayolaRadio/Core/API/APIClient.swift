@@ -1047,6 +1047,10 @@ struct APIClient: Sendable {
   var getCuratorSeries:
     @Sendable (_ jwtToken: String, _ stationId: String) async throws -> [CuratorSeries]
 
+  /// Loads one Series. `GET /v1/shows/:showId`.
+  var getCuratorSeriesById:
+    @Sendable (_ jwtToken: String, _ showId: String) async throws -> CuratorSeries
+
   var createSeries:
     @Sendable (_ jwtToken: String, _ stationId: String, _ title: String, _ rrule: String?)
       async throws -> CuratorSeries

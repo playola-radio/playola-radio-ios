@@ -242,14 +242,19 @@ struct UpcomingShowsPageTests {
 
   // MARK: - Navigation
 
-  @Test func seriesRowDoesNothingUntilItsPageExists() async {
+  @Test func seriesRowPushesTheCuratorSeriesListForTheStation() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     let model = await makeModel()
 
     model.seriesRowTapped()
 
-    #expect(coordinator.path.isEmpty)
+    guard case .curatorSeriesListPage(let pushedModel) = coordinator.path.last else {
+      Issue.record("Expected a curatorSeriesListPage to be pushed")
+      return
+    }
+    expectNoDifference(pushedModel.stationId, stationId)
+    expectNoDifference(coordinator.path.count, 1)
   }
 
   @Test func individualShowsRowPushesIndividualShowsPage() async {

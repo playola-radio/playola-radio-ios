@@ -105,6 +105,8 @@ final class MainContainerNavigationCoordinator {
     case showsPage(ShowsPageModel)
     case upcomingShowsPage(UpcomingShowsPageModel)
     case individualShowsPage(IndividualShowsPageModel)
+    case curatorSeriesListPage(CuratorSeriesListPageModel)
+    case curatorSeriesPage(CuratorSeriesPageModel)
     case askMeAnythingLivePage(AskMeAnythingLivePageModel)
     case amaQuestionPickerPage(AMAQuestionPickerPageModel)
     case amaAnswerQuestionPage(AMAAnswerQuestionPageModel)
@@ -163,6 +165,10 @@ final class MainContainerNavigationCoordinator {
         UpcomingShowsPageView(model: model)
       case .individualShowsPage(let model):
         IndividualShowsPageView(model: model)
+      case .curatorSeriesListPage(let model):
+        CuratorSeriesListPageView(model: model)
+      case .curatorSeriesPage(let model):
+        CuratorSeriesPageView(model: model)
       case .askMeAnythingLivePage(let model):
         AskMeAnythingLivePageView(model: model)
       case .amaQuestionPickerPage(let model):

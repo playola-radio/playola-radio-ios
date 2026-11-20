@@ -1367,6 +1367,11 @@ extension APIClient: DependencyKey {
           queryParams: ["stationIds": stationId])
         return try sharedIsoDecoder.decode([CuratorSeries].self, from: data)
       },
+      getCuratorSeriesById: { jwtToken, showId in
+        let data = try await recordedShowsData(
+          path: "/v1/shows/\(showId)", method: .get, token: jwtToken)
+        return try sharedIsoDecoder.decode(CuratorSeries.self, from: data)
+      },
       createSeries: { jwtToken, stationId, title, rrule in
         let data = try await recordedShowsData(
           path: "/v1/shows", method: .post, token: jwtToken,

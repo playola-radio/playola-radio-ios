@@ -485,7 +485,7 @@ class ShowBuilderPageModel: ViewModel {
     let hasSlotSuggestions = episode.show.map { !$0.isOneTime && $0.rrule != nil } ?? false
     let intervals: [DateInterval]
     if hasSlotSuggestions {
-      guard let loadedIntervals = await occupiedIntervals(excluding: episode.id) else { return }
+      guard let loadedIntervals = await loadOccupiedIntervals(excluding: episode.id) else { return }
       intervals = loadedIntervals
     } else {
       intervals = []
@@ -504,16 +504,11 @@ class ShowBuilderPageModel: ViewModel {
     return settings
   }
 
-  private func occupiedIntervals(excluding episodeId: String) async -> [DateInterval]? {
+  private func loadOccupiedIntervals(excluding episodeId: String) async -> [DateInterval]? {
     guard let jwt = auth.jwt else { return nil }
     do {
       let airings = try await api.getAirings(jwt, stationId)
-      return airings.filter { $0.episodeId != episodeId }.map { airing in
-        let start = airing.startTime ?? airing.airtime
-        let durationMS = airing.episode?.durationMS ?? 0
-        let end = airing.endTime ?? airing.airtime.addingTimeInterval(Double(durationMS) / 1000)
-        return DateInterval(start: start, end: max(end, start))
-      }
+      return occupiedIntervals(from: airings, excludingEpisodeId: episodeId)
     } catch {
       guard !isCancellation(error) else { return nil }
       await report(error, endpoint: "getAirings")

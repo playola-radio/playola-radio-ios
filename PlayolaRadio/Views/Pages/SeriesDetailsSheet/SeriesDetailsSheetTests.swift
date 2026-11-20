@@ -332,4 +332,229 @@ struct SeriesDetailsSheetTests {
     expectNoDifference(reports.value, 0)
     #expect(!details.isSaving)
   }
+  // MARK: - Edit Series
+
+  private struct UpdateRequest: Equatable {
+    let showId: String
+    let title: String
+    let rrule: String??
+  }
+
+  nonisolated private func series(rrule: String?) -> CuratorSeries {
+    CuratorSeries(
+      id: "series-1", stationId: stationId, title: "This One\u{2019}s For You", isOneTime: false,
+      rrule: rrule)
+  }
+
+  private func makeEditDetails(
+    rrule: String?, _ configure: (inout DependencyValues) -> Void = { _ in }
+  ) -> SeriesDetailsSheetModel {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    return withDependencies {
+      $0.notificationCenter = NotificationCenter()
+      configure(&$0)
+    } operation: {
+      SeriesDetailsSheetModel(
+        stationId: stationId, timeZone: chicago, editing: series(rrule: rrule))
+    }
+  }
+
+  @Test func editOpensAWeeklyScheduleFilledIn() {
+    let details = makeEditDetails(rrule: "FREQ=WEEKLY;BYDAY=TU,TH;BYHOUR=20;BYMINUTE=0")
+
+    expectNoDifference(details.navigationTitle, "Edit Series")
+    expectNoDifference(details.name, "This One\u{2019}s For You")
+    expectNoDifference(details.repeatOption, .everyWeek)
+    expectNoDifference(details.selectedDays, [.tuesday, .thursday])
+    expectNoDifference(details.hour, 20)
+    expectNoDifference(details.minute, 0)
+    expectNoDifference(details.repeatsSections, ["repeats"])
+    expectNoDifference(details.scheduleSections.count, 1)
+    expectNoDifference(details.customScheduleRows, [])
+    expectNoDifference(
+      details.notes,
+      [
+        "Changing the schedule only changes your open slots. Shows that are already scheduled "
+          + "keep their times."
+      ])
+  }
+
+  @Test func editOpensNoScheduleForANilRule() {
+    let details = makeEditDetails(rrule: nil)
+
+    expectNoDifference(details.repeatOption, .noSchedule)
+    expectNoDifference(details.selectedDays, [])
+    expectNoDifference(details.hour, 19)
+    expectNoDifference(details.minute, 0)
+    expectNoDifference(details.scheduleSections, [])
+    expectNoDifference(details.repeatsSections, ["repeats"])
+  }
+
+  @Test func editOpensCustomScheduleForAnUnreadableRule() {
+    let details = makeEditDetails(rrule: "FREQ=WEEKLY;INTERVAL=2;BYDAY=SU;BYHOUR=19;BYMINUTE=0")
+
+    expectNoDifference(details.name, "This One\u{2019}s For You")
+    expectNoDifference(details.repeatsSections, [])
+    expectNoDifference(details.scheduleSections, [])
+    expectNoDifference(details.scheduleHeader, "SCHEDULE")
+    expectNoDifference(details.customScheduleRows, ["Custom schedule"])
+    expectNoDifference(details.notes, [])
+    #expect(details.isSaveEnabled)
+  }
+
+  @Test func newSeriesKeepsItsNote() {
+    let details = makeDetails()
+
+    expectNoDifference(details.repeatsSections, ["repeats"])
+    expectNoDifference(details.customScheduleRows, [])
+    expectNoDifference(details.notes, [details.note])
+  }
+
+  @Test func editSaveIsDisabledForAnEmptyNameOrNoDay() {
+    let details = makeEditDetails(rrule: "FREQ=WEEKLY;BYDAY=SU;BYHOUR=19;BYMINUTE=0")
+    #expect(details.isSaveEnabled)
+
+    details.name = "  "
+    #expect(!details.isSaveEnabled)
+    details.name = "Renamed"
+    details.dayTapped(.sunday)
+    #expect(!details.isSaveEnabled)
+    details.repeatOptionTapped(.noSchedule)
+    #expect(details.isSaveEnabled)
+  }
+
+  @Test func customScheduleSaveIsDisabledOnlyForAnEmptyName() {
+    let details = makeEditDetails(rrule: "FREQ=DAILY")
+
+    details.name = ""
+    #expect(!details.isSaveEnabled)
+    details.name = "Renamed"
+    #expect(details.isSaveEnabled)
+  }
+
+  @Test(
+    arguments: [
+      (
+        "FREQ=WEEKLY;BYDAY=SU;BYHOUR=19;BYMINUTE=0", SeriesRepeatOption.everyWeek,
+        String??.some("FREQ=WEEKLY;BYDAY=TU,SU;BYHOUR=19;BYMINUTE=0")
+      ),
+      ("FREQ=WEEKLY;BYDAY=SU;BYHOUR=19;BYMINUTE=0", .noSchedule, String??.some(nil)),
+      ("FREQ=DAILY", .everyWeek, String??.none),
+    ])
+  func editSaveSendsTheScheduleChange(
+    rule: String, option: SeriesRepeatOption, expected: String??
+  ) async {
+    let requests = LockIsolated<[UpdateRequest]>([])
+    let details = makeEditDetails(rrule: rule) {
+      $0.api.updateSeries = { [self] _, showId, title, rrule in
+        requests.withValue { $0.append(UpdateRequest(showId: showId, title: title, rrule: rrule)) }
+        return series(rrule: rrule ?? rule)
+      }
+      $0.api.createSeries = { _, _, _, _ in
+        Issue.record("Edit must not create a Series")
+        throw APIError.dataNotValid
+      }
+    }
+    details.name = "  Renamed  "
+    details.repeatOptionTapped(option)
+    details.dayTapped(.tuesday)
+
+    await details.saveButtonTapped()
+
+    expectNoDifference(
+      requests.value, [UpdateRequest(showId: "series-1", title: "Renamed", rrule: expected)])
+  }
+
+  @Test func editSaveStaysBusyUntilUpdateReturnsAndIgnoresASecondTap() async {
+    await withMainSerialExecutor {
+      let updates = LockIsolated(0)
+      let (gate, open) = AsyncStream<Void>.makeStream()
+      let details = makeEditDetails(rrule: nil) {
+        $0.api.updateSeries = { [self] _, _, _, _ in
+          updates.withValue { $0 += 1 }
+          for await _ in gate { break }
+          return series(rrule: nil)
+        }
+      }
+
+      let save = Task { await details.saveButtonTapped() }
+      await Task.megaYield()
+
+      #expect(details.isSaving)
+      #expect(details.isInteractiveDismissDisabled)
+      #expect(!details.isSaveEnabled)
+      expectNoDifference(details.saveTitleOpacity, 0)
+      expectNoDifference(details.savingSpinnerOpacity, 1)
+      await details.saveButtonTapped()
+      details.repeatOptionTapped(.everyWeek)
+      expectNoDifference(details.repeatOption, .noSchedule)
+      expectNoDifference(updates.value, 1)
+
+      open.yield()
+      open.finish()
+      await save.value
+      expectNoDifference(updates.value, 1)
+    }
+  }
+
+  @Test func editFailureKeepsTheSheetAndInputAndShowsTheServerMessage() async {
+    let saved = LockIsolated(0)
+    let details = makeEditDetails(rrule: "FREQ=WEEKLY;BYDAY=SU;BYHOUR=19;BYMINUTE=0") {
+      $0.api.updateSeries = { _, _, _, _ in throw APIError.serverError("Name is taken") }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    details.onSaved = { _ in saved.withValue { $0 += 1 } }
+    details.name = "Renamed"
+
+    await details.saveButtonTapped()
+
+    #expect(!details.isSaving)
+    expectNoDifference(details.presentedAlert?.message, "Name is taken")
+    expectNoDifference(details.name, "Renamed")
+    expectNoDifference(details.selectedDays, [.sunday])
+    expectNoDifference(saved.value, 0)
+  }
+
+  @Test func editSuccessPostsRecordedShowsChangedAndCloses() async {
+    let notificationCenter = NotificationCenter()
+    let posted = LockIsolated<[String]>([])
+    let observer = notificationCenter.addObserver(
+      forName: .recordedShowsChanged, object: nil, queue: nil
+    ) { note in
+      let stationId = note.userInfo?["stationId"] as? String ?? ""
+      posted.withValue { $0.append(stationId) }
+    }
+    defer { notificationCenter.removeObserver(observer) }
+    let saved = LockIsolated<[String]>([])
+    let details = makeEditDetails(rrule: nil) {
+      $0.notificationCenter = notificationCenter
+      $0.api.updateSeries = { [self] _, _, title, _ in
+        CuratorSeries(
+          id: "series-1", stationId: stationId, title: title, isOneTime: false, rrule: nil)
+      }
+    }
+    details.onSaved = { series in saved.withValue { $0.append(series.title) } }
+    details.name = "Renamed"
+
+    await details.saveButtonTapped()
+
+    expectNoDifference(posted.value, [stationId])
+    expectNoDifference(saved.value, ["Renamed"])
+  }
+
+  @Test func editCancelSendsNothing() {
+    let cancels = LockIsolated(0)
+    let details = makeEditDetails(rrule: nil) {
+      $0.api.updateSeries = { _, _, _, _ in
+        Issue.record("Cancel must not save")
+        throw APIError.dataNotValid
+      }
+    }
+    details.onCancel = { cancels.withValue { $0 += 1 } }
+    details.name = "Renamed"
+
+    details.cancelButtonTapped()
+
+    expectNoDifference(cancels.value, 1)
+  }
 }

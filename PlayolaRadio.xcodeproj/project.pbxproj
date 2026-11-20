@@ -7,6 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AB6002000000000000001B11 /* CuratorSeriesListPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6002000000000000001A01 /* CuratorSeriesListPageModel.swift */; };
+		AB6002000000000000001B12 /* CuratorSeriesListPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6002000000000000001A01 /* CuratorSeriesListPageModel.swift */; };
+		AB6002000000000000001B21 /* CuratorSeriesListPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6002000000000000001A02 /* CuratorSeriesListPageView.swift */; };
+		AB6002000000000000001B22 /* CuratorSeriesListPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6002000000000000001A02 /* CuratorSeriesListPageView.swift */; };
+		AB6002000000000000001B30 /* CuratorSeriesListPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6002000000000000001A03 /* CuratorSeriesListPageTests.swift */; };
+		AB6002000000000000002B11 /* CuratorSeriesPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6002000000000000002A01 /* CuratorSeriesPageModel.swift */; };
+		AB6002000000000000002B12 /* CuratorSeriesPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6002000000000000002A01 /* CuratorSeriesPageModel.swift */; };
+		AB6002000000000000002B21 /* CuratorSeriesPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6002000000000000002A02 /* CuratorSeriesPageView.swift */; };
+		AB6002000000000000002B22 /* CuratorSeriesPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6002000000000000002A02 /* CuratorSeriesPageView.swift */; };
+		AB6002000000000000002B30 /* CuratorSeriesPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6002000000000000002A03 /* CuratorSeriesPageTests.swift */; };
 		A51E00032F2A000000C0FFEE /* SeriesPickerSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51E00022F2A000000C0FFEE /* SeriesPickerSheetModel.swift */; };
 		A51E00042F2A000000C0FFEE /* SeriesPickerSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51E00022F2A000000C0FFEE /* SeriesPickerSheetModel.swift */; };
 		A51E00062F2A000000C0FFEE /* SeriesPickerSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51E00052F2A000000C0FFEE /* SeriesPickerSheetView.swift */; };
@@ -805,6 +815,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		AB6002000000000000001A01 /* CuratorSeriesListPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuratorSeriesListPageModel.swift; sourceTree = "<group>"; };
+		AB6002000000000000001A02 /* CuratorSeriesListPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuratorSeriesListPageView.swift; sourceTree = "<group>"; };
+		AB6002000000000000001A03 /* CuratorSeriesListPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuratorSeriesListPageTests.swift; sourceTree = "<group>"; };
+		AB6002000000000000002A01 /* CuratorSeriesPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuratorSeriesPageModel.swift; sourceTree = "<group>"; };
+		AB6002000000000000002A02 /* CuratorSeriesPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuratorSeriesPageView.swift; sourceTree = "<group>"; };
+		AB6002000000000000002A03 /* CuratorSeriesPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuratorSeriesPageTests.swift; sourceTree = "<group>"; };
 		A51E00022F2A000000C0FFEE /* SeriesPickerSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesPickerSheetModel.swift; sourceTree = "<group>"; };
 		A51E00052F2A000000C0FFEE /* SeriesPickerSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesPickerSheetView.swift; sourceTree = "<group>"; };
 		A51E00082F2A000000C0FFEE /* SeriesPickerSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesPickerSheetTests.swift; sourceTree = "<group>"; };
@@ -1328,6 +1344,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AB6002000000000000001C01 /* CuratorSeriesListPage */ = {
+			isa = PBXGroup;
+			children = (
+				AB6002000000000000001A01 /* CuratorSeriesListPageModel.swift */,
+				AB6002000000000000001A02 /* CuratorSeriesListPageView.swift */,
+				AB6002000000000000001A03 /* CuratorSeriesListPageTests.swift */,
+			);
+			path = CuratorSeriesListPage;
+			sourceTree = "<group>";
+		};
+		AB6002000000000000002C01 /* CuratorSeriesPage */ = {
+			isa = PBXGroup;
+			children = (
+				AB6002000000000000002A01 /* CuratorSeriesPageModel.swift */,
+				AB6002000000000000002A02 /* CuratorSeriesPageView.swift */,
+				AB6002000000000000002A03 /* CuratorSeriesPageTests.swift */,
+			);
+			path = CuratorSeriesPage;
+			sourceTree = "<group>";
+		};
 		A51E00012F2A000000C0FFEE /* SeriesPickerSheet */ = {
 			isa = PBXGroup;
 			children = (
@@ -1824,6 +1860,8 @@
 				AA10000000000000000000C1 /* ArtistStationPage */,
 				AB5100000000000000000C01 /* UpcomingShowsPage */,
 				AB5200000000000000000C01 /* IndividualShowsPage */,
+				AB6002000000000000001C01 /* CuratorSeriesListPage */,
+				AB6002000000000000002C01 /* CuratorSeriesPage */,
 				AB5300000000000000000C01 /* ShowBuilderPage */,
 				AB5300000000000000000C02 /* ScheduleShowSheet */,
 				AB5300000000000000000C03 /* UnscheduleShowSheet */,
@@ -2851,6 +2889,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AB6002000000000000001B11 /* CuratorSeriesListPageModel.swift in Sources */,
+				AB6002000000000000001B21 /* CuratorSeriesListPageView.swift in Sources */,
+				AB6002000000000000002B11 /* CuratorSeriesPageModel.swift in Sources */,
+				AB6002000000000000002B21 /* CuratorSeriesPageView.swift in Sources */,
 				A9F1000000000000000000E2 /* FulfillmentRequestsRefresher.swift in Sources */,
 				B2D0E0022F90000000C0FFEE /* UpsideDownKeyboardClient.swift in Sources */,
 				B2D0E1022F90000000C0FFEE /* UpsideDownNotificationBannerClient.swift in Sources */,
@@ -3153,6 +3195,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AB6002000000000000001B12 /* CuratorSeriesListPageModel.swift in Sources */,
+				AB6002000000000000001B22 /* CuratorSeriesListPageView.swift in Sources */,
+				AB6002000000000000002B12 /* CuratorSeriesPageModel.swift in Sources */,
+				AB6002000000000000002B22 /* CuratorSeriesPageView.swift in Sources */,
 				A9F1000000000000000000E3 /* FulfillmentRequestsRefresher.swift in Sources */,
 				B2D0E0032F90000000C0FFEE /* UpsideDownKeyboardClient.swift in Sources */,
 				B2D0E1032F90000000C0FFEE /* UpsideDownNotificationBannerClient.swift in Sources */,
@@ -3455,6 +3501,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AB6002000000000000001B30 /* CuratorSeriesListPageTests.swift in Sources */,
+				AB6002000000000000002B30 /* CuratorSeriesPageTests.swift in Sources */,
 				A9F1000000000000000000F2 /* FulfillmentRequestsRefresherTests.swift in Sources */,
 				B2D0E0082F90000000C0FFEE /* UpsideDownKeyboardControllerTests.swift in Sources */,
 				C228FB2F906D366A498B36EA /* DevicePoseTests.swift in Sources */,

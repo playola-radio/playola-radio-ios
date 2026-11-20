@@ -5,6 +5,7 @@
 
 import CustomDump
 import Foundation
+import PlayolaPlayer
 import Testing
 
 @testable import PlayolaRadio
@@ -212,5 +213,54 @@ struct SeriesScheduleTests {
 
     expectNoDifference(
       slots, [try instant("2026-11-04T02:00:00Z"), try instant("2026-11-11T02:00:00Z")])
+  }
+  // MARK: - Occupied intervals
+
+  @Test func occupiedIntervalsUseStartAndEndTimes() throws {
+    let start = try instant("2026-11-09T01:00:00Z")
+    let end = try instant("2026-11-09T01:38:00Z")
+    let airing = Airing.mockWith(
+      id: "a1", episodeId: "e1", airtime: start.addingTimeInterval(-60),
+      episode: .mockWith(id: "e1", durationMS: 1_000), startTime: .some(start),
+      endTime: .some(end))
+
+    expectNoDifference(occupiedIntervals(from: [airing]), [DateInterval(start: start, end: end)])
+  }
+
+  @Test func occupiedIntervalsFallBackToAirtimeAndDuration() throws {
+    let airtime = try instant("2026-11-09T01:00:00Z")
+    let airing = Airing.mockWith(
+      id: "a1", episodeId: "e1", airtime: airtime,
+      episode: .mockWith(id: "e1", durationMS: 2_280_000), startTime: .some(nil),
+      endTime: .some(nil))
+
+    expectNoDifference(
+      occupiedIntervals(from: [airing]),
+      [DateInterval(start: airtime, end: airtime.addingTimeInterval(2_280))])
+  }
+
+  @Test func occupiedIntervalsAreNeverNegative() throws {
+    let start = try instant("2026-11-09T01:00:00Z")
+    let airing = Airing.mockWith(
+      id: "a1", episodeId: "e1", airtime: start, episode: .mockWith(id: "e1", durationMS: 0),
+      startTime: .some(start), endTime: .some(start.addingTimeInterval(-600)))
+
+    expectNoDifference(occupiedIntervals(from: [airing]), [DateInterval(start: start, end: start)])
+  }
+
+  @Test func occupiedIntervalsDropTheExcludedEpisodesAirings() throws {
+    let airtime = try instant("2026-11-09T01:00:00Z")
+    let own = Airing.mockWith(
+      id: "a1", episodeId: "own", airtime: airtime, episode: .mockWith(id: "own", durationMS: 0),
+      startTime: .some(nil), endTime: .some(airtime.addingTimeInterval(600)))
+    let other = Airing.mockWith(
+      id: "a2", episodeId: "other", airtime: airtime.addingTimeInterval(3_600),
+      episode: .mockWith(id: "other", durationMS: 0), startTime: .some(nil),
+      endTime: .some(airtime.addingTimeInterval(4_200)))
+
+    expectNoDifference(
+      occupiedIntervals(from: [own, other], excludingEpisodeId: "own"),
+      [DateInterval(start: airtime.addingTimeInterval(3_600), duration: 600)])
+    expectNoDifference(occupiedIntervals(from: [own, other]).count, 2)
   }
 }
