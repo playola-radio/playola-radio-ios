@@ -47,7 +47,7 @@ struct AddShowToSeriesSheetView: View {
       .padding(.bottom, 24)
     }
     .background(Color.playolaSurfaceTile.ignoresSafeArea())
-    .presentationDetents([.medium, .large])
+    .presentationDetents([.fraction(0.7), .large])
     .presentationDragIndicator(.visible)
     .interactiveDismissDisabled(model.isSwipeDismissDisabled)
     .task { await model.viewAppeared() }

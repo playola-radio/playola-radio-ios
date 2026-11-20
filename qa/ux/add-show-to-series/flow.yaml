@@ -16,9 +16,14 @@ appId: fm.playola.playolaradio.staging
     timeout: 30000
 - assertVisible: "Saturday Night Songbook · Saturday, Nov 21 at 8pm"
 - assertVisible: "Record a New Show"
-- assertVisible: "Moves here from Wed, Nov 25 · .*"
+- scrollUntilVisible:
+    element: "Moves here from Wed, Nov 25 · .*"
+    direction: DOWN
 - assertNotVisible: "Empty Draft"
 - assertNotVisible: "Christmas Hymns"
+- scrollUntilVisible:
+    element: "Add Tour Stories"
+    direction: UP
 - tapOn: "Add Tour Stories"
 - extendedWaitUntil:
     notVisible: "OR ADD ONE OF YOUR SHOWS"
@@ -34,9 +39,12 @@ appId: fm.playola.playolaradio.staging
     visible: "Saturday Night Songbook · Saturday, Nov 28 at 8pm"
     timeout: 30000
 - extendedWaitUntil:
-    visible: "Add Back Porch Requests"
+    visible: "OR ADD ONE OF YOUR SHOWS"
     timeout: 30000
 - assertNotVisible: "Add Tour Stories"
+- scrollUntilVisible:
+    element: "Add Back Porch Requests"
+    direction: DOWN
 - tapOn: "Add Back Porch Requests"
 - extendedWaitUntil:
     notVisible: "OR ADD ONE OF YOUR SHOWS"
@@ -46,9 +54,14 @@ appId: fm.playola.playolaradio.staging
     timeout: 30000
 - tapOn: ".*Add a Show"
 - extendedWaitUntil:
-    visible: "Add Songs From the Road"
+    visible: "OR ADD ONE OF YOUR SHOWS"
     timeout: 30000
-- assertVisible: "Sun, Nov 2[29] · .*"
+- scrollUntilVisible:
+    element: "Sun, Nov 2[29] · .*"
+    direction: DOWN
+- scrollUntilVisible:
+    element: "Add Songs From the Road"
+    direction: UP
 - tapOn: "Add Songs From the Road"
 - extendedWaitUntil:
     notVisible: "OR ADD ONE OF YOUR SHOWS"
@@ -91,8 +104,11 @@ appId: fm.playola.playolaradio.staging
     text: ".*Add show"
     index: 0
 - extendedWaitUntil:
-    visible: "Add Holiday Hangout"
+    visible: "OR ADD ONE OF YOUR SHOWS"
     timeout: 30000
+- scrollUntilVisible:
+    element: "Add Holiday Hangout"
+    direction: DOWN
 - tapOn: "Add Holiday Hangout"
 - extendedWaitUntil:
     visible: "Locks right away"
