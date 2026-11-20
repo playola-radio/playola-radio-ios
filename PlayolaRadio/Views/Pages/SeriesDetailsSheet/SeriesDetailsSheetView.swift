@@ -27,37 +27,24 @@ struct SeriesDetailsSheetView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .disabled(model.isSaving)
 
-        sectionHeader(model.repeatsHeader)
-          .padding(.top, 24)
-        HStack(spacing: 0) {
-          ForEach(model.repeatOptions) { option in
-            Button {
-              model.repeatOptionTapped(option)
-            } label: {
-              Text(option.title)
-                .font(.custom(FontNames.Inter_500_Medium, size: 15))
-                .foregroundColor(.playolaTextPrimary)
-                .frame(maxWidth: .infinity)
-                .frame(height: 34)
-                .background(model.repeatOptionFill(option))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-          }
+        ForEach(model.repeatsSections, id: \.self) { _ in
+          repeatsSection
         }
-        .padding(3)
-        .background(Color.playolaSurfaceControl)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+
+        ForEach(model.customScheduleRows, id: \.self) { row in
+          customScheduleSection(row)
+        }
 
         ForEach(model.scheduleSections, id: \.self) { _ in
           scheduleSection
         }
 
-        Text(model.note)
-          .font(.custom(FontNames.Inter_400_Regular, size: 13))
-          .foregroundColor(.playolaTextTertiary)
-          .padding(.top, 20)
+        ForEach(model.notes, id: \.self) { note in
+          Text(note)
+            .font(.custom(FontNames.Inter_400_Regular, size: 13))
+            .foregroundColor(.playolaTextTertiary)
+            .padding(.top, 20)
+        }
       }
       .padding(.horizontal, 20)
       .padding(.top, 24)
@@ -95,6 +82,48 @@ struct SeriesDetailsSheetView: View {
         }
         .disabled(!model.isSaveEnabled)
       }
+    }
+  }
+
+  private var repeatsSection: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      sectionHeader(model.repeatsHeader)
+        .padding(.top, 24)
+      HStack(spacing: 0) {
+        ForEach(model.repeatOptions) { option in
+          Button {
+            model.repeatOptionTapped(option)
+          } label: {
+            Text(option.title)
+              .font(.custom(FontNames.Inter_500_Medium, size: 15))
+              .foregroundColor(.playolaTextPrimary)
+              .frame(maxWidth: .infinity)
+              .frame(height: 34)
+              .background(model.repeatOptionFill(option))
+              .clipShape(RoundedRectangle(cornerRadius: 8))
+              .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+        }
+      }
+      .padding(3)
+      .background(Color.playolaSurfaceControl)
+      .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+  }
+
+  private func customScheduleSection(_ text: String) -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      sectionHeader(model.scheduleHeader)
+        .padding(.top, 24)
+      Text(text)
+        .font(.custom(FontNames.Inter_400_Regular, size: 17))
+        .foregroundColor(.playolaTextSecondary)
+        .padding(.horizontal, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: 47)
+        .background(Color.playolaSurfaceControl)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
   }
 

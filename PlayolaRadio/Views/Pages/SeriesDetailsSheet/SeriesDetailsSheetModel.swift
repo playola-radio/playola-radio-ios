@@ -47,10 +47,28 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
 
   // MARK: - Initialization
 
-  init(stationId: String, timeZone: TimeZone) {
+  /// New Series mode, or Edit Series mode when `editing` is given. Edit mode opens with the
+  /// Series' name and, read from its rule, Every week with its days and time, No schedule for a nil
+  /// rule, or the read-only Custom schedule for a rule the app can't read.
+  init(stationId: String, timeZone: TimeZone, editing series: CuratorSeries? = nil) {
     self.stationId = stationId
     self.timeZone = timeZone
+    self.editedSeries = series
     super.init()
+    if let series {
+      name = series.title
+      if let rrule = series.rrule {
+        if let schedule = SeriesSchedule(rrule: rrule) {
+          selectedDays = schedule.weekdays
+          hour = schedule.hour
+          minute = schedule.minute
+        } else {
+          isCustomSchedule = true
+        }
+      } else {
+        repeatOption = .noSchedule
+      }
+    }
   }
 
   // MARK: - Properties
@@ -59,6 +77,8 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
 
   let stationId: String
   let timeZone: TimeZone
+  let editedSeries: CuratorSeries?
+  private(set) var isCustomSchedule = false
   var name = ""
   var repeatOption: SeriesRepeatOption = .everyWeek
   var selectedDays: Set<Locale.Weekday> = []
@@ -69,7 +89,7 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
   @ObservationIgnored var onSaved: @MainActor (CuratorSeries) async -> Void = { _ in }
   @ObservationIgnored var onCancel: @MainActor () -> Void = {}
 
-  var navigationTitle: String { "New Series" }
+  var navigationTitle: String { editedSeries == nil ? "New Series" : "Edit Series" }
   var cancelButtonTitle: String { "Cancel" }
   var saveButtonTitle: String { "Save" }
   var nameHeader: String { "NAME" }
@@ -77,9 +97,14 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
   var repeatsHeader: String { "REPEATS" }
   var daysHeader: String { "DAYS" }
   var timeHeader: String { "TIME" }
+  var scheduleHeader: String { "SCHEDULE" }
   var startsAtLabel: String { "Starts at" }
   var note: String {
-    "Pick the days your series airs. Open slots will show up on the series page \u{2014} "
+    guard editedSeries == nil else {
+      return "Changing the schedule only changes your open slots. Shows that are already "
+        + "scheduled keep their times."
+    }
+    return "Pick the days your series airs. Open slots will show up on the series page \u{2014} "
       + "they\u{2019}re only suggestions."
   }
   var repeatOptions: IdentifiedArrayOf<SeriesRepeatOption> {
@@ -105,9 +130,13 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
   func saveButtonTapped() async {
     guard isSaveEnabled, let jwt = auth.jwt else { return }
     isSaving = true
-    let created: CuratorSeries
+    let saved: CuratorSeries
     do {
-      created = try await api.createSeries(jwt, stationId, trimmedName, rrule)
+      if let editedSeries {
+        saved = try await api.updateSeries(jwt, editedSeries.id, trimmedName, rruleChange)
+      } else {
+        saved = try await api.createSeries(jwt, stationId, trimmedName, rrule)
+      }
     } catch {
       isSaving = false
       await presentFailure(error)
@@ -115,14 +144,14 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
     }
     notificationCenter.post(
       name: .recordedShowsChanged, object: nil, userInfo: ["stationId": stationId])
-    await onSaved(created)
+    await onSaved(saved)
   }
 
   // MARK: - View Helpers
 
   var isSaveEnabled: Bool {
     guard !isSaving, !trimmedName.isEmpty else { return false }
-    return repeatOption == .noSchedule || !selectedDays.isEmpty
+    return isCustomSchedule || repeatOption == .noSchedule || !selectedDays.isEmpty
   }
 
   var saveButtonColor: Color { isSaveEnabled ? .playolaRed : .playolaTextTertiary }
@@ -142,7 +171,15 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
     repeatOption = option
   }
 
-  var scheduleSections: [String] { repeatOption == .everyWeek ? ["schedule"] : [] }
+  var repeatsSections: [String] { isCustomSchedule ? [] : ["repeats"] }
+
+  var scheduleSections: [String] {
+    !isCustomSchedule && repeatOption == .everyWeek ? ["schedule"] : []
+  }
+
+  var customScheduleRows: [String] { isCustomSchedule ? ["Custom schedule"] : [] }
+
+  var notes: [String] { isCustomSchedule ? [] : [note] }
 
   var dayOptions: IdentifiedArrayOf<SeriesDayOption> {
     IdentifiedArray(
@@ -172,6 +209,11 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
     return SeriesSchedule(weekdays: selectedDays, hour: hour, minute: minute).rrule
   }
 
+  /// What Edit Series sends: nil leaves a Custom schedule alone, `.some(nil)` clears the schedule.
+  var rruleChange: String?? {
+    isCustomSchedule ? nil : .some(rrule)
+  }
+
   // MARK: - Private Helpers
 
   private static let sundayFirst: [(Locale.Weekday, String)] = [
@@ -191,11 +233,12 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
     guard !(error is CancellationError), (error as? URLError)?.code != .cancelled else { return }
     if !NetworkErrorClassifier.isNetworkError(error) {
       var tags = NetworkErrorClassifier.errorTags(for: error)
-      tags["endpoint"] = "createSeries"
+      tags["endpoint"] = editedSeries == nil ? "createSeries" : "updateSeries"
       await errorReporting.reportError(error, tags)
     }
     presentedAlert = PlayolaAlert(
-      title: "Couldn\u{2019}t Create Series", message: error.localizedDescription,
+      title: editedSeries == nil ? "Couldn\u{2019}t Create Series" : "Couldn\u{2019}t Save Series",
+      message: error.localizedDescription,
       dismissButton: .cancel(Text("OK")))
   }
 }
