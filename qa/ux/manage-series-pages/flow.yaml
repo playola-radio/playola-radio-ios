@@ -1,0 +1,57 @@
+appId: fm.playola.playolaradio.staging
+---
+# Upcoming → Series: the cards show each Series' next three Shows and open slots; cards with
+# nothing upcoming say so. Creates a Series with no schedule (its card appears), then opens the
+# weekly Series' page (drafts, Shows, open slots, a twice-airing Show listed once) and edits its
+# schedule: Save is disabled with no day, then saving Wednesday and Sunday updates the badge and slots.
+- tapOn: "Series"
+- extendedWaitUntil:
+    visible: "Create a New Series"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "2 shows · 1 open"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "No upcoming shows."
+    direction: DOWN
+- tapOn: "Create a New Series"
+- extendedWaitUntil:
+    visible: "REPEATS"
+    timeout: 30000
+- tapOn: "Series name"
+- inputText: "Porch Sessions"
+- tapOn: "No schedule"
+- tapOn: "Save"
+- scrollUntilVisible:
+    element: "Porch Sessions"
+    direction: DOWN
+- scrollUntilVisible:
+    element: "This One.s For You"
+    direction: UP
+- tapOn: "This One.s For You"
+- extendedWaitUntil:
+    visible: "NOT SCHEDULED YET"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "Hymn Request Night"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "Christmas Hymns"
+    direction: DOWN
+- tapOn: "Edit"
+- extendedWaitUntil:
+    visible: "Edit Series"
+    timeout: 30000
+- tapOn: "Sunday"
+- assertVisible:
+    text: "Save"
+    enabled: false
+- tapOn: "Wednesday"
+- tapOn: "Sunday"
+- tapOn: "Save"
+- extendedWaitUntil:
+    visible: "Every Wednesday and Sunday at 7pm"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "Wednesday · 7:00 PM"
+    direction: DOWN
