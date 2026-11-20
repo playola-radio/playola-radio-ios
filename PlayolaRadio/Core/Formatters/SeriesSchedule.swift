@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import PlayolaPlayer
 
 struct SeriesSchedule: Equatable, Sendable {
   static let maxWeeksAhead = 52
@@ -120,5 +121,19 @@ extension Locale.Weekday {
     ]
     guard (1...7).contains(calendarWeekday) else { return nil }
     self = sundayFirst[calendarWeekday - 1]
+  }
+}
+
+/// The times a station's Airings take up, for deciding which suggested slots are open. Drops the
+/// excluded Show's own Airings first (so a Show can move within its own time), then uses each
+/// Airing's `startTime`/`endTime`, falling back to `airtime` and the Show's length. Never negative.
+func occupiedIntervals(from airings: [Airing], excludingEpisodeId: String? = nil)
+  -> [DateInterval]
+{
+  airings.filter { $0.episodeId != excludingEpisodeId }.map { airing in
+    let start = airing.startTime ?? airing.airtime
+    let durationMS = airing.episode?.durationMS ?? 0
+    let end = airing.endTime ?? airing.airtime.addingTimeInterval(Double(durationMS) / 1000)
+    return DateInterval(start: start, end: max(end, start))
   }
 }

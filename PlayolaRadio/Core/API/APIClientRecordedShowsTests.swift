@@ -169,4 +169,26 @@ struct APIClientRecordedShowsTests {
     expectNoDifference(object["stationId"] as? String, "s1")
     expectNoDifference(object["airtime"] as? String, "2026-11-11T02:00:00Z")
   }
+  // MARK: - One Series
+
+  @Test func curatorSeriesByIdRequestsGetShow() {
+    expectNoDifference(
+      RecordedShowsRequest.curatorSeries(showId: "series-1"),
+      RecordedShowsRequest(method: "GET", path: "/v1/shows/series-1"))
+  }
+
+  @Test func curatorSeriesByIdDecodesASeries() throws {
+    let body = Data(
+      """
+      { "id": "series-1", "stationId": "station-1", "title": "This One's For You",
+        "isOneTime": false, "rrule": "FREQ=WEEKLY;BYDAY=SU;BYHOUR=19;BYMINUTE=0",
+        "createdAt": "2026-11-01T00:00:00.000Z" }
+      """.utf8)
+
+    expectNoDifference(
+      try decodeCuratorSeries(body),
+      CuratorSeries(
+        id: "series-1", stationId: "station-1", title: "This One's For You", isOneTime: false,
+        rrule: "FREQ=WEEKLY;BYDAY=SU;BYHOUR=19;BYMINUTE=0"))
+  }
 }

@@ -218,6 +218,20 @@ func recordedShowAPIError(data: Data) -> APIError {
   return .serverError(message)
 }
 
+/// A recorded-shows request without a body, described apart from the network so tests can check it.
+struct RecordedShowsRequest: Equatable {
+  let method: String
+  let path: String
+
+  static func curatorSeries(showId: String) -> Self {
+    RecordedShowsRequest(method: "GET", path: "/v1/shows/\(showId)")
+  }
+}
+
+func decodeCuratorSeries(_ data: Data) throws -> CuratorSeries {
+  try sharedIsoDecoder.decode(CuratorSeries.self, from: data)
+}
+
 private func recordedShowsResult(_ response: DataResponse<Data, AFError>) throws -> Data {
   guard let statusCode = response.response?.statusCode else {
     throw transportFailure(response.error)
@@ -1366,6 +1380,12 @@ extension APIClient: DependencyKey {
           path: "/v1/shows", method: .get, token: jwtToken,
           queryParams: ["stationIds": stationId])
         return try sharedIsoDecoder.decode([CuratorSeries].self, from: data)
+      },
+      getCuratorSeriesById: { jwtToken, showId in
+        let request = RecordedShowsRequest.curatorSeries(showId: showId)
+        let data = try await recordedShowsData(
+          path: request.path, method: HTTPMethod(rawValue: request.method), token: jwtToken)
+        return try decodeCuratorSeries(data)
       },
       createSeries: { jwtToken, stationId, title, rrule in
         let data = try await recordedShowsData(
