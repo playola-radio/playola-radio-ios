@@ -9,10 +9,10 @@ appId: fm.playola.playolaradio.staging
     visible: "Create a New Series"
     timeout: 30000
 - extendedWaitUntil:
-    visible: "2 shows · 1 open"
+    visible: "No upcoming shows."
     timeout: 30000
 - scrollUntilVisible:
-    element: "No upcoming shows."
+    element: "2 shows · 1 open"
     direction: DOWN
 - tapOn: "Create a New Series"
 - extendedWaitUntil:
