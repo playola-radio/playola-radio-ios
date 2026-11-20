@@ -12,22 +12,22 @@ struct AddShowToSeriesSheetView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 0) {
         Text(model.title)
-          .font(.custom(FontNames.Inter_700_Bold, size: 30))
+          .font(.custom(FontNames.Inter_700_Bold, size: 22))
           .foregroundColor(.playolaTextPrimary)
         Text(model.subtitle)
-          .font(.custom(FontNames.Inter_400_Regular, size: 16))
+          .font(.custom(FontNames.Inter_400_Regular, size: 14))
           .foregroundColor(.playolaTextSecondary)
-          .padding(.top, 8)
+          .padding(.top, 6)
 
         recordNewShowButton
-          .padding(.top, 24)
+          .padding(.top, 20)
 
         ForEach(model.listHeaders, id: \.self) { header in
           Text(header)
             .font(.custom(FontNames.Inter_600_SemiBold, size: 13))
             .tracking(0.6)
             .foregroundColor(.playolaTextTertiary)
-            .padding(.top, 32)
+            .padding(.top, 26)
             .padding(.bottom, 4)
         }
 
@@ -117,7 +117,7 @@ struct AddShowToSeriesSheetView: View {
             Text(title)
               .font(.custom(FontNames.Inter_600_SemiBold, size: 15))
               .foregroundColor(.playolaRed)
-              .frame(width: 64, height: 32)
+              .frame(width: 50, height: 28)
               .overlay(
                 RoundedRectangle(cornerRadius: 10).stroke(Color.playolaRed, lineWidth: 1))
           }
@@ -129,7 +129,7 @@ struct AddShowToSeriesSheetView: View {
         ForEach(row.busySpinners, id: \.self) { _ in
           ProgressView()
             .tint(.playolaRed)
-            .frame(width: 64, height: 32)
+            .frame(width: 50, height: 28)
         }
       }
       .padding(.vertical, 12)
