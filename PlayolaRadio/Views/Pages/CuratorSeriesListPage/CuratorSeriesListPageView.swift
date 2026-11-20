@@ -177,7 +177,9 @@ struct CuratorSeriesListPageView: View {
       Text(slot.subtitle)
         .font(.custom(FontNames.Inter_400_Regular, size: 13))
         .foregroundColor(.playolaGray)
-      Spacer()
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+      Spacer(minLength: 8)
       Button {
         model.addShowTapped(slot: slot.tile.date)
       } label: {
@@ -187,6 +189,7 @@ struct CuratorSeriesListPageView: View {
         }
         .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
         .foregroundColor(.playolaRed)
+        .fixedSize()
       }
       .buttonStyle(.plain)
     }

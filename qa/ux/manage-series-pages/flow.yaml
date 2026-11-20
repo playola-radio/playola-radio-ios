@@ -1,15 +1,12 @@
 appId: fm.playola.playolaradio.staging
 ---
-# Upcoming → Series: the cards show each Series' next three Shows and open slots; cards with
-# nothing upcoming say so. Creates a Series with no schedule (its card appears), then opens the
+# Upcoming → Series: the cards show each Series' next three Shows and open slots. Creates a Series
+# with no schedule (its card appears, with "No upcoming shows."), then opens the
 # weekly Series' page (drafts, Shows, open slots, a twice-airing Show listed once) and edits its
 # schedule: Save is disabled with no day, then saving Wednesday and Sunday updates the badge and slots.
 - tapOn: "Series"
 - extendedWaitUntil:
     visible: "Create a New Series"
-    timeout: 30000
-- extendedWaitUntil:
-    visible: "No upcoming shows."
     timeout: 30000
 - scrollUntilVisible:
     element: "2 shows · 1 open"
@@ -24,6 +21,9 @@ appId: fm.playola.playolaradio.staging
 - tapOn: "Save"
 - scrollUntilVisible:
     element: "Porch Sessions"
+    direction: DOWN
+- scrollUntilVisible:
+    element: "No upcoming shows."
     direction: DOWN
 - scrollUntilVisible:
     element: "This One.s For You"

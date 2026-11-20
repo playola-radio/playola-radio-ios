@@ -1,8 +1,8 @@
 appId: fm.playola.playolaradio.staging
 ---
 # Switch to broadcasting mode from the profile tab (forgotten on relaunch, so it is done here), then
-# open Station → Upcoming. Staging data, made with the API before recording: the
-# station's "This One's For You" Series (Sundays at 7pm) holds a draft, two scheduled Shows and one
+# open Station → Upcoming. Staging data, made with the API before recording: the first station's
+# (8750 Radio) "This One's For You" Series (Sundays at 7pm) holds a draft, two scheduled Shows and one
 # Show that airs twice (Dec 13 and Dec 27).
 - extendedWaitUntil:
     visible: "Your Profile"
