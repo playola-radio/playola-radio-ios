@@ -43,11 +43,11 @@ struct CuratorSeriesPageTests {
   }
 
   private func episode(
-    _ id: String, seriesId: String = "s1", at airtimes: [Date] = [],
+    _ id: String, at airtimes: [Date] = [],
     durationMS: Int = 38 * 60_000
   ) -> CuratorEpisode {
     CuratorEpisode(
-      id: id, showId: seriesId, title: "Show \(id)", durationMS: durationMS, show: nil,
+      id: id, showId: "s1", title: "Show \(id)", durationMS: durationMS, show: nil,
       segments: [],
       airings: airtimes.enumerated().map { index, airtime in
         CuratorAiring(
