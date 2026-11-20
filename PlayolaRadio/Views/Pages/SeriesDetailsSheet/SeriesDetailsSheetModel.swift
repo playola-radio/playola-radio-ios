@@ -133,7 +133,9 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
     let saved: CuratorSeries
     do {
       if let editedSeries {
-        saved = try await api.updateSeries(jwt, editedSeries.id, trimmedName, rruleChange)
+        // nil leaves a Custom schedule alone; `.some(nil)` clears the schedule.
+        saved = try await api.updateSeries(
+          jwt, editedSeries.id, trimmedName, isCustomSchedule ? nil : .some(rrule))
       } else {
         saved = try await api.createSeries(jwt, stationId, trimmedName, rrule)
       }
@@ -207,11 +209,6 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
   var rrule: String? {
     guard repeatOption == .everyWeek else { return nil }
     return SeriesSchedule(weekdays: selectedDays, hour: hour, minute: minute).rrule
-  }
-
-  /// What Edit Series sends: nil leaves a Custom schedule alone, `.some(nil)` clears the schedule.
-  var rruleChange: String?? {
-    isCustomSchedule ? nil : .some(rrule)
   }
 
   // MARK: - Private Helpers

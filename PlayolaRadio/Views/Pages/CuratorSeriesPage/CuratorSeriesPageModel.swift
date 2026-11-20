@@ -18,18 +18,18 @@ struct CuratorSeriesDraftRow: Identifiable, Equatable {
   let subtitle: String
 }
 
-struct CuratorSeriesUpcomingRow: Identifiable, Equatable {
-  enum Kind: Equatable {
+struct CuratorSeriesUpcomingRow: Identifiable {
+  enum Kind {
     case show(episodeId: String)
     case slot
   }
 
-  struct Tile: Equatable {
+  struct Tile {
     let date: Date
     let timeZone: TimeZone
   }
 
-  struct ShowContent: Identifiable, Equatable {
+  struct ShowContent: Identifiable {
     let id: String
     let episodeId: String
     let title: String
@@ -37,7 +37,7 @@ struct CuratorSeriesUpcomingRow: Identifiable, Equatable {
     let tile: Tile
   }
 
-  struct SlotContent: Identifiable, Equatable {
+  struct SlotContent: Identifiable {
     let id: String
     let title: String
     let subtitle: String

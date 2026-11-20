@@ -14,7 +14,7 @@ import Sharing
 import SwiftUI
 
 /// One thing coming up in a Series: a scheduled Show at its next airing, or an open slot.
-enum CuratorSeriesUpcomingEntry: Equatable {
+enum CuratorSeriesUpcomingEntry {
   case show(CuratorEpisode, airing: CuratorAiring)
   case slot(Date)
 
@@ -66,18 +66,18 @@ struct CuratorSeriesUpcoming {
   }
 }
 
-struct CuratorSeriesCardItem: Identifiable, Equatable {
+struct CuratorSeriesCardItem: Identifiable {
   enum Kind: Equatable {
     case show(episodeId: String, title: String)
     case slot
   }
 
-  struct Tile: Equatable {
+  struct Tile {
     let date: Date
     let timeZone: TimeZone
   }
 
-  struct ShowContent: Identifiable, Equatable {
+  struct ShowContent: Identifiable {
     let id: String
     let episodeId: String
     let title: String
@@ -85,7 +85,7 @@ struct CuratorSeriesCardItem: Identifiable, Equatable {
     let tile: Tile
   }
 
-  struct SlotContent: Identifiable, Equatable {
+  struct SlotContent: Identifiable {
     let id: String
     let subtitle: String
     let addButtonTitle: String
@@ -113,7 +113,7 @@ struct CuratorSeriesCardItem: Identifiable, Equatable {
   private var tile: Tile { Tile(date: date, timeZone: timeZone) }
 }
 
-struct CuratorSeriesCard: Identifiable, Equatable {
+struct CuratorSeriesCard: Identifiable {
   let series: CuratorSeries
   let badges: [String]
   let countLabels: [String]
