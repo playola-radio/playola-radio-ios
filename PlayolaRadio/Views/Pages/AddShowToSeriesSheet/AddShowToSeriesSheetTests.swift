@@ -152,6 +152,9 @@ struct AddShowToSeriesSheetTests {
         ["Back Porch Requests", "Moves here from Sun, Nov 8 \u{00B7} 42 min"],
       ])
     expectNoDifference(model.rows.map(\.drafts.count), [1, 0])
+    expectNoDifference(
+      model.rows.map(\.addButtonAccessibilityLabel),
+      ["Add Tour Stories", "Add Back Porch Requests"])
     expectNoDifference(model.rows[1].scheduled.map(\.tile.date), [stationTime(2026, 11, 8, 19)])
   }
 

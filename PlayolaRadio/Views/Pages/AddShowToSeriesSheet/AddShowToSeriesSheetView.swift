@@ -122,6 +122,7 @@ struct AddShowToSeriesSheetView: View {
                 RoundedRectangle(cornerRadius: 10).stroke(Color.playolaRed, lineWidth: 1))
           }
           .buttonStyle(.plain)
+          .accessibilityLabel(row.addButtonAccessibilityLabel)
           .disabled(!row.isAddEnabled)
           .opacity(row.addButtonOpacity)
         }

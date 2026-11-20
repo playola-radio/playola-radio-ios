@@ -54,6 +54,8 @@ struct AddShowToSeriesRow: Identifiable {
 
   var addButtonTitles: [String] { isBusy ? [] : ["Add"] }
 
+  var addButtonAccessibilityLabel: String { "Add \(title)" }
+
   var busySpinners: [String] { isBusy ? ["busy"] : [] }
 
   var addButtonOpacity: Double { isAddEnabled ? 1 : 0.4 }
