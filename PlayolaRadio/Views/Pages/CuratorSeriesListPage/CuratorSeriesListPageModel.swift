@@ -38,10 +38,6 @@ struct CuratorSeriesUpcoming {
     return SeriesSchedule(rrule: rrule)?.text ?? "Custom schedule"
   }
 
-  static func hasReadableSchedule(_ series: CuratorSeries) -> Bool {
-    series.rrule.flatMap(SeriesSchedule.init(rrule:)) != nil
-  }
-
   static func formatted(_ date: Date, _ format: String, in timeZone: TimeZone) -> String {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "en_US_POSIX")

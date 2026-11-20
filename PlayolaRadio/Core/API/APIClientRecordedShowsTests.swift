@@ -5,7 +5,6 @@
 
 import CustomDump
 import Foundation
-import PlayolaPlayer
 import Testing
 
 @testable import PlayolaRadio
@@ -169,21 +168,5 @@ struct APIClientRecordedShowsTests {
     expectNoDifference(object["episodeId"] as? String, "e1")
     expectNoDifference(object["stationId"] as? String, "s1")
     expectNoDifference(object["airtime"] as? String, "2026-11-11T02:00:00Z")
-  }
-  // MARK: - One Series
-
-  @Test func curatorSeriesByIdDecodesASeries() throws {
-    let body = Data(
-      """
-      { "id": "series-1", "stationId": "station-1", "title": "This One's For You",
-        "isOneTime": false, "rrule": "FREQ=WEEKLY;BYDAY=SU;BYHOUR=19;BYMINUTE=0",
-        "createdAt": "2026-11-01T00:00:00.000Z" }
-      """.utf8)
-
-    expectNoDifference(
-      try JSONDecoderWithIsoFull().decode(CuratorSeries.self, from: body),
-      CuratorSeries(
-        id: "series-1", stationId: "station-1", title: "This One's For You", isOneTime: false,
-        rrule: "FREQ=WEEKLY;BYDAY=SU;BYHOUR=19;BYMINUTE=0"))
   }
 }

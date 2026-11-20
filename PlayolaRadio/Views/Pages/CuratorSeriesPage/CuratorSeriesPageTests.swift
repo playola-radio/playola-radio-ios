@@ -399,6 +399,16 @@ struct CuratorSeriesPageTests {
     #expect(!model.isLoading)
   }
 
+  @Test func aFailedFirstLoadShowsNoOpenSlots() async {
+    let model = await makeModel {
+      $0.api.getAirings = { _, _ in throw CuratorSeriesPageTestError() }
+      $0.toast.show = { _ in }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+
+    expectNoDifference(model.upcomingRows.map(\.id), [])
+  }
+
   @Test func aCancelledLoadShowsNoToast() async {
     let toasts = LockIsolated(0)
     _ = await makeModel {

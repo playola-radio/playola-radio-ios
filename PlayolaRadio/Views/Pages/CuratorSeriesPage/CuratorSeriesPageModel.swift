@@ -165,7 +165,7 @@ class CuratorSeriesPageModel: ViewModel {
   }
 
   var slotsNotes: [String] {
-    guard CuratorSeriesUpcoming.hasReadableSchedule(series) else { return [] }
+    guard series.rrule.flatMap(SeriesSchedule.init(rrule:)) != nil else { return [] }
     return ["Open slots are only suggestions. If you leave one empty, your station plays as usual."]
   }
 
@@ -184,7 +184,8 @@ class CuratorSeriesPageModel: ViewModel {
   var upcomingRows: IdentifiedArrayOf<CuratorSeriesUpcomingRow> {
     let upcoming = CuratorSeriesUpcoming(
       episodes: episodes, airings: airings, timeZone: timeZone, now: now)
-    let entries = upcoming.entries(for: series, slotLimit: Self.slotLimit)
+    // Until the station's airings have loaded, no time can be known to be open.
+    let entries = upcoming.entries(for: series, slotLimit: hasLoaded ? Self.slotLimit : 0)
     return IdentifiedArray(uniqueElements: entries.map(row(for:)))
   }
 
