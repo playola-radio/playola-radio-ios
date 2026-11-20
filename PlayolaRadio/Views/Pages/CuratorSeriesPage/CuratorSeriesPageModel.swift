@@ -107,8 +107,6 @@ class CuratorSeriesPageModel: ViewModel {
   var isLoading = false
   var hasLoaded = false
   var presentedAlert: PlayolaAlert?
-  /// The station's settings and airings, which the Add a show sheet needs, have loaded.
-  @ObservationIgnored private var hasStationSchedule = false
   @ObservationIgnored private var isLoadingStationSchedule = false
   /// Counts loads so an older one that finishes late can't overwrite a newer one's result.
   @ObservationIgnored private var latestLoad = 0
@@ -162,7 +160,7 @@ class CuratorSeriesPageModel: ViewModel {
   /// After a failed first load, loads the station's settings and airings before presenting.
   func addAShowButtonTapped() async {
     guard !isLoadingStationSchedule else { return }
-    if let settings, hasStationSchedule {
+    if let settings {
       presentAddShow(slot: nil, settings: settings)
       return
     }
@@ -175,7 +173,6 @@ class CuratorSeriesPageModel: ViewModel {
       let (newAirings, newSettings) = try await (loadedAirings, loadedSettings)
       airings = newAirings
       settings = newSettings
-      hasStationSchedule = true
       presentAddShow(slot: nil, settings: newSettings)
     } catch {
       await loadFailed(error, endpoint: "curatorSeriesPageAddShow")
@@ -279,7 +276,6 @@ class CuratorSeriesPageModel: ViewModel {
       episodes = newEpisodes
       airings = newAirings
       settings = newSettings
-      hasStationSchedule = true
       hasLoaded = true
     } catch {
       await loadFailed(error, endpoint: "curatorSeriesPage")

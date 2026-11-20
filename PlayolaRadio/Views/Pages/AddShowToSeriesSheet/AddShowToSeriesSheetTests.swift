@@ -86,7 +86,6 @@ struct AddShowToSeriesSheetTests {
   private func makeModel(
     slot: Date?,
     episodes: [CuratorEpisode] = [],
-    airings: [Airing]? = nil,
     finishes: LockIsolated<[AddShowToSeriesFailure?]> = LockIsolated([]),
     load: Bool = true,
     _ configure: (inout DependencyValues) -> Void = { _ in }
@@ -107,7 +106,7 @@ struct AddShowToSeriesSheetTests {
     } operation: {
       AddShowToSeriesSheetModel(
         stationId: stationId, series: thisSeries, slot: slot, settings: settings,
-        airings: airings ?? stationAirings(episodes),
+        airings: stationAirings(episodes),
         onAddFinished: { failure in finishes.withValue { $0.append(failure) } })
     }
     if load { await model.viewAppeared() }

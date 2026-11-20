@@ -1,15 +1,15 @@
 appId: fm.playola.playolaradio.staging
 ---
 # Switch to broadcasting mode from the profile tab (forgotten on relaunch, so it is done here), then
-# open Station → Upcoming → Series → "Saturday Night Songbook". Staging data, made with the API just
-# before recording (earlier runs' copies are renamed "… old <n>" first), on the first station
-# (8750 Radio):
+# open Station → Upcoming → Series → "Saturday Night Songbook". Run
+# `python3 qa/ux/add-show-to-series/prepare.py` just before recording: it moves earlier runs' data out
+# of the way and makes, on the first station (8750 Radio):
 # - "Saturday Night Songbook", weekly on Saturdays at 8pm, empty;
-# - "Friday Afternoon Drive", weekly at the next whole hour three or more hours away (so its first
+# - "Friday Afternoon Drive", weekly at the next whole hour about three hours away (so its first
 #   slot is inside the six-hour lock), empty;
 # - standalone Shows: drafts with audio "Tour Stories", "Holiday Hangout" and "Songs From the
-#   Road"; "Back Porch Requests", scheduled Wednesday, Nov 25 at 8pm; and "Empty Draft", with no
-#   audio.
+#   Road"; "Back Porch Requests", scheduled the Wednesday after the first Saturday at 8pm; and
+#   "Empty Draft", with no audio.
 - extendedWaitUntil:
     visible: "Your Profile"
     timeout: 60000

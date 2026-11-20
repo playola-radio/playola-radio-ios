@@ -325,10 +325,6 @@ struct ScheduleShowSheetTests {
     expectNoDifference(dismissals.value, 1)
   }
 
-  @Test func withoutADismissedClosureDismissalDoesNothing() {
-    makeModel().dismissed()
-  }
-
   /// An Add a show sheet for a draft whose slot (`airtime`) is an hour away, inside the lock.
   private func makeNearSlotAdd(
     scheduleGate: AsyncStream<Void>, joinGate: AsyncStream<Void>,

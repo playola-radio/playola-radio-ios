@@ -5,7 +5,9 @@ appId: fm.playola.playolaradio.staging
 # scheduled "Back Porch Requests" (moved there, then put in the Series); with "Add a Show" (no
 # slot), add the draft "Songs From the Road", which joins the Series and stays a draft. The sheet
 # never offers "Empty Draft" (no audio) or "Christmas Hymns" (two airings). "Record a New Show" from
-# a slot opens the builder for a new Show; backing out leaves nothing. Then on "Friday Afternoon
+# a slot opens the builder for a new Show; backing out leaves nothing. Again from the next slot, a
+# new Show gets a song, joins the Series, and its Schedule sheet starts at that Saturday 8pm slot;
+# scheduling it there fills the slot. Then on "Friday Afternoon
 # Drive", whose first slot is less than six hours away, adding "Holiday Hangout" opens the Schedule
 # sheet at that slot with "Locks right away"; scheduling there finishes the add.
 - tapOn:
@@ -14,10 +16,10 @@ appId: fm.playola.playolaradio.staging
 - extendedWaitUntil:
     visible: "OR ADD ONE OF YOUR SHOWS"
     timeout: 30000
-- assertVisible: "Saturday Night Songbook · Saturday, Nov 21 at 8pm"
+- assertVisible: "Saturday Night Songbook · Saturday, .* at 8pm"
 - assertVisible: "Record a New Show"
 - scrollUntilVisible:
-    element: "Moves here from Wed, Nov 25 · .*"
+    element: "Moves here from Wed, .*"
     direction: DOWN
 - assertNotVisible: "Empty Draft"
 - assertNotVisible: "Christmas Hymns"
@@ -36,7 +38,7 @@ appId: fm.playola.playolaradio.staging
     text: ".*Add show"
     index: 0
 - extendedWaitUntil:
-    visible: "Saturday Night Songbook · Saturday, Nov 28 at 8pm"
+    visible: "Saturday Night Songbook · Saturday, .* at 8pm"
     timeout: 30000
 - extendedWaitUntil:
     visible: "OR ADD ONE OF YOUR SHOWS"
@@ -57,11 +59,8 @@ appId: fm.playola.playolaradio.staging
     visible: "OR ADD ONE OF YOUR SHOWS"
     timeout: 30000
 - scrollUntilVisible:
-    element: "Sun, Nov 2[29] · .*"
-    direction: DOWN
-- scrollUntilVisible:
     element: "Add Songs From the Road"
-    direction: UP
+    direction: DOWN
 - tapOn: "Add Songs From the Road"
 - extendedWaitUntil:
     notVisible: "OR ADD ONE OF YOUR SHOWS"
@@ -86,6 +85,53 @@ appId: fm.playola.playolaradio.staging
     visible: "Songs From the Road"
     timeout: 30000
 - assertNotVisible: "New Show"
+- tapOn:
+    text: ".*Add show"
+    index: 0
+- extendedWaitUntil:
+    visible: "Start from scratch for this slot"
+    timeout: 30000
+- tapOn: "Record a New Show"
+- extendedWaitUntil:
+    visible: "YOUR SHOW"
+    timeout: 30000
+- tapOn: "Song"
+- extendedWaitUntil:
+    visible: "Search for songs"
+    timeout: 30000
+- tapOn: "Search for songs"
+- inputText: "Play a Train Song"
+- extendedWaitUntil:
+    visible: "Add"
+    timeout: 30000
+- tapOn:
+    text: "Add"
+    index: 0
+- extendedWaitUntil:
+    visible: "Added"
+    timeout: 30000
+- tapOn: "Done"
+- extendedWaitUntil:
+    visible: "Saturday Night Songbook"
+    timeout: 30000
+- tapOn: "Schedule"
+- extendedWaitUntil:
+    visible: "Schedule New Show"
+    timeout: 30000
+- assertVisible: "Sat, .*"
+- assertVisible: "8:00 PM"
+- tapOn: "Schedule"
+- extendedWaitUntil:
+    notVisible: "Schedule New Show"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "Saturday, .* · .*"
+    timeout: 30000
+- tapOn:
+    id: "BackButton"
+- extendedWaitUntil:
+    visible: "New Show"
+    timeout: 30000
 - tapOn: "Series"
 - extendedWaitUntil:
     visible: "Create a New Series"
