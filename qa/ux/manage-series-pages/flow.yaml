@@ -56,6 +56,20 @@ appId: fm.playola.playolaradio.staging
 - extendedWaitUntil:
     visible: "Hymn Request Night"
     timeout: 30000
+# A previous run leaves the schedule on Wednesday and Sunday; put it back to Sundays first.
+- runFlow:
+    when:
+      visible: "Every Wednesday and Sunday at 7pm"
+    commands:
+      - tapOn: "Edit"
+      - extendedWaitUntil:
+          visible: "Edit Series"
+          timeout: 30000
+      - tapOn: "Wednesday"
+      - tapOn: "Save"
+      - extendedWaitUntil:
+          visible: "Every Sunday at 7pm"
+          timeout: 30000
 - scrollUntilVisible:
     element: "Christmas Hymns"
     direction: DOWN
