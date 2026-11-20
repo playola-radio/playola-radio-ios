@@ -104,13 +104,10 @@ appId: fm.playola.playolaradio.staging
 - extendedWaitUntil:
     visible: "Add"
     timeout: 30000
+# Adding a song closes the picker.
 - tapOn:
     text: "Add"
     index: 0
-- extendedWaitUntil:
-    visible: "Added"
-    timeout: 30000
-- tapOn: "Done"
 - extendedWaitUntil:
     visible: "Saturday Night Songbook"
     timeout: 30000
