@@ -244,6 +244,91 @@ struct ScheduleShowSheetTests {
     }
   }
 
+  // MARK: - Saving blocks Cancel and swipe
+
+  @Test func cancelAndSwipeAreBlockedWhileTheScheduleClosureRuns() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let finished = LockIsolated(false)
+      let (gate, openGate) = AsyncStream<Void>.makeStream()
+      let model = makeModel { _ in
+        for await _ in gate { break }
+        finished.setValue(true)
+      }
+      coordinator.presentedSheet = .scheduleShow(model)
+      #expect(model.isCancelEnabled)
+      #expect(!model.isSwipeDismissDisabled)
+
+      let save = Task { await model.scheduleButtonTapped() }
+      await Task.megaYield()
+      #expect(!model.isCancelEnabled)
+      #expect(model.isSwipeDismissDisabled)
+
+      model.cancelButtonTapped()
+      #expect(coordinator.presentedSheet == .scheduleShow(model))
+      #expect(model.isSaving)
+
+      openGate.yield()
+      openGate.finish()
+      await save.value
+
+      #expect(finished.value)
+      #expect(coordinator.presentedSheet == nil)
+      #expect(model.isCancelEnabled)
+    }
+  }
+
+  @Test func aThrowingScheduleClosureKeepsTheSheetOpenAndCancelWorksAgain() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let (gate, openGate) = AsyncStream<Void>.makeStream()
+      let model = makeModel { _ in
+        for await _ in gate { break }
+        throw APIError.serverError("This overlaps Fall Favorites.")
+      }
+      coordinator.presentedSheet = .scheduleShow(model)
+
+      let save = Task { await model.scheduleButtonTapped() }
+      await Task.megaYield()
+      model.cancelButtonTapped()
+      #expect(coordinator.presentedSheet == .scheduleShow(model))
+      openGate.yield()
+      openGate.finish()
+      await save.value
+
+      expectNoDifference(model.errorLines, ["This overlaps Fall Favorites."])
+      #expect(coordinator.presentedSheet == .scheduleShow(model))
+      #expect(model.isCancelEnabled)
+      #expect(!model.isSwipeDismissDisabled)
+
+      model.cancelButtonTapped()
+      #expect(coordinator.presentedSheet == nil)
+    }
+  }
+
+  @Test func theDismissedClosureRunsOnceWhenTheSheetIsGone() {
+    let dismissals = LockIsolated(0)
+    let model = withDependencies {
+      $0.date.now = airtime.addingTimeInterval(-24 * 3600)
+    } operation: {
+      ScheduleShowSheetModel(
+        episode: episode(), series: series(), settings: settings(), occupiedIntervals: [],
+        initialTime: nil, schedule: { _ in },
+        dismissed: { dismissals.withValue { $0 += 1 } })
+    }
+
+    model.dismissed()
+    model.dismissed()
+
+    expectNoDifference(dismissals.value, 1)
+  }
+
+  @Test func withoutADismissedClosureDismissalDoesNothing() {
+    makeModel().dismissed()
+  }
+
   // MARK: - Refusals
 
   @Test func refusalShowsMessageAndDisablesScheduleUntilTimeChanges() async {

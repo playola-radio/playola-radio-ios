@@ -43,12 +43,14 @@ class ScheduleShowSheetModel: ViewModel {
     settings: StationSchedulingSettings,
     occupiedIntervals: [DateInterval],
     initialTime: Date?,
-    schedule: @escaping @MainActor (_ airtime: Date) async throws -> Void
+    schedule: @escaping @MainActor (_ airtime: Date) async throws -> Void,
+    dismissed: (@MainActor () -> Void)? = nil
   ) {
     self.episode = episode
     self.series = series
     self.settings = settings
     self.schedule = schedule
+    self.dismissedAction = dismissed
     self.pickedTime = initialTime ?? .distantPast
     super.init()
     slotRows = makeSlotRows(occupiedIntervals: occupiedIntervals)
@@ -65,6 +67,8 @@ class ScheduleShowSheetModel: ViewModel {
   private(set) var slotRows: IdentifiedArrayOf<ScheduleSlotRow> = []
   private var failure: ScheduleFailure?
   @ObservationIgnored private let schedule: @MainActor (_ airtime: Date) async throws -> Void
+  /// Runs once, after SwiftUI has finished dismissing this sheet (see MainContainer's bridge).
+  @ObservationIgnored private var dismissedAction: (@MainActor () -> Void)?
 
   var cancelButtonTitle: String { "Cancel" }
   var whenLabel: String { "WHEN" }
@@ -79,6 +83,7 @@ class ScheduleShowSheetModel: ViewModel {
   }
 
   func cancelButtonTapped() {
+    guard !isSaving else { return }
     dismiss()
   }
 
@@ -98,7 +103,19 @@ class ScheduleShowSheetModel: ViewModel {
     }
   }
 
+  /// Called once SwiftUI has finished dismissing the sheet.
+  func dismissed() {
+    let action = dismissedAction
+    dismissedAction = nil
+    action?()
+  }
+
   // MARK: - View Helpers
+
+  /// The sheet stays open until its schedule closure has finished.
+  var isCancelEnabled: Bool { !isSaving }
+
+  var isSwipeDismissDisabled: Bool { isSaving }
 
   var isChangingTime: Bool { episode.upcomingAiring(now: now) != nil }
 
