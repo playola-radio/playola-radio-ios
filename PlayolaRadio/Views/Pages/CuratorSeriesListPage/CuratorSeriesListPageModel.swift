@@ -46,6 +46,14 @@ struct CuratorSeriesUpcoming {
     return formatter.string(from: date)
   }
 
+  /// "7pm", or "7:30pm".
+  static func shortTime(_ date: Date, in timeZone: TimeZone) -> String {
+    let minutes = formatted(date, "mm", in: timeZone)
+    let hour = formatted(date, "h", in: timeZone)
+    let suffix = formatted(date, "a", in: timeZone).lowercased()
+    return minutes == "00" ? "\(hour)\(suffix)" : "\(hour):\(minutes)\(suffix)"
+  }
+
   /// The Series' upcoming Shows (each once, at its next airing; aired Shows and drafts never) and
   /// up to `slotLimit` open slots no station Airing covers, merged by date.
   func entries(for series: CuratorSeries, slotLimit: Int) -> [CuratorSeriesUpcomingEntry] {
@@ -160,6 +168,7 @@ class CuratorSeriesListPageModel: ViewModel {
   var settings: StationSchedulingSettings?
   var isLoading = false
   var hasLoaded = false
+  var presentedAlert: PlayolaAlert?
   /// Counts loads so an older one that finishes late can't overwrite a newer one's result.
   @ObservationIgnored private var latestLoad = 0
 
@@ -196,7 +205,17 @@ class CuratorSeriesListPageModel: ViewModel {
         ShowBuilderPageModel(stationId: stationId, episodeId: episodeId, seriesId: nil, slot: nil)))
   }
 
-  func addShowTapped(slot: Date) {}
+  /// A slot only exists once settings and airings have loaded, so they are always here.
+  func addShowTapped(_ card: CuratorSeriesCard, slot: Date) {
+    guard let settings else { return }
+    let sheet = withDependencies(from: self) {
+      AddShowToSeriesSheetModel(
+        stationId: stationId, series: card.series, slot: slot, settings: settings,
+        airings: airings,
+        onAddFinished: { [weak self] failure in self?.presentedAlert = failure?.alert })
+    }
+    navigationCoordinator.presentedSheet = .addShowToSeries(sheet)
+  }
 
   func createSeriesButtonTapped() {
     let details = withDependencies(from: self) {
@@ -242,7 +261,8 @@ class CuratorSeriesListPageModel: ViewModel {
     case .show(let episode, let airing):
       return CuratorSeriesCardItem(
         id: "show-\(episode.id)", date: airing.airtime, timeZone: timeZone,
-        subtitle: "\(dayText(airing.airtime)) at \(timeText(airing.airtime))",
+        subtitle:
+          "\(dayText(airing.airtime)) at \(CuratorSeriesUpcoming.shortTime(airing.airtime, in: timeZone))",
         kind: .show(episodeId: episode.id, title: episode.title))
     case .slot(let date):
       return CuratorSeriesCardItem(
@@ -256,14 +276,6 @@ class CuratorSeriesListPageModel: ViewModel {
     let weekday = CuratorSeriesUpcoming.formatted(date, "EEEE", in: timeZone)
     let day = Int(CuratorSeriesUpcoming.formatted(date, "d", in: timeZone)) ?? 0
     return "\(weekday) the \(Self.ordinal(day))"
-  }
-
-  /// "7pm", or "7:30pm".
-  private func timeText(_ date: Date) -> String {
-    let minutes = CuratorSeriesUpcoming.formatted(date, "mm", in: timeZone)
-    let hour = CuratorSeriesUpcoming.formatted(date, "h", in: timeZone)
-    let suffix = CuratorSeriesUpcoming.formatted(date, "a", in: timeZone).lowercased()
-    return minutes == "00" ? "\(hour)\(suffix)" : "\(hour):\(minutes)\(suffix)"
   }
 
   private static func ordinal(_ day: Int) -> String {

@@ -1,0 +1,173 @@
+appId: fm.playola.playolaradio.staging
+---
+# On "Saturday Night Songbook": from the first open slot, add the draft "Tour Stories" (scheduled
+# at the slot, then put in the Series) and see it fill that slot; from the next slot, add the
+# scheduled "Back Porch Requests" (moved there, then put in the Series); with "Add a Show" (no
+# slot), add the draft "Songs From the Road", which joins the Series and stays a draft. The sheet
+# never offers "Empty Draft" (no audio). "Record a New Show" from
+# a slot opens the builder for a new Show; backing out leaves nothing. Again from the next slot, a
+# new Show gets a song, joins the Series, and its Schedule sheet starts at that Saturday 8pm slot;
+# scheduling it there fills the slot. Then on "Friday Afternoon
+# Drive", whose first slot is less than six hours away, adding "Holiday Hangout" opens the Schedule
+# sheet at that slot with "Locks right away"; scheduling there finishes the add.
+- tapOn:
+    text: ".*Add show"
+    index: 0
+- extendedWaitUntil:
+    visible: "OR ADD ONE OF YOUR SHOWS"
+    timeout: 30000
+- assertVisible: "Saturday Night Songbook · Saturday, .* at 8pm"
+- assertVisible: "Record a New Show"
+- scrollUntilVisible:
+    element: "Moves here from Wed, .*"
+    direction: DOWN
+- assertNotVisible: "Empty Draft"
+- scrollUntilVisible:
+    element: "Add Tour Stories"
+    direction: UP
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Add Tour Stories"
+- extendedWaitUntil:
+    notVisible: "OR ADD ONE OF YOUR SHOWS"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "Tour Stories"
+    timeout: 30000
+- assertVisible: "Saturday · 8:00 PM · .*"
+- tapOn:
+    text: ".*Add show"
+    index: 0
+- extendedWaitUntil:
+    visible: "Saturday Night Songbook · Saturday, .* at 8pm"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "OR ADD ONE OF YOUR SHOWS"
+    timeout: 30000
+- assertNotVisible: "Add Tour Stories"
+- scrollUntilVisible:
+    element: "Add Back Porch Requests"
+    direction: DOWN
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Add Back Porch Requests"
+- extendedWaitUntil:
+    notVisible: "OR ADD ONE OF YOUR SHOWS"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "Back Porch Requests"
+    timeout: 30000
+- tapOn: ".*Add a Show"
+- extendedWaitUntil:
+    visible: "OR ADD ONE OF YOUR SHOWS"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "Add Songs From the Road"
+    direction: DOWN
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Add Songs From the Road"
+- extendedWaitUntil:
+    notVisible: "OR ADD ONE OF YOUR SHOWS"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "Songs From the Road"
+    timeout: 30000
+- assertVisible: "Not scheduled yet · .*"
+- tapOn:
+    text: ".*Add show"
+    index: 0
+- extendedWaitUntil:
+    visible: "Start from scratch for this slot"
+    timeout: 30000
+- tapOn: "Record a New Show"
+- extendedWaitUntil:
+    visible: "YOUR SHOW"
+    timeout: 30000
+- tapOn:
+    id: "BackButton"
+- extendedWaitUntil:
+    visible: "Songs From the Road"
+    timeout: 30000
+- assertNotVisible: "New Show"
+- tapOn:
+    text: ".*Add show"
+    index: 0
+- extendedWaitUntil:
+    visible: "Start from scratch for this slot"
+    timeout: 30000
+- tapOn: "Record a New Show"
+- extendedWaitUntil:
+    visible: "YOUR SHOW"
+    timeout: 30000
+- tapOn: "Song"
+- extendedWaitUntil:
+    visible: "Search for songs"
+    timeout: 30000
+- tapOn: "Search for songs"
+- inputText: "Play a Train Song"
+- extendedWaitUntil:
+    visible: "Add"
+    timeout: 30000
+# Adding a song closes the picker.
+- tapOn:
+    text: "Add"
+    index: 0
+- extendedWaitUntil:
+    visible: "Saturday Night Songbook"
+    timeout: 30000
+- tapOn: "Schedule"
+- extendedWaitUntil:
+    visible: "Schedule New Show"
+    timeout: 30000
+- assertVisible: "Sat, .*"
+- assertVisible: "8:00 PM"
+- tapOn: "Schedule"
+- extendedWaitUntil:
+    notVisible: "Schedule New Show"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "Saturday, .* · .*"
+    timeout: 30000
+- tapOn:
+    id: "BackButton"
+- extendedWaitUntil:
+    visible: "New Show"
+    timeout: 30000
+- tapOn: "Series"
+- extendedWaitUntil:
+    visible: "Create a New Series"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "Friday Afternoon Drive"
+    direction: DOWN
+    centerElement: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Friday Afternoon Drive"
+- extendedWaitUntil:
+    visible: "No drafts in this series."
+    timeout: 30000
+- tapOn:
+    text: ".*Add show"
+    index: 0
+- extendedWaitUntil:
+    visible: "OR ADD ONE OF YOUR SHOWS"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "Add Holiday Hangout"
+    direction: DOWN
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Add Holiday Hangout"
+- extendedWaitUntil:
+    visible: "Locks right away"
+    timeout: 30000
+- assertVisible: "Schedule Holiday Hangout"
+- tapOn: "Schedule"
+- extendedWaitUntil:
+    notVisible: "Locks right away"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "Holiday Hangout"
+    timeout: 30000

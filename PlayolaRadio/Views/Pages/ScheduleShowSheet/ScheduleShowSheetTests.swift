@@ -244,6 +244,165 @@ struct ScheduleShowSheetTests {
     }
   }
 
+  // MARK: - Saving blocks Cancel and swipe
+
+  @Test func cancelAndSwipeAreBlockedWhileTheScheduleClosureRuns() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let finished = LockIsolated(false)
+      let (gate, openGate) = AsyncStream<Void>.makeStream()
+      let model = makeModel { _ in
+        for await _ in gate { break }
+        finished.setValue(true)
+      }
+      coordinator.presentedSheet = .scheduleShow(model)
+      #expect(model.isCancelEnabled)
+      #expect(!model.isSwipeDismissDisabled)
+
+      let save = Task { await model.scheduleButtonTapped() }
+      await Task.megaYield()
+      #expect(!model.isCancelEnabled)
+      #expect(model.isSwipeDismissDisabled)
+
+      model.cancelButtonTapped()
+      #expect(coordinator.presentedSheet == .scheduleShow(model))
+      #expect(model.isSaving)
+
+      openGate.yield()
+      openGate.finish()
+      await save.value
+
+      #expect(finished.value)
+      #expect(coordinator.presentedSheet == nil)
+      #expect(model.isCancelEnabled)
+    }
+  }
+
+  @Test func aThrowingScheduleClosureKeepsTheSheetOpenAndCancelWorksAgain() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let (gate, openGate) = AsyncStream<Void>.makeStream()
+      let model = makeModel { _ in
+        for await _ in gate { break }
+        throw APIError.serverError("This overlaps Fall Favorites.")
+      }
+      coordinator.presentedSheet = .scheduleShow(model)
+
+      let save = Task { await model.scheduleButtonTapped() }
+      await Task.megaYield()
+      model.cancelButtonTapped()
+      #expect(coordinator.presentedSheet == .scheduleShow(model))
+      openGate.yield()
+      openGate.finish()
+      await save.value
+
+      expectNoDifference(model.errorLines, ["This overlaps Fall Favorites."])
+      #expect(coordinator.presentedSheet == .scheduleShow(model))
+      #expect(model.isCancelEnabled)
+      #expect(!model.isSwipeDismissDisabled)
+
+      model.cancelButtonTapped()
+      #expect(coordinator.presentedSheet == nil)
+    }
+  }
+
+  @Test func theDismissedClosureRunsOnceWhenTheSheetIsGone() {
+    let dismissals = LockIsolated(0)
+    let model = withDependencies {
+      $0.date.now = airtime.addingTimeInterval(-24 * 3600)
+    } operation: {
+      ScheduleShowSheetModel(
+        episode: episode(), series: series(), settings: settings(), occupiedIntervals: [],
+        initialTime: nil, schedule: { _ in },
+        dismissed: { dismissals.withValue { $0 += 1 } })
+    }
+
+    model.dismissed()
+    model.dismissed()
+
+    expectNoDifference(dismissals.value, 1)
+  }
+
+  /// An Add a show sheet for a draft whose slot (`airtime`) is an hour away, inside the lock.
+  private func makeNearSlotAdd(
+    scheduleGate: AsyncStream<Void>, joinGate: AsyncStream<Void>,
+    requests: LockIsolated<[String]>, finishes: LockIsolated<[AddShowToSeriesFailure?]>
+  ) -> AddShowToSeriesSheetModel {
+    let draft = CuratorEpisode(
+      id: "draft", showId: "other", title: "Tour Stories", durationMS: 1_115_000, show: nil,
+      segments: [], airings: [])
+    return withDependencies {
+      $0.date.now = airtime.addingTimeInterval(-3600)
+      $0.notificationCenter = NotificationCenter()
+      $0.errorReporting.reportError = { _, _ in }
+      $0.api.getCuratorEpisodes = { _, _, _ in [draft] }
+      $0.api.scheduleEpisode = { _, _, _, _ in
+        requests.withValue { $0.append("schedule") }
+        for await _ in scheduleGate { break }
+      }
+      $0.api.updateEpisode = { _, _, _ in
+        requests.withValue { $0.append("join") }
+        for await _ in joinGate { break }
+        throw APIError.serverError("Series not found.")
+      }
+    } operation: {
+      AddShowToSeriesSheetModel(
+        stationId: "station-1", series: series(), slot: airtime, settings: settings(),
+        airings: [], onAddFinished: { failure in finishes.withValue { $0.append(failure) } })
+    }
+  }
+
+  @Test func aNearSlotAddCannotBeCancelledDuringEitherStepAndAlertsAfterClosing() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let (scheduleGate, openSchedule) = AsyncStream<Void>.makeStream()
+      let (joinGate, openJoin) = AsyncStream<Void>.makeStream()
+      let requests = LockIsolated<[String]>([])
+      let finishes = LockIsolated<[AddShowToSeriesFailure?]>([])
+      let addShow = makeNearSlotAdd(
+        scheduleGate: scheduleGate, joinGate: joinGate, requests: requests, finishes: finishes)
+      await addShow.viewAppeared()
+      coordinator.presentedSheet = .addShowToSeries(addShow)
+      await addShow.addButtonTapped("draft")
+      guard case .scheduleShow(let schedule) = coordinator.presentedSheet else {
+        Issue.record("Expected the Schedule sheet")
+        return
+      }
+
+      let save = Task { await schedule.scheduleButtonTapped() }
+      await Task.megaYield()
+      expectNoDifference(requests.value, ["schedule"])
+      schedule.cancelButtonTapped()
+      #expect(coordinator.presentedSheet == .scheduleShow(schedule))
+
+      openSchedule.yield()
+      openSchedule.finish()
+      await Task.megaYield()
+      expectNoDifference(requests.value, ["schedule", "join"])
+      schedule.cancelButtonTapped()
+      #expect(coordinator.presentedSheet == .scheduleShow(schedule))
+
+      openJoin.yield()
+      openJoin.finish()
+      await save.value
+
+      expectNoDifference(schedule.errorLines, [])
+      #expect(coordinator.presentedSheet == nil)
+      expectNoDifference(finishes.value.count, 0)
+      schedule.dismissed()
+      expectNoDifference(
+        finishes.value,
+        [
+          AddShowToSeriesFailure(
+            title: "Scheduled, but Not in This One\u{2019}s For You", message: "Series not found.")
+        ])
+    }
+  }
+
   // MARK: - Refusals
 
   @Test func refusalShowsMessageAndDisablesScheduleUntilTimeChanges() async {

@@ -511,4 +511,56 @@ struct CuratorSeriesListPageTests {
 
     #expect(coordinator.presentedSheet == nil)
   }
+
+  // MARK: - Add a show
+
+  @Test func addShowPresentsTheSheetWithTheSlotSettingsAndAirings() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let other = episode("other", seriesId: "s2", at: [stationTime(2026, 11, 8, 19)])
+    let model = await makeModel(
+      series: [series("s1", rrule: sundaySeven), series("s2", rrule: nil)], episodes: [other])
+    let card = model.cards[id: "s1"]!
+    let slot = card.items.first!.slots.first!.tile.date
+
+    model.addShowTapped(card, slot: slot)
+
+    guard case .addShowToSeries(let sheet) = coordinator.presentedSheet else {
+      Issue.record("Expected the Add a show sheet")
+      return
+    }
+    expectNoDifference(slot, stationTime(2026, 11, 15, 19))
+    expectNoDifference(sheet.slot, slot)
+    expectNoDifference(sheet.series, card.series)
+    expectNoDifference(sheet.stationId, stationId)
+    expectNoDifference(sheet.settings, settings)
+    expectNoDifference(sheet.airings.map(\.id), ["other-airing-0"])
+  }
+
+  @Test func aFailedAddBecomesTheListsAlertOnlyAfterTheSheetCloses() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let draft = episode("draft", seriesId: "s2")
+    let model = await makeModel(series: [series("s1", rrule: sundaySeven)], episodes: [draft]) {
+      $0.notificationCenter = NotificationCenter()
+      $0.api.scheduleEpisode = { _, _, _, _ in
+        throw APIError.recordedShowLocked("This show is locked.")
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    let card = model.cards[id: "s1"]!
+    model.addShowTapped(card, slot: card.items.first!.slots.first!.tile.date)
+    guard case .addShowToSeries(let sheet) = coordinator.presentedSheet else {
+      Issue.record("Expected the Add a show sheet")
+      return
+    }
+    await sheet.viewAppeared()
+
+    await sheet.addButtonTapped("draft")
+    #expect(model.presentedAlert == nil)
+    sheet.dismissed()
+
+    expectNoDifference(model.presentedAlert?.title, "Show Locked")
+    expectNoDifference(model.presentedAlert?.message, "This show is locked.")
+  }
 }

@@ -52,6 +52,7 @@ struct CuratorSeriesPageView: View {
       addShowButton
     }
     .background(Color.black)
+    .playolaAlert($model.presentedAlert)
     .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
@@ -71,7 +72,7 @@ struct CuratorSeriesPageView: View {
 
   private var addShowButton: some View {
     Button {
-      model.addAShowButtonTapped()
+      Task { await model.addAShowButtonTapped() }
     } label: {
       HStack(spacing: 10) {
         Image(systemName: "plus")

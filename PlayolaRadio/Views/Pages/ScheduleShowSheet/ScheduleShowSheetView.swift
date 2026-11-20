@@ -52,6 +52,7 @@ struct ScheduleShowSheetView: View {
       .padding(.horizontal, 20)
       .frame(maxWidth: .infinity, alignment: .leading)
     }
+    .interactiveDismissDisabled(model.isSwipeDismissDisabled)
   }
 
   private var sheetBar: some View {
@@ -66,6 +67,7 @@ struct ScheduleShowSheetView: View {
         Button(model.cancelButtonTitle) { model.cancelButtonTapped() }
           .font(.custom(FontNames.Inter_400_Regular, size: 16))
           .foregroundColor(.playolaTextSecondary)
+          .disabled(!model.isCancelEnabled)
         Spacer()
         Button(model.saveButtonTitle) { Task { await model.scheduleButtonTapped() } }
           .font(.custom(FontNames.Inter_600_SemiBold, size: 16))
