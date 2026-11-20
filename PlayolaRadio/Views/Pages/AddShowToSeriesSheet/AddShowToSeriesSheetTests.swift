@@ -285,12 +285,12 @@ struct AddShowToSeriesSheetTests {
     let model = await makeModel(slot: slot, episodes: [tourStories], finishes: finishes) {
       $0.notificationCenter = center
       $0.api.scheduleEpisode = { [slot] _, episodeId, stationId, airtime in
-        #expect(airtime == slot)
+        expectNoDifference(airtime, slot)
         requests.withValue { $0.append("schedule:\(episodeId):\(stationId)") }
       }
       $0.api.updateEpisode = { [tourStories] _, episodeId, update in
         requests.withValue { $0.append("join:\(episodeId)") }
-        #expect(update == CuratorEpisodeUpdate(series: .join("s1")))
+        expectNoDifference(update, CuratorEpisodeUpdate(series: .join("s1")))
         return tourStories
       }
     }
@@ -300,7 +300,7 @@ struct AddShowToSeriesSheetTests {
 
     expectNoDifference(requests.value, ["schedule:tour-stories:station-1", "join:tour-stories"])
     expectNoDifference(posts.value, ["station-1"])
-    #expect(coordinator.presentedSheet == nil)
+    expectNoDifference(coordinator.presentedSheet, nil)
     expectNoDifference(finishes.value.count, 0)
 
     model.dismissed()
@@ -312,7 +312,7 @@ struct AddShowToSeriesSheetTests {
     let requests = LockIsolated<[String]>([])
     let model = await makeModel(slot: slot, episodes: [backPorch]) {
       $0.api.moveAiring = { [slot] _, airingId, airtime in
-        #expect(airtime == slot)
+        expectNoDifference(airtime, slot)
         requests.withValue { $0.append("move:\(airingId)") }
       }
       $0.api.updateEpisode = { [backPorch] _, episodeId, _ in
@@ -362,14 +362,14 @@ struct AddShowToSeriesSheetTests {
 
       model.recordNewShowTapped()
       await model.addButtonTapped("back-porch")
-      #expect(coordinator.presentedSheet == .addShowToSeries(model))
+      expectNoDifference(coordinator.presentedSheet, .addShowToSeries(model))
       expectNoDifference(coordinator.path.count, 0)
 
       openSchedule.yield()
       openSchedule.finish()
       await Task.megaYield()
       expectNoDifference(requests.value, ["schedule", "join"])
-      #expect(coordinator.presentedSheet == .addShowToSeries(model))
+      expectNoDifference(coordinator.presentedSheet, .addShowToSeries(model))
       model.recordNewShowTapped()
       expectNoDifference(coordinator.path.count, 0)
 
@@ -377,7 +377,7 @@ struct AddShowToSeriesSheetTests {
       openJoin.finish()
       await add.value
 
-      #expect(coordinator.presentedSheet == nil)
+      expectNoDifference(coordinator.presentedSheet, nil)
       expectNoDifference(coordinator.path.count, 0)
       expectNoDifference(finishes.value.count, 0)
       model.dismissed()
@@ -603,7 +603,7 @@ struct AddShowToSeriesSheetTests {
 
     expectNoDifference(requests.value, ["schedule", "join"])
     expectNoDifference(posts.value, ["station-1"])
-    #expect(coordinator.presentedSheet == nil)
+    expectNoDifference(coordinator.presentedSheet, nil)
     expectNoDifference(finishes.value.count, 0)
     schedule.dismissed()
     expectNoDifference(finishes.value, [nil])
@@ -636,7 +636,7 @@ struct AddShowToSeriesSheetTests {
     await schedule.scheduleButtonTapped()
 
     expectNoDifference(schedule.errorLines, ["This overlaps Fall Favorites."])
-    #expect(coordinator.presentedSheet == .scheduleShow(schedule))
+    expectNoDifference(coordinator.presentedSheet, .scheduleShow(schedule))
     expectNoDifference(joins.value, 0)
     expectNoDifference(posts.value, ["station-1"])
 
@@ -703,7 +703,30 @@ struct AddShowToSeriesSheetTests {
     await schedule.scheduleButtonTapped()
 
     expectNoDifference(requests.value, ["schedule", "join"])
-    #expect(coordinator.presentedSheet == nil)
+    expectNoDifference(coordinator.presentedSheet, nil)
+  }
+
+  @Test func aFailedRefetchAfterAFailedScheduleIsReported() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let endpoints = LockIsolated<[String]>([])
+    let model = await makeModel(slot: nearSlot, episodes: [tourStories]) {
+      $0.api.scheduleEpisode = { _, _, _, _ in throw AddShowTestError() }
+      $0.api.getCuratorEpisode = { _, _ in throw AddShowTestError() }
+      $0.errorReporting.reportError = { _, tags in
+        endpoints.withValue { $0.append(tags["endpoint"] ?? "nil") }
+      }
+    }
+    coordinator.presentedSheet = .addShowToSeries(model)
+    await model.addButtonTapped("tour-stories")
+    guard case .scheduleShow(let schedule) = coordinator.presentedSheet else {
+      Issue.record("Expected the Schedule sheet")
+      return
+    }
+
+    await schedule.scheduleButtonTapped()
+
+    expectNoDifference(endpoints.value, ["scheduleInSeriesSlot", "getCuratorEpisode"])
   }
 
   @Test func cancellingTheScheduleSheetBeforeSchedulingDoesNothing() async {
@@ -729,7 +752,7 @@ struct AddShowToSeriesSheetTests {
     schedule.cancelButtonTapped()
     schedule.dismissed()
 
-    #expect(coordinator.presentedSheet == nil)
+    expectNoDifference(coordinator.presentedSheet, nil)
     expectNoDifference(requests.value, 0)
     expectNoDifference(finishes.value.count, 0)
   }
@@ -751,7 +774,7 @@ struct AddShowToSeriesSheetTests {
 
     model.recordNewShowTapped()
 
-    #expect(coordinator.presentedSheet == nil)
+    expectNoDifference(coordinator.presentedSheet, nil)
     guard case .showBuilderPage(let builder) = coordinator.path.last else {
       Issue.record("Expected the builder")
       return

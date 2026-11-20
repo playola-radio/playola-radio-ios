@@ -46,9 +46,9 @@ struct AddShowToSeriesRow: Identifiable {
   let isBusy: Bool
   let isAddEnabled: Bool
 
-  var drafts: [DraftContent] { airtime == nil ? [DraftContent(id: id)] : [] }
+  var drafts: IdentifiedArrayOf<DraftContent> { airtime == nil ? [DraftContent(id: id)] : [] }
 
-  var scheduled: [ScheduledContent] {
+  var scheduled: IdentifiedArrayOf<ScheduledContent> {
     airtime.map { [ScheduledContent(id: id, tile: Tile(date: $0, timeZone: timeZone))] } ?? []
   }
 
@@ -287,10 +287,13 @@ class AddShowToSeriesSheetModel: ViewModel {
   }
 
   private func refreshEpisode(_ episodeId: String, jwt: String) async {
-    guard let fresh = try? await api.getCuratorEpisode(jwt, episodeId),
-      let index = episodes.firstIndex(where: { $0.id == episodeId })
-    else { return }
-    episodes[index] = fresh
+    do {
+      let fresh = try await api.getCuratorEpisode(jwt, episodeId)
+      guard let index = episodes.firstIndex(where: { $0.id == episodeId }) else { return }
+      episodes[index] = fresh
+    } catch {
+      if !isCancellation(error) { await report(error, endpoint: "getCuratorEpisode") }
+    }
   }
 
   /// Step 1 (schedule or move to the slot) and, only if it succeeds, step 2 (join the Series).
