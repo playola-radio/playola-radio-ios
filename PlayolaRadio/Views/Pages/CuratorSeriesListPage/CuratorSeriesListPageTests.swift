@@ -73,11 +73,10 @@ struct CuratorSeriesListPageTests {
   private func makeModel(
     series: [CuratorSeries] = [],
     episodes: [CuratorEpisode] = [],
-    airings: [Airing]? = nil,
     _ configure: (inout DependencyValues) -> Void = { _ in }
   ) async -> CuratorSeriesListPageModel {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
-    let stationAirings = airings ?? stationAirings(episodes)
+    let stationAirings = stationAirings(episodes)
     return await withDependencies {
       $0.date.now = now
       $0.api.getCuratorSeries = { _, _ in series }
@@ -301,6 +300,47 @@ struct CuratorSeriesListPageTests {
       #expect(!model.isProgressVisible)
       expectNoDifference(model.loadingOpacity, 0)
       expectNoDifference(model.cards.map(\.id), ["s1"])
+    }
+  }
+
+  @Test func aLateOlderLoadDoesNotOverwriteANewerOne() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      let (gate, open) = AsyncStream<Void>.makeStream()
+      let loads = LockIsolated(0)
+      let airingsLoads = LockIsolated(0)
+      let model = withDependencies {
+        $0.date.now = now
+        $0.api.getCuratorSeries = { [self] _, _ in
+          let load = loads.withValue {
+            $0 += 1
+            return $0
+          }
+          return load == 1 ? [] : [series("new", rrule: nil)]
+        }
+        $0.api.getCuratorEpisodes = { _, _, _ in [] }
+        $0.api.getAirings = { _, _ in
+          if airingsLoads.withValue({
+            $0 += 1
+            return $0
+          }) == 1 {
+            for await _ in gate { break }
+          }
+          return []
+        }
+        $0.api.getStationSchedulingSettings = { [settings] _, _ in settings }
+      } operation: {
+        CuratorSeriesListPageModel(stationId: stationId)
+      }
+
+      let olderLoad = Task { await model.viewAppeared() }
+      await Task.megaYield()
+      await model.viewAppeared()
+      open.yield()
+      open.finish()
+      await olderLoad.value
+
+      expectNoDifference(model.cards.map(\.id), ["new"])
     }
   }
 

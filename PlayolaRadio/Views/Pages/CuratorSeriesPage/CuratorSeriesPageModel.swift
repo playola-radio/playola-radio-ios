@@ -24,8 +24,7 @@ struct CuratorSeriesUpcomingRow: Identifiable, Equatable {
     case slot
   }
 
-  struct Tile: Identifiable, Equatable {
-    let id: String
+  struct Tile: Equatable {
     let date: Date
     let timeZone: TimeZone
   }
@@ -68,7 +67,7 @@ struct CuratorSeriesUpcomingRow: Identifiable, Equatable {
     ]
   }
 
-  private var tile: Tile { Tile(id: id, date: date, timeZone: timeZone) }
+  private var tile: Tile { Tile(date: date, timeZone: timeZone) }
 }
 
 @MainActor
@@ -107,6 +106,8 @@ class CuratorSeriesPageModel: ViewModel {
   var settings: StationSchedulingSettings?
   var isLoading = false
   var hasLoaded = false
+  /// Counts loads so an older one that finishes late can't overwrite a newer one's result.
+  @ObservationIgnored private var latestLoad = 0
 
   var navigationTitle: String { series.title }
   var editButtonTitle: String { "Edit" }
@@ -222,6 +223,8 @@ class CuratorSeriesPageModel: ViewModel {
 
   private func loadSeries() async {
     guard let token = auth.jwt else { return }
+    latestLoad += 1
+    let thisLoad = latestLoad
     isLoading = true
     defer { isLoading = false }
     do {
@@ -232,7 +235,7 @@ class CuratorSeriesPageModel: ViewModel {
       let (newSeries, newEpisodes, newAirings, newSettings) = try await (
         loadedSeries, loadedEpisodes, loadedAirings, loadedSettings
       )
-      guard !Task.isCancelled else { return }
+      guard !Task.isCancelled, thisLoad == latestLoad else { return }
       series = newSeries
       episodes = newEpisodes
       airings = newAirings

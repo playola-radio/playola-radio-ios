@@ -71,13 +71,12 @@ struct CuratorSeriesPageTests {
     tapped: CuratorSeries? = nil,
     loaded: CuratorSeries? = nil,
     episodes: [CuratorEpisode] = [],
-    otherStationEpisodes: [CuratorEpisode] = [],
     _ configure: (inout DependencyValues) -> Void = { _ in }
   ) async -> CuratorSeriesPageModel {
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let tappedSeries = tapped ?? series(rrule: sundaySeven)
     let loadedSeries = loaded ?? tappedSeries
-    let airings = stationAirings(episodes + otherStationEpisodes)
+    let airings = stationAirings(episodes)
     return await withDependencies {
       $0.date.now = now
       $0.api.getCuratorSeriesById = { _, _ in loadedSeries }
@@ -334,6 +333,47 @@ struct CuratorSeriesPageTests {
       open.finish()
       await load.value
       #expect(!model.isProgressVisible)
+    }
+  }
+
+  @Test func aLateOlderLoadDoesNotOverwriteANewerOne() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+      let (gate, open) = AsyncStream<Void>.makeStream()
+      let loads = LockIsolated(0)
+      let airingsLoads = LockIsolated(0)
+      let model = withDependencies {
+        $0.date.now = now
+        $0.api.getCuratorSeriesById = { [self] _, _ in
+          let load = loads.withValue {
+            $0 += 1
+            return $0
+          }
+          return series(load == 1 ? "Old" : "New", rrule: nil)
+        }
+        $0.api.getCuratorEpisodes = { _, _, _ in [] }
+        $0.api.getAirings = { _, _ in
+          if airingsLoads.withValue({
+            $0 += 1
+            return $0
+          }) == 1 {
+            for await _ in gate { break }
+          }
+          return []
+        }
+        $0.api.getStationSchedulingSettings = { [settings] _, _ in settings }
+      } operation: {
+        CuratorSeriesPageModel(stationId: stationId, series: series(rrule: nil))
+      }
+
+      let olderLoad = Task { await model.viewAppeared() }
+      await Task.megaYield()
+      await model.viewAppeared()
+      open.yield()
+      open.finish()
+      await olderLoad.value
+
+      expectNoDifference(model.navigationTitle, "New")
     }
   }
 
