@@ -54,6 +54,21 @@ the files into `CHANGELOG.md` at release time.
 - If you truly need staged rollout, use a *server-driven* flag that is explicitly turned on for production when the feature launches — and make turning it on part of the launch checklist. The default must never be "production is the disabled environment."
 - Production must never be the environment where a feature is the most disabled.
 
+## Mockups are the spec
+
+**When a screen has a mockup, the built screen must match it.** Mockups live in
+`design/features/<slug>/exports/` (PNG + JSON) and `design/exports/`. We spend a lot of time
+getting them right; they are not suggestions.
+
+- Before calling a screen done, screenshot every mockup state (with fixture data that matches
+  the mockup's content) and compare side by side: layout, copy, icons, colors, number
+  formatting. Only iOS system chrome (status bar, glass nav buttons, system tab bar) may differ.
+- A difference is a defect to fix before the PR, not a note to list in it.
+- Placeholders stand for real content. Grey image tiles and sample names or numbers mean "the
+  real thing goes here": show the real album art or photo, with the placeholder as the fallback.
+- If a request conflicts with a mockup, point out the conflict before building it. If a mockup
+  can't be matched or is ambiguous, stop and ask; never quietly pick a different look.
+
 ## ALWAYS use the Point-Free Workflow (pfw-*) skills
 
 This project is built on Point-Free libraries (`swift-dependencies`, `swift-sharing`, `swift-identified-collections`, `swift-custom-dump`, etc.). Before writing or planning Swift code in this repo, invoke every `pfw-*` skill that applies to the task. This is **mandatory**, not optional.
