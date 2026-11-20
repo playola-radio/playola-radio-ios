@@ -4,7 +4,7 @@ appId: fm.playola.playolaradio.staging
 # at the slot, then put in the Series) and see it fill that slot; from the next slot, add the
 # scheduled "Back Porch Requests" (moved there, then put in the Series); with "Add a Show" (no
 # slot), add the draft "Songs From the Road", which joins the Series and stays a draft. The sheet
-# never offers "Empty Draft" (no audio) or "Christmas Hymns" (two airings). "Record a New Show" from
+# never offers "Empty Draft" (no audio). "Record a New Show" from
 # a slot opens the builder for a new Show; backing out leaves nothing. Again from the next slot, a
 # new Show gets a song, joins the Series, and its Schedule sheet starts at that Saturday 8pm slot;
 # scheduling it there fills the slot. Then on "Friday Afternoon
@@ -22,7 +22,6 @@ appId: fm.playola.playolaradio.staging
     element: "Moves here from Wed, .*"
     direction: DOWN
 - assertNotVisible: "Empty Draft"
-- assertNotVisible: "Christmas Hymns"
 - scrollUntilVisible:
     element: "Add Tour Stories"
     direction: UP

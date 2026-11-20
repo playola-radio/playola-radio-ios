@@ -205,7 +205,7 @@ class AddShowToSeriesSheetModel: ViewModel {
   private var lockEdge: Date { now.addingTimeInterval(Double(settings.airingEditLockMS) / 1000) }
 
   /// Drafts with audio in server order, then unlocked single-airing scheduled Shows by air time.
-  /// Never this Series' own Shows.
+  /// Never this Series' own Shows, nor Shows scheduled on another station.
   private var offeredEpisodes: [CuratorEpisode] {
     let candidates = episodes.filter { $0.showId != series.id && !$0.isMultiAiring }
     let drafts = candidates.filter { episode in
@@ -213,7 +213,8 @@ class AddShowToSeriesSheetModel: ViewModel {
       return episode.hasAudio
     }
     let scheduled = candidates.compactMap { episode -> (CuratorEpisode, Date)? in
-      guard case .scheduled(let airing) = state(of: episode) else { return nil }
+      guard case .scheduled(let airing) = state(of: episode), airing.stationId == stationId
+      else { return nil }
       return (episode, airing.airtime)
     }
     .enumerated()
@@ -252,7 +253,10 @@ class AddShowToSeriesSheetModel: ViewModel {
         occupiedIntervals: occupiedIntervals(from: airings, excludingEpisodeId: episode.id),
         initialTime: slot,
         schedule: { airtime in try await self.scheduleFromScheduleSheet(episode.id, at: airtime) },
-        dismissed: { self.scheduleSheetDismissed() })
+        dismissed: {
+          self.isStepsSheetDismissed = true
+          self.finishIfSettled()
+        })
     }
     $navigationCoordinator.withLock { $0.presentedSheet = .scheduleShow(sheet) }
   }
@@ -260,7 +264,7 @@ class AddShowToSeriesSheetModel: ViewModel {
   /// The Schedule sheet's closure: a step 1 refusal throws so the sheet shows it inline and stays
   /// open; a join failure is kept for the alert after the sheet closes. A failed step 1 may still
   /// have committed, so the Show is refetched first: a retry then moves that airing rather than
-  /// creating a second one.
+  /// creating a second one, or, if it's already at the picked time, goes straight to the join.
   private func scheduleFromScheduleSheet(_ episodeId: String, at airtime: Date) async throws {
     guard let episode = episodes.first(where: { $0.id == episodeId }) else { return }
     hasRunSteps = true
@@ -289,11 +293,6 @@ class AddShowToSeriesSheetModel: ViewModel {
     episodes[index] = fresh
   }
 
-  private func scheduleSheetDismissed() {
-    isStepsSheetDismissed = true
-    finishIfSettled()
-  }
-
   /// Step 1 (schedule or move to the slot) and, only if it succeeds, step 2 (join the Series).
   /// With no slot only step 2 runs.
   private func addToSeries(_ episode: CuratorEpisode, at slot: Date?) async
@@ -319,6 +318,8 @@ class AddShowToSeriesSheetModel: ViewModel {
     async throws
   {
     if let airing = episode.upcomingAiring(now: now) {
+      // Already there (an earlier attempt committed); moving it again would hit the lock.
+      guard airing.airtime != airtime else { return }
       try await api.moveAiring(jwt, airing.id, airtime)
     } else {
       try await api.scheduleEpisode(jwt, episode.id, stationId, airtime)

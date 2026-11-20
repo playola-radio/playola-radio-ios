@@ -180,6 +180,15 @@ struct AddShowToSeriesSheetTests {
   }
 
   @Test func ineligibleShowsAreNeverOffered() async {
+    let airtime = stationTime(2026, 11, 21, 19)
+    let onAnotherStation = CuratorEpisode(
+      id: "elsewhere", showId: "other-series", title: "Elsewhere", durationMS: 18 * 60_000,
+      show: nil, segments: [],
+      airings: [
+        CuratorAiring(
+          id: "elsewhere-airing", episodeId: "elsewhere", stationId: "station-2",
+          airtime: airtime, startTime: airtime, endTime: airtime.addingTimeInterval(18 * 60))
+      ])
     let model = await makeModel(
       slot: slot,
       episodes: [
@@ -192,6 +201,7 @@ struct AddShowToSeriesSheetTests {
         episode("aired", at: [now.addingTimeInterval(-24 * 3600)]),
         episode("standalone", seriesId: "wrapper-9"),
         episode("other-series", seriesId: "s2", at: [stationTime(2026, 11, 20, 19)]),
+        onAnotherStation,
       ])
 
     expectNoDifference(model.rows.map(\.id), ["standalone", "other-series"])
@@ -660,6 +670,40 @@ struct AddShowToSeriesSheetTests {
     await schedule.scheduleButtonTapped()
 
     expectNoDifference(requests.value, ["schedule", "move tour-stories-airing-0"])
+  }
+
+  @Test func aRetryAtTheTimeAFailedScheduleCommittedGoesStraightToTheJoin() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let requests = LockIsolated<[String]>([])
+    let committed = episode("tour-stories", title: "Tour Stories", at: [nearSlot])
+    let model = await makeModel(slot: nearSlot, episodes: [tourStories]) {
+      $0.api.scheduleEpisode = { _, _, _, _ in
+        requests.withValue { $0.append("schedule") }
+        throw URLError(.timedOut)
+      }
+      $0.api.getCuratorEpisode = { _, _ in committed }
+      $0.api.moveAiring = { _, _, _ in
+        requests.withValue { $0.append("move") }
+        throw APIError.recordedShowLocked("Locked.")
+      }
+      $0.api.updateEpisode = { _, _, _ in
+        requests.withValue { $0.append("join") }
+        return committed
+      }
+    }
+    coordinator.presentedSheet = .addShowToSeries(model)
+    await model.addButtonTapped("tour-stories")
+    guard case .scheduleShow(let schedule) = coordinator.presentedSheet else {
+      Issue.record("Expected the Schedule sheet")
+      return
+    }
+
+    await schedule.scheduleButtonTapped()
+    await schedule.scheduleButtonTapped()
+
+    expectNoDifference(requests.value, ["schedule", "join"])
+    #expect(coordinator.presentedSheet == nil)
   }
 
   @Test func cancellingTheScheduleSheetBeforeSchedulingDoesNothing() async {
