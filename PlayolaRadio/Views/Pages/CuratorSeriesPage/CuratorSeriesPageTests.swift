@@ -454,4 +454,182 @@ struct CuratorSeriesPageTests {
     expectNoDifference(loads.value, 2)
     expectNoDifference(model.navigationTitle, "After")
   }
+
+  // MARK: - Add a show
+
+  @Test func addShowPresentsTheSheetWithTheSlotSettingsAndAirings() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let scheduled = episode("scheduled", at: [stationTime(2026, 11, 8, 19)])
+    let model = await makeModel(episodes: [scheduled])
+    let slot = model.upcomingRows.flatMap(\.slots).first!.tile.date
+
+    model.addShowTapped(slot: slot)
+
+    guard case .addShowToSeries(let sheet) = coordinator.presentedSheet else {
+      Issue.record("Expected the Add a show sheet")
+      return
+    }
+    expectNoDifference(slot, stationTime(2026, 11, 15, 19))
+    expectNoDifference(sheet.slot, slot)
+    expectNoDifference(sheet.series.id, "s1")
+    expectNoDifference(sheet.settings, settings)
+    expectNoDifference(sheet.airings.map(\.id), ["scheduled-airing-0"])
+  }
+
+  @Test func addAShowPresentsTheSheetWithNoSlot() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = await makeModel()
+
+    await model.addAShowButtonTapped()
+
+    guard case .addShowToSeries(let sheet) = coordinator.presentedSheet else {
+      Issue.record("Expected the Add a show sheet")
+      return
+    }
+    expectNoDifference(sheet.slot, nil)
+    expectNoDifference(sheet.subtitle, "This One\u{2019}s For You")
+  }
+
+  @Test func addAShowAfterAFailedFirstLoadLoadsSettingsAndAiringsFirst() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let failFirstLoad = LockIsolated(true)
+    let requests = LockIsolated<[String]>([])
+    let scheduled = episode("scheduled", at: [stationTime(2026, 11, 8, 19)])
+    let airings = stationAirings([scheduled])
+    let model = await makeModel {
+      $0.api.getCuratorSeriesById = { [self] _, _ in
+        if failFirstLoad.value { throw CuratorSeriesPageTestError() }
+        return series(rrule: sundaySeven)
+      }
+      $0.api.getAirings = { _, _ in
+        requests.withValue { $0.append("airings") }
+        return airings
+      }
+      $0.api.getStationSchedulingSettings = { [settings] _, _ in
+        requests.withValue { $0.append("settings") }
+        return settings
+      }
+      $0.toast.show = { _ in }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    #expect(model.settings == nil)
+    requests.setValue([])
+
+    await model.addAShowButtonTapped()
+
+    expectNoDifference(requests.value.sorted(), ["airings", "settings"])
+    guard case .addShowToSeries(let sheet) = coordinator.presentedSheet else {
+      Issue.record("Expected the Add a show sheet")
+      return
+    }
+    expectNoDifference(sheet.settings, settings)
+    expectNoDifference(sheet.airings.map(\.id), ["scheduled-airing-0"])
+    expectNoDifference(model.settings, settings)
+
+    $coordinator.withLock { $0.presentedSheet = nil }
+    requests.setValue([])
+    await model.addAShowButtonTapped()
+    expectNoDifference(requests.value, [])
+  }
+
+  @Test func addAShowAfterTwoFailedLoadsShowsTheToastAndPresentsNothing() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let toasts = LockIsolated<[String]>([])
+    let reports = LockIsolated(0)
+    let model = await makeModel {
+      $0.api.getStationSchedulingSettings = { _, _ in throw CuratorSeriesPageTestError() }
+      $0.toast.show = { toast in toasts.withValue { $0.append(toast.message) } }
+      $0.errorReporting.reportError = { _, _ in reports.withValue { $0 += 1 } }
+    }
+
+    await model.addAShowButtonTapped()
+
+    #expect(coordinator.presentedSheet == nil)
+    expectNoDifference(
+      toasts.value, ["This series couldn\u{2019}t load.", "This series couldn\u{2019}t load."])
+    expectNoDifference(reports.value, 2)
+  }
+
+  @Test func aCancelledAddAShowLoadShowsNothing() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let failure = LockIsolated<any Error>(CuratorSeriesPageTestError())
+    let toasts = LockIsolated(0)
+    let model = await makeModel {
+      $0.api.getStationSchedulingSettings = { _, _ in throw failure.value }
+      $0.toast.show = { _ in toasts.withValue { $0 += 1 } }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    failure.setValue(CancellationError())
+
+    await model.addAShowButtonTapped()
+
+    #expect(coordinator.presentedSheet == nil)
+    expectNoDifference(toasts.value, 1)
+  }
+
+  @Test func aSecondAddAShowTapWhileItLoadsIsIgnored() async {
+    await withMainSerialExecutor {
+      @Shared(.mainContainerNavigationCoordinator) var coordinator =
+        MainContainerNavigationCoordinator()
+      let isFirstLoad = LockIsolated(true)
+      let settingsLoads = LockIsolated(0)
+      let (gate, open) = AsyncStream<Void>.makeStream()
+      let model = await makeModel {
+        $0.api.getStationSchedulingSettings = { [settings] _, _ in
+          if isFirstLoad.value { throw CuratorSeriesPageTestError() }
+          settingsLoads.withValue { $0 += 1 }
+          for await _ in gate { break }
+          return settings
+        }
+        $0.toast.show = { _ in }
+        $0.errorReporting.reportError = { _, _ in }
+      }
+      isFirstLoad.setValue(false)
+
+      let first = Task { await model.addAShowButtonTapped() }
+      await Task.megaYield()
+      await model.addAShowButtonTapped()
+      open.yield()
+      open.finish()
+      await first.value
+
+      expectNoDifference(settingsLoads.value, 1)
+      guard case .addShowToSeries = coordinator.presentedSheet else {
+        Issue.record("Expected the Add a show sheet")
+        return
+      }
+    }
+  }
+
+  @Test func aFailedAddBecomesThePagesAlertOnlyAfterTheSheetCloses() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let standalone = CuratorEpisode(
+      id: "standalone", showId: "wrapper", title: "Tour Stories", durationMS: 18 * 60_000,
+      show: nil, segments: [], airings: [])
+    let model = await makeModel {
+      $0.notificationCenter = NotificationCenter()
+      $0.api.getCuratorEpisodes = { _, stationId, _ in stationId == nil ? [] : [standalone] }
+      $0.api.updateEpisode = { _, _, _ in throw APIError.serverError("Nope.") }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.addAShowButtonTapped()
+    guard case .addShowToSeries(let sheet) = coordinator.presentedSheet else {
+      Issue.record("Expected the Add a show sheet")
+      return
+    }
+    await sheet.viewAppeared()
+
+    await sheet.addButtonTapped("standalone")
+    #expect(model.presentedAlert == nil)
+    sheet.dismissed()
+
+    expectNoDifference(model.presentedAlert?.title, "Couldn\u{2019}t Add")
+    expectNoDifference(model.presentedAlert?.message, "Nope.")
+  }
 }

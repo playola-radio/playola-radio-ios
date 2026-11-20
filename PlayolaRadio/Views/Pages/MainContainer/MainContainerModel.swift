@@ -347,10 +347,15 @@ class MainContainerModel: ViewModel {
     shownStandardSheets.append(sheet)
   }
 
+  /// Tells a sheet that SwiftUI has finished dismissing it, so anything it shows next (an alert
+  /// on the screen behind) doesn't collide with the closing sheet.
   func standardSheetDismissed() {
     guard !shownStandardSheets.isEmpty else { return }
-    if case .seriesPicker(let picker) = shownStandardSheets.removeFirst() {
-      picker.dismissed()
+    switch shownStandardSheets.removeFirst() {
+    case .seriesPicker(let picker): picker.dismissed()
+    case .addShowToSeries(let addShow): addShow.dismissed()
+    case .scheduleShow(let schedule): schedule.dismissed()
+    default: break
     }
   }
 

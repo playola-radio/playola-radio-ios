@@ -45,7 +45,7 @@ struct MainContainer: View {
           switch model.mainContainerNavigationCoordinator.presentedSheet {
           case .player, .feedbackSheet, .share, .artistSuggestion, .welcomeMessage,
             .giveawayCongrats, .developerOptions, .claim, .scheduleShow, .unscheduleShow,
-            .seriesPicker, .seriesDetails:
+            .seriesPicker, .seriesDetails, .addShowToSeries:
             return model.mainContainerNavigationCoordinator.presentedSheet
           default:
             return nil
@@ -81,6 +81,8 @@ struct MainContainer: View {
             SeriesPickerSheetView(model: pickerModel)
           case .seriesDetails(let detailsModel):
             SeriesDetailsSheetView(model: detailsModel)
+          case .addShowToSeries(let addShowModel):
+            AddShowToSeriesSheetView(model: addShowModel)
           default:
             EmptyView()
           }

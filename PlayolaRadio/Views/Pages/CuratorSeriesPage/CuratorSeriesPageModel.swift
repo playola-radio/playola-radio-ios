@@ -106,6 +106,10 @@ class CuratorSeriesPageModel: ViewModel {
   var settings: StationSchedulingSettings?
   var isLoading = false
   var hasLoaded = false
+  var presentedAlert: PlayolaAlert?
+  /// The station's settings and airings, which the Add a show sheet needs, have loaded.
+  @ObservationIgnored private var hasStationSchedule = false
+  @ObservationIgnored private var isLoadingStationSchedule = false
   /// Counts loads so an older one that finishes late can't overwrite a newer one's result.
   @ObservationIgnored private var latestLoad = 0
 
@@ -149,9 +153,34 @@ class CuratorSeriesPageModel: ViewModel {
         ShowBuilderPageModel(stationId: stationId, episodeId: episodeId, seriesId: nil, slot: nil)))
   }
 
-  func addShowTapped(slot: Date) {}
+  /// A slot only exists once settings and airings have loaded, so they are always here.
+  func addShowTapped(slot: Date) {
+    guard let settings else { return }
+    presentAddShow(slot: slot, settings: settings)
+  }
 
-  func addAShowButtonTapped() {}
+  /// After a failed first load, loads the station's settings and airings before presenting.
+  func addAShowButtonTapped() async {
+    guard !isLoadingStationSchedule else { return }
+    if let settings, hasStationSchedule {
+      presentAddShow(slot: nil, settings: settings)
+      return
+    }
+    guard let token = auth.jwt else { return }
+    isLoadingStationSchedule = true
+    defer { isLoadingStationSchedule = false }
+    do {
+      async let loadedAirings = api.getAirings(token, stationId)
+      async let loadedSettings = api.getStationSchedulingSettings(token, stationId)
+      let (newAirings, newSettings) = try await (loadedAirings, loadedSettings)
+      airings = newAirings
+      settings = newSettings
+      hasStationSchedule = true
+      presentAddShow(slot: nil, settings: newSettings)
+    } catch {
+      await loadFailed(error, endpoint: "curatorSeriesPageAddShow")
+    }
+  }
 
   // MARK: - View Helpers
 
@@ -215,6 +244,15 @@ class CuratorSeriesPageModel: ViewModel {
     return "\(day) \u{00B7} \(time)"
   }
 
+  private func presentAddShow(slot: Date?, settings: StationSchedulingSettings) {
+    let sheet = withDependencies(from: self) {
+      AddShowToSeriesSheetModel(
+        stationId: stationId, series: series, slot: slot, settings: settings, airings: airings,
+        onAddFinished: { [weak self] failure in self?.presentedAlert = failure?.alert })
+    }
+    navigationCoordinator.presentedSheet = .addShowToSeries(sheet)
+  }
+
   private func dismiss(_ details: SeriesDetailsSheetModel?) {
     guard let details, case .seriesDetails(let presented) = navigationCoordinator.presentedSheet,
       presented === details
@@ -241,18 +279,23 @@ class CuratorSeriesPageModel: ViewModel {
       episodes = newEpisodes
       airings = newAirings
       settings = newSettings
+      hasStationSchedule = true
       hasLoaded = true
     } catch {
-      guard !Task.isCancelled, !(error is CancellationError),
-        (error as? URLError)?.code != .cancelled
-      else { return }
-      if !NetworkErrorClassifier.isNetworkError(error) {
-        var tags = NetworkErrorClassifier.errorTags(for: error)
-        tags["endpoint"] = "curatorSeriesPage"
-        await errorReporting.reportError(error, tags)
-      }
-      guard !Task.isCancelled else { return }
-      await toast.show(PlayolaToast(message: loadErrorMessage, buttonTitle: "OK"))
+      await loadFailed(error, endpoint: "curatorSeriesPage")
     }
+  }
+
+  private func loadFailed(_ error: Error, endpoint: String) async {
+    guard !Task.isCancelled, !(error is CancellationError),
+      (error as? URLError)?.code != .cancelled
+    else { return }
+    if !NetworkErrorClassifier.isNetworkError(error) {
+      var tags = NetworkErrorClassifier.errorTags(for: error)
+      tags["endpoint"] = endpoint
+      await errorReporting.reportError(error, tags)
+    }
+    guard !Task.isCancelled else { return }
+    await toast.show(PlayolaToast(message: loadErrorMessage, buttonTitle: "OK"))
   }
 }

@@ -23,6 +23,7 @@ struct CuratorSeriesListPageView: View {
       createButton
     }
     .background(Color.black)
+    .playolaAlert($model.presentedAlert)
     .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .task {
@@ -126,7 +127,7 @@ struct CuratorSeriesListPageView: View {
             showRow(show)
           }
           ForEach(item.slots) { slot in
-            slotRow(slot)
+            slotRow(slot, in: card)
           }
         }
       }
@@ -169,7 +170,9 @@ struct CuratorSeriesListPageView: View {
     .buttonStyle(.plain)
   }
 
-  private func slotRow(_ slot: CuratorSeriesCardItem.SlotContent) -> some View {
+  private func slotRow(_ slot: CuratorSeriesCardItem.SlotContent, in card: CuratorSeriesCard)
+    -> some View
+  {
     HStack(spacing: 12) {
       CalendarDateBadge(
         date: slot.tile.date, timeZone: slot.tile.timeZone, headerColor: Color(hex: "#444444"),
@@ -181,7 +184,7 @@ struct CuratorSeriesListPageView: View {
         .minimumScaleFactor(0.8)
       Spacer(minLength: 8)
       Button {
-        model.addShowTapped(slot: slot.tile.date)
+        model.addShowTapped(card, slot: slot.tile.date)
       } label: {
         HStack(spacing: 4) {
           Image(systemName: "plus")

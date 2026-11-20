@@ -41,4 +41,5 @@ enum PlayolaSheet: Hashable, Identifiable, Equatable {
   case unscheduleShow(UnscheduleShowSheetModel)
   case seriesPicker(SeriesPickerSheetModel)
   case seriesDetails(SeriesDetailsSheetModel)
+  case addShowToSeries(AddShowToSeriesSheetModel)
 }

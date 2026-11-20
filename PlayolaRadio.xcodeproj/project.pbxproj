@@ -27,6 +27,11 @@
 		A51E000F2F2A000000C0FFEE /* SeriesDetailsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51E000E2F2A000000C0FFEE /* SeriesDetailsSheetView.swift */; };
 		A51E00102F2A000000C0FFEE /* SeriesDetailsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51E000E2F2A000000C0FFEE /* SeriesDetailsSheetView.swift */; };
 		A51E00122F2A000000C0FFEE /* SeriesDetailsSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51E00112F2A000000C0FFEE /* SeriesDetailsSheetTests.swift */; };
+		A52E00032F2A000000C0FFEE /* AddShowToSeriesSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A52E00022F2A000000C0FFEE /* AddShowToSeriesSheetModel.swift */; };
+		A52E00042F2A000000C0FFEE /* AddShowToSeriesSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A52E00022F2A000000C0FFEE /* AddShowToSeriesSheetModel.swift */; };
+		A52E00062F2A000000C0FFEE /* AddShowToSeriesSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A52E00052F2A000000C0FFEE /* AddShowToSeriesSheetView.swift */; };
+		A52E00072F2A000000C0FFEE /* AddShowToSeriesSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A52E00052F2A000000C0FFEE /* AddShowToSeriesSheetView.swift */; };
+		A52E00092F2A000000C0FFEE /* AddShowToSeriesSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A52E00082F2A000000C0FFEE /* AddShowToSeriesSheetTests.swift */; };
 		A51E00162F2A000000C0FFEE /* ShowBuilderSeriesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51E00152F2A000000C0FFEE /* ShowBuilderSeriesTests.swift */; };
 		EFCA11A06CFAF58BE69896C5 /* ClaimSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */; };
 		D495306A8B23BB7E88178BC1 /* ClaimSheetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */; };
@@ -827,6 +832,9 @@
 		A51E000B2F2A000000C0FFEE /* SeriesDetailsSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesDetailsSheetModel.swift; sourceTree = "<group>"; };
 		A51E000E2F2A000000C0FFEE /* SeriesDetailsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesDetailsSheetView.swift; sourceTree = "<group>"; };
 		A51E00112F2A000000C0FFEE /* SeriesDetailsSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesDetailsSheetTests.swift; sourceTree = "<group>"; };
+		A52E00022F2A000000C0FFEE /* AddShowToSeriesSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddShowToSeriesSheetModel.swift; sourceTree = "<group>"; };
+		A52E00052F2A000000C0FFEE /* AddShowToSeriesSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddShowToSeriesSheetView.swift; sourceTree = "<group>"; };
+		A52E00082F2A000000C0FFEE /* AddShowToSeriesSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddShowToSeriesSheetTests.swift; sourceTree = "<group>"; };
 		43FC9CD1BE0AC016C946B1DA /* ClaimSheetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimSheetModel.swift; sourceTree = "<group>"; };
 		31B04AE31AA99135244791D1 /* ChoicePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChoicePickerView.swift; sourceTree = "<group>"; };
 		C41A0D9E7B2F4A6081D35E71 /* ChoicePickerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChoicePickerModel.swift; sourceTree = "<group>"; };
@@ -1384,6 +1392,16 @@
 			path = SeriesDetailsSheet;
 			sourceTree = "<group>";
 		};
+		A52E00012F2A000000C0FFEE /* AddShowToSeriesSheet */ = {
+			isa = PBXGroup;
+			children = (
+				A52E00022F2A000000C0FFEE /* AddShowToSeriesSheetModel.swift */,
+				A52E00052F2A000000C0FFEE /* AddShowToSeriesSheetView.swift */,
+				A52E00082F2A000000C0FFEE /* AddShowToSeriesSheetTests.swift */,
+			);
+			path = AddShowToSeriesSheet;
+			sourceTree = "<group>";
+		};
 		1D83B6FF044297E63655CC7A /* ClaimSheet */ = {
 			isa = PBXGroup;
 			children = (
@@ -1895,6 +1913,7 @@
 				D35EFBFF2F157E59000F64A4 /* SeriesListPage */,
 				A51E00012F2A000000C0FFEE /* SeriesPickerSheet */,
 				A51E000A2F2A000000C0FFEE /* SeriesDetailsSheet */,
+				A52E00012F2A000000C0FFEE /* AddShowToSeriesSheet */,
 				D3B662772D41B10600975D2F /* SignInPage */,
 				D3C7E5D92EF0A42100EDD3ED /* SongSearchPage */,
 				D3137DCC2D3A9FAA0070033A /* StationListPage */,
@@ -2965,6 +2984,8 @@
 				A51E00062F2A000000C0FFEE /* SeriesPickerSheetView.swift in Sources */,
 				A51E000C2F2A000000C0FFEE /* SeriesDetailsSheetModel.swift in Sources */,
 				A51E000F2F2A000000C0FFEE /* SeriesDetailsSheetView.swift in Sources */,
+				A52E00032F2A000000C0FFEE /* AddShowToSeriesSheetModel.swift in Sources */,
+				A52E00062F2A000000C0FFEE /* AddShowToSeriesSheetView.swift in Sources */,
 				D35EFC022F157E59000F64A4 /* SeriesCard.swift in Sources */,
 				D35EFC562F1AFF76000F64A4 /* AppRatingClient.swift in Sources */,
 				A1F0E0032F90000000C0FFEE /* WindowOrientationClient.swift in Sources */,
@@ -3271,6 +3292,8 @@
 				A51E00072F2A000000C0FFEE /* SeriesPickerSheetView.swift in Sources */,
 				A51E000D2F2A000000C0FFEE /* SeriesDetailsSheetModel.swift in Sources */,
 				A51E00102F2A000000C0FFEE /* SeriesDetailsSheetView.swift in Sources */,
+				A52E00042F2A000000C0FFEE /* AddShowToSeriesSheetModel.swift in Sources */,
+				A52E00072F2A000000C0FFEE /* AddShowToSeriesSheetView.swift in Sources */,
 				D35EFC062F157E59000F64A4 /* SeriesCard.swift in Sources */,
 				D35EFC572F1AFF76000F64A4 /* AppRatingClient.swift in Sources */,
 				A1F0E0042F90000000C0FFEE /* WindowOrientationClient.swift in Sources */,
@@ -3571,6 +3594,7 @@
 				D35EFC172F159728000F64A4 /* SeriesListPageTests.swift in Sources */,
 				A51E00092F2A000000C0FFEE /* SeriesPickerSheetTests.swift in Sources */,
 				A51E00122F2A000000C0FFEE /* SeriesDetailsSheetTests.swift in Sources */,
+				A52E00092F2A000000C0FFEE /* AddShowToSeriesSheetTests.swift in Sources */,
 				D3F493C02EEDD2D2008ED463 /* RecordPageTests.swift in Sources */,
 				D3A08A352E4E6F66002468E0 /* NowPlayingUpdaterTests.swift in Sources */,
 				D317C0D62EF33DB000DBC82E /* PushNotificationsTests.swift in Sources */,
