@@ -521,7 +521,8 @@ struct SeriesDetailsSheetTests {
     let observer = notificationCenter.addObserver(
       forName: .recordedShowsChanged, object: nil, queue: nil
     ) { note in
-      posted.withValue { $0.append(note.userInfo?["stationId"] as? String ?? "") }
+      let stationId = note.userInfo?["stationId"] as? String ?? ""
+      posted.withValue { $0.append(stationId) }
     }
     defer { notificationCenter.removeObserver(observer) }
     let saved = LockIsolated<[String]>([])
