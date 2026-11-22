@@ -70,6 +70,7 @@ struct YourLibraryPageView: View {
             title: model.likedSongsSectionTitle,
             songs: model.likedSongs,
             dateText: { model.formatTimestamp(for: $0) },
+            menuButtonAccessibilityLabel: model.songMenuButtonAccessibilityLabel,
             onMenuTapped: { audioBlock, likedDate in
               model.songMenuTapped(for: audioBlock, likedDate: likedDate)
             }
@@ -77,6 +78,11 @@ struct YourLibraryPageView: View {
         }
         .padding(.top, 8)
         .padding(.bottom, 24)
+        .background {
+          Color.clear
+            .contentShape(Rectangle())
+            .onTapGesture { model.presetsModel.backgroundTappedOutsidePresets() }
+        }
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
