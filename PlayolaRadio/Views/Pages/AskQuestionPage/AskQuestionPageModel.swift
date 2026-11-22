@@ -41,6 +41,7 @@ class AskQuestionPageModel: ViewModel {
   var recordingURL: URL?
   var waveformSamples: [Float] = []
   private var recordingTask: Task<Void, Never>?
+  private var recordingStartID = 0
   private var playbackTask: Task<Void, Never>?
   private var stationToResume: AnyStation?
 
@@ -54,6 +55,7 @@ class AskQuestionPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   // MARK: - Shared State
 
@@ -111,6 +113,10 @@ class AskQuestionPageModel: ViewModel {
     }
   }
 
+  var isReRecordButtonDisabled: Bool {
+    isUploading
+  }
+
   var uploadStatusText: String {
     switch uploadPhase {
     case .notStarted:
@@ -155,6 +161,7 @@ class AskQuestionPageModel: ViewModel {
 
   func viewDisappeared() async {
     await flipToRecord.recordingStopped()
+    _ = await discardRecordingInProgress()
   }
 
   func recordTapped() async {
@@ -164,9 +171,14 @@ class AskQuestionPageModel: ViewModel {
   func stopTapped() async {
     await flipToRecord.recordingStopped()
     guard recordingTask != nil else { return }
+    let recordingID = recordingStartID
     stopRecordingUpdates()
     do {
       let url = try await audioRecorder.stopRecording()
+      guard recordingID == recordingStartID else {
+        await audioRecorder.deleteRecording(url)
+        return
+      }
       recordingURL = url
       try await audioPlayer.loadFile(url)
       recordingDuration = await audioPlayer.duration()
@@ -177,7 +189,9 @@ class AskQuestionPageModel: ViewModel {
   }
 
   private func startRecording() async -> Bool {
+    let startID = recordingStartID
     let hasPermission = await audioRecorder.requestPermission()
+    guard startID == recordingStartID else { return false }
     guard hasPermission else {
       presentedAlert = .microphonePermissionDeniedAlert
       return false
@@ -186,6 +200,10 @@ class AskQuestionPageModel: ViewModel {
     do {
       waveformSamples = []
       try await audioRecorder.startRecording()
+      guard startID == recordingStartID else {
+        _ = await stopAndDiscardRecording()
+        return false
+      }
       recordingPhase = .recording
       startRecordingUpdates()
       return true
@@ -193,6 +211,27 @@ class AskQuestionPageModel: ViewModel {
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
       return false
     }
+  }
+
+  private func discardRecordingInProgress() async -> Bool {
+    recordingStartID &+= 1
+    guard recordingTask != nil else { return true }
+    return await stopAndDiscardRecording()
+  }
+
+  private func stopAndDiscardRecording() async -> Bool {
+    stopRecordingUpdates()
+    do {
+      let url = try await audioRecorder.stopRecording()
+      await audioRecorder.deleteRecording(url)
+    } catch {
+      await errorReporting.reportError(error, ["operation": "discardAskQuestionRecording"])
+      return false
+    }
+    recordingDuration = 0
+    waveformSamples = []
+    recordingPhase = .idle
+    return true
   }
 
   private func startRecordingUpdates() {
@@ -258,12 +297,14 @@ class AskQuestionPageModel: ViewModel {
   // MARK: - Review Actions
 
   func reRecordTapped() async {
+    guard !isUploading else { return }
     stopPlaybackUpdates()
     await audioPlayer.stop()
+    guard !isUploading else { return }
     if let url = recordingURL {
+      recordingURL = nil
       await audioRecorder.deleteRecording(url)
     }
-    recordingURL = nil
     recordingDuration = 0
     playbackPosition = 0
     isPlaying = false
@@ -283,6 +324,10 @@ class AskQuestionPageModel: ViewModel {
 
   func confirmCancel() async {
     await flipToRecord.recordingStopped()
+    guard await discardRecordingInProgress() else {
+      presentedAlert = .recordingFailedAlert("We couldn't stop your recording. Please try again.")
+      return
+    }
     stopPlaybackUpdates()
     await audioPlayer.stop()
     if let url = recordingURL {
@@ -295,12 +340,12 @@ class AskQuestionPageModel: ViewModel {
   func submitTapped() async {
     guard let url = recordingURL, let jwt = auth.jwt else { return }
 
+    uploadPhase = .converting
     stopPlaybackUpdates()
     await audioPlayer.stop()
 
     do {
       // Step 1: Convert to m4a
-      uploadPhase = .converting
       let m4aURL = try await audioConverter.convertToM4A(url)
       let durationMS = try await audioConverter.getDuration(m4aURL)
 
@@ -416,8 +461,7 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Message Sent!",
       message:
-        "If \(curatorName) replies, your message and their reply will air on the station, "
-        + "and we'll let you know when it plays.",
+        "If \(curatorName) replies, your message and their reply will air on the station.",
       dismissButton: .default(Text("OK"), action: onDismiss)
     )
   }

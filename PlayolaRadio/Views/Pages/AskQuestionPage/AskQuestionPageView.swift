@@ -173,6 +173,7 @@ struct AskQuestionPageView: View {
             .foregroundColor(.white)
         }
       }
+      .disabled(model.isReRecordButtonDisabled)
     }
   }
 
