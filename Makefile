@@ -1,6 +1,6 @@
 ORIGINAL_REPO := $(HOME)/playola/playola-radio-ios
 
-.PHONY: lint format format-check changelog-check test-scripts create-release create-new-build release-production release-staging setup-conductor
+.PHONY: lint format format-check changelog-check test-scripts create-release create-new-build release-production release-staging setup-conductor demo-env demo-env-down
 
 # Run SwiftLint (strict mode to match CI).
 # Warns when the local swiftlint drifts from the pinned version in .swiftlint-version,
@@ -51,6 +51,15 @@ upload-symbols:
 # Build and upload staging to TestFlight
 release-staging:
 	bundle exec fastlane release_staging
+
+# Factory demo environment (factory/DEMO.md): the Local app on the "Playola Demo" simulator,
+# signed in against the local demo backend. Safe to re-run.
+demo-env:
+	./scripts/demo-env.sh up
+
+# Delete the demo simulator and stop the local demo backend.
+demo-env-down:
+	./scripts/demo-env.sh down
 
 # Set up workspace for Conductor agents
 setup-conductor:

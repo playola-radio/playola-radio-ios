@@ -17,7 +17,8 @@ final class Config: Sendable {
   var baseUrl: URL {
     switch environment {
     case .local:
-      return URL(string: "http://localhost:10020")!
+      return Config.localBaseUrl(
+        override: Bundle.main.infoDictionary?["LOCAL_API_URL"] as? String)
     case .development, .production:
       return URL(string: "https://admin-api.playola.fm")!
     case .staging:
@@ -40,6 +41,15 @@ final class Config: Sendable {
     self.environment = .init(rawValue: Config.get("DEV_ENVIRONMENT", varType: String.self))!
     self.mixpanelToken = Config.get("MIXPANEL_TOKEN", varType: String.self)
     self.heapAppID = Config.get("HEAP_APP_ID", varType: String.self)
+  }
+
+  /// Local builds talk to `localhost:10020` unless the `LOCAL_API_URL` build setting names another
+  /// local server (the factory demo environment runs its API on its own port).
+  static func localBaseUrl(override: String?) -> URL {
+    guard let override, !override.isEmpty, let url = URL(string: override) else {
+      return URL(string: "http://localhost:10020")!
+    }
+    return url
   }
 
   static func get<T>(_ environmentVarName: String, varType _: T.Type) -> T {
