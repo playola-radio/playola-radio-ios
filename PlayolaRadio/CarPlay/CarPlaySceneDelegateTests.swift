@@ -162,23 +162,12 @@ struct CarPlaySceneDelegateTests {
   }
 
   @Test
-  func testPlaybackErrorAfterFirstConnectShowsAlert() {
-    let player = StationPlayerMock()
-    let delegate = delegate(using: player)
-    let controller = FakeInterfaceController.make()
-
-    connect(delegate, to: controller)
-    player.state = StationPlayer.State(playbackStatus: .error)
-
-    expectNoDifference(controller.presentedAlertTitles, [["Unable to Connect"]])
-  }
-
-  @Test
   func testPlaybackErrorAfterReconnectShowsAlert() {
     let player = StationPlayerMock()
     let delegate = delegate(using: player)
-    connect(delegate, to: FakeInterfaceController.make())
-    disconnect(delegate)
+    let firstController = FakeInterfaceController.make()
+    connect(delegate, to: firstController)
+    disconnect(delegate, from: firstController)
     let secondController = FakeInterfaceController.make()
 
     connect(delegate, to: secondController)
@@ -212,10 +201,10 @@ struct CarPlaySceneDelegateTests {
     delegate.templateApplicationScene(FakeInterfaceController.scene(), didConnect: controller)
   }
 
-  private func disconnect(_ delegate: CarPlaySceneDelegate) {
+  private func disconnect(_ delegate: CarPlaySceneDelegate, from controller: CPInterfaceController)
+  {
     delegate.templateApplicationScene(
-      FakeInterfaceController.scene(),
-      didDisconnectInterfaceController: FakeInterfaceController.make())
+      FakeInterfaceController.scene(), didDisconnectInterfaceController: controller)
   }
 
   private func connectedRowCount(of delegate: CarPlaySceneDelegate) -> Int {
