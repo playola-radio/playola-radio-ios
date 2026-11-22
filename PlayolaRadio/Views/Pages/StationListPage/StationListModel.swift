@@ -222,8 +222,8 @@ class StationListModel: ViewModel {
 
   var isClearSearchButtonVisible: Bool { !searchText.isEmpty }
 
-  var visibleSections: [DisplayedStationSection] {
-    displayedSections.filter { !displayedRows(for: $0).isEmpty }
+  var visibleSections: IdentifiedArrayOf<DisplayedStationSection> {
+    IdentifiedArrayOf(uniqueElements: displayedSections.filter { !displayedRows(for: $0).isEmpty })
   }
 
   var isShowingNoResults: Bool {
