@@ -220,12 +220,14 @@ final class AudioSessionCoordinator {
     }
   }
 
-  /// Personal listening devices whose disappearance should pause playback.
-  /// Excludes CarPlay / AirPlay / built-in speaker — those are not an
-  /// "unplugged headphones" event.
-  nonisolated private static func isPersonalListeningOutput(_ port: AVAudioSession.Port) -> Bool {
+  // internal for testability
+  /// Outputs whose disappearance should pause playback: headphones, Bluetooth
+  /// (including Bluetooth car stereos), and CarPlay — leaving the car must pause
+  /// like unplugging headphones rather than continue on the phone speaker.
+  /// Excludes AirPlay / built-in speaker — those are not an "unplugged" event.
+  nonisolated static func isPersonalListeningOutput(_ port: AVAudioSession.Port) -> Bool {
     port == .headphones || port == .bluetoothA2DP || port == .bluetoothHFP
-      || port == .bluetoothLE || port == .usbAudio
+      || port == .bluetoothLE || port == .usbAudio || port == .carAudio
   }
 
   /// Testable core for interruptions. The `@objc` wrapper parses the Notification
@@ -247,7 +249,8 @@ final class AudioSessionCoordinator {
 
   /// Pause-not-stop on output device loss; the lock-screen play button (remote
   /// command) is the recovery path. Only fires for an unplugged personal
-  /// listening device, never for CarPlay/AirPlay/speaker route changes.
+  /// listening device (see `isPersonalListeningOutput`), never for AirPlay/speaker
+  /// route changes.
   func handleRouteChange(
     reason: AVAudioSession.RouteChangeReason, previousHadHeadphones: Bool
   ) {
