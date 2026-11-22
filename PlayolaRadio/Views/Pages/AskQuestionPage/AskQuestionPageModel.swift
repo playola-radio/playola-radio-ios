@@ -4,6 +4,7 @@
 //
 
 import Dependencies
+import IssueReporting
 import PlayolaPlayer
 import Sharing
 import SwiftUI
@@ -111,6 +112,10 @@ class AskQuestionPageModel: ViewModel {
     }
   }
 
+  var isReRecordButtonDisabled: Bool {
+    isUploading
+  }
+
   var uploadStatusText: String {
     switch uploadPhase {
     case .notStarted:
@@ -155,6 +160,7 @@ class AskQuestionPageModel: ViewModel {
 
   func viewDisappeared() async {
     await flipToRecord.recordingStopped()
+    await discardRecordingInProgress()
   }
 
   func recordTapped() async {
@@ -193,6 +199,20 @@ class AskQuestionPageModel: ViewModel {
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
       return false
     }
+  }
+
+  private func discardRecordingInProgress() async {
+    guard recordingTask != nil else { return }
+    stopRecordingUpdates()
+    do {
+      let url = try await audioRecorder.stopRecording()
+      await audioRecorder.deleteRecording(url)
+    } catch {
+      reportIssue(error)
+    }
+    recordingDuration = 0
+    waveformSamples = []
+    recordingPhase = .idle
   }
 
   private func startRecordingUpdates() {
@@ -258,6 +278,7 @@ class AskQuestionPageModel: ViewModel {
   // MARK: - Review Actions
 
   func reRecordTapped() async {
+    guard !isUploading else { return }
     stopPlaybackUpdates()
     await audioPlayer.stop()
     if let url = recordingURL {
@@ -283,6 +304,7 @@ class AskQuestionPageModel: ViewModel {
 
   func confirmCancel() async {
     await flipToRecord.recordingStopped()
+    await discardRecordingInProgress()
     stopPlaybackUpdates()
     await audioPlayer.stop()
     if let url = recordingURL {
@@ -416,8 +438,7 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Message Sent!",
       message:
-        "If \(curatorName) replies, your message and their reply will air on the station, "
-        + "and we'll let you know when it plays.",
+        "If \(curatorName) replies, your message and their reply will air on the station.",
       dismissButton: .default(Text("OK"), action: onDismiss)
     )
   }

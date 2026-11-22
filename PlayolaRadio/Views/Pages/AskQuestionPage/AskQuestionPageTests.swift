@@ -208,6 +208,44 @@ struct AskQuestionPageTests {
     #expect(!model.isPlaying)
   }
 
+  @Test
+  func testReRecordTappedIsIgnoredWhileUploading() async {
+    let deletedURLs = LockIsolated<[URL]>([])
+    let url = URL(fileURLWithPath: "/tmp/test.wav")
+
+    await withDependencies {
+      $0.audioRecorder.deleteRecording = { url in deletedURLs.withValue { $0.append(url) } }
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock)
+      model.recordingPhase = .review
+      model.recordingURL = url
+      model.recordingDuration = 10.0
+      model.uploadPhase = .uploading(progress: 0.5)
+
+      await model.reRecordTapped()
+
+      #expect(model.recordingPhase == .review)
+      #expect(model.recordingURL == url)
+      #expect(model.recordingDuration == 10.0)
+      #expect(deletedURLs.value.isEmpty)
+    }
+  }
+
+  @Test
+  func testReRecordButtonIsDisabledOnlyWhileUploading() {
+    let model = AskQuestionPageModel(station: .mock)
+    model.recordingPhase = .review
+
+    model.uploadPhase = .notStarted
+    #expect(!model.isReRecordButtonDisabled)
+
+    model.uploadPhase = .uploading(progress: 0.5)
+    #expect(model.isReRecordButtonDisabled)
+
+    model.uploadPhase = .failed(error: "boom")
+    #expect(!model.isReRecordButtonDisabled)
+  }
+
   // MARK: - Cancel
 
   @Test
@@ -246,6 +284,90 @@ struct AskQuestionPageTests {
     await model.confirmCancel()
 
     #expect(coordinator.path.isEmpty)
+  }
+
+  @Test
+  func testConfirmCancelWhileRecordingStopsAndDiscardsTheRecording() async {
+    let partialURL = URL(fileURLWithPath: "/tmp/partial.wav")
+    let stopCount = LockIsolated(0)
+    let deletedURLs = LockIsolated<[URL]>([])
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    await withDependencies {
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.startRecording = {}
+      $0.audioRecorder.currentTime = { 1 }
+      $0.audioRecorder.stopRecording = {
+        stopCount.withValue { $0 += 1 }
+        return partialURL
+      }
+      $0.audioRecorder.deleteRecording = { url in deletedURLs.withValue { $0.append(url) } }
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock)
+      coordinator.path = [.askQuestionPage(model)]
+      await model.recordTapped()
+      #expect(model.recordingPhase == .recording)
+
+      await model.confirmCancel()
+
+      #expect(stopCount.value == 1)
+      expectNoDifference(deletedURLs.value, [partialURL])
+      #expect(model.recordingPhase == .idle)
+      #expect(coordinator.path.isEmpty)
+    }
+  }
+
+  @Test
+  func testViewDisappearedWhileRecordingStopsAndDiscardsTheRecording() async {
+    let partialURL = URL(fileURLWithPath: "/tmp/partial.wav")
+    let stopCount = LockIsolated(0)
+    let deletedURLs = LockIsolated<[URL]>([])
+
+    await withDependencies {
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.startRecording = {}
+      $0.audioRecorder.currentTime = { 1 }
+      $0.audioRecorder.stopRecording = {
+        stopCount.withValue { $0 += 1 }
+        return partialURL
+      }
+      $0.audioRecorder.deleteRecording = { url in deletedURLs.withValue { $0.append(url) } }
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock)
+      await model.recordTapped()
+      #expect(model.recordingPhase == .recording)
+
+      await model.viewDisappeared()
+
+      #expect(stopCount.value == 1)
+      expectNoDifference(deletedURLs.value, [partialURL])
+      #expect(model.recordingPhase == .idle)
+    }
+  }
+
+  @Test
+  func testViewDisappearedInReviewKeepsTheRecording() async {
+    let stopCount = LockIsolated(0)
+    let deletedURLs = LockIsolated<[URL]>([])
+
+    await withDependencies {
+      $0.audioRecorder.stopRecording = {
+        stopCount.withValue { $0 += 1 }
+        return URL(fileURLWithPath: "/tmp/unused.wav")
+      }
+      $0.audioRecorder.deleteRecording = { url in deletedURLs.withValue { $0.append(url) } }
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock)
+      model.recordingPhase = .review
+      model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
+
+      await model.viewDisappeared()
+
+      #expect(stopCount.value == 0)
+      #expect(deletedURLs.value.isEmpty)
+      #expect(model.recordingPhase == .review)
+    }
   }
 
   // MARK: - Playback
@@ -412,6 +534,16 @@ struct AskQuestionPageTests {
     #expect(
       alert.message?.contains("Bri Bagwell") ?? false,
       "Alert message should contain the curator name"
+    )
+  }
+
+  @Test
+  func testQuestionSentSuccessAlertDoesNotPromiseANotification() {
+    let alert = PlayolaAlert.questionSentSuccess(curatorName: "Bri Bagwell") {}
+
+    expectNoDifference(
+      alert.message,
+      "If Bri Bagwell replies, your message and their reply will air on the station."
     )
   }
 }
