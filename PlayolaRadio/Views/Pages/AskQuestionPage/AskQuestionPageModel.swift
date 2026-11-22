@@ -171,9 +171,14 @@ class AskQuestionPageModel: ViewModel {
   func stopTapped() async {
     await flipToRecord.recordingStopped()
     guard recordingTask != nil else { return }
+    let recordingID = recordingStartID
     stopRecordingUpdates()
     do {
       let url = try await audioRecorder.stopRecording()
+      guard recordingID == recordingStartID else {
+        await audioRecorder.deleteRecording(url)
+        return
+      }
       recordingURL = url
       try await audioPlayer.loadFile(url)
       recordingDuration = await audioPlayer.duration()
@@ -295,10 +300,11 @@ class AskQuestionPageModel: ViewModel {
     guard !isUploading else { return }
     stopPlaybackUpdates()
     await audioPlayer.stop()
+    guard !isUploading else { return }
     if let url = recordingURL {
+      recordingURL = nil
       await audioRecorder.deleteRecording(url)
     }
-    recordingURL = nil
     recordingDuration = 0
     playbackPosition = 0
     isPlaying = false
@@ -334,12 +340,12 @@ class AskQuestionPageModel: ViewModel {
   func submitTapped() async {
     guard let url = recordingURL, let jwt = auth.jwt else { return }
 
+    uploadPhase = .converting
     stopPlaybackUpdates()
     await audioPlayer.stop()
 
     do {
       // Step 1: Convert to m4a
-      uploadPhase = .converting
       let m4aURL = try await audioConverter.convertToM4A(url)
       let durationMS = try await audioConverter.getDuration(m4aURL)
 
