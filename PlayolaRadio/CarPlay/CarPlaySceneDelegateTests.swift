@@ -169,6 +169,7 @@ struct CarPlaySceneDelegateTests {
     connect(delegate, to: firstController)
     disconnect(delegate, from: firstController)
     let secondController = FakeInterfaceController.make()
+    defer { disconnect(delegate, from: secondController) }
 
     connect(delegate, to: secondController)
     player.state = StationPlayer.State(playbackStatus: .error)
@@ -181,6 +182,7 @@ struct CarPlaySceneDelegateTests {
     let player = StationPlayerMock()
     let delegate = delegate(using: player)
     let controller = FakeInterfaceController.make()
+    defer { disconnect(delegate, from: controller) }
     connect(delegate, to: FakeInterfaceController.make())
 
     connect(delegate, to: controller)
