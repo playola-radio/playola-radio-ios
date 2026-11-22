@@ -1,6 +1,6 @@
 version: 1
 platform: ios
-baseBranch: feature/recorded-shows
+baseBranch: develop
 relevant: ["PlayolaRadio/**", "PlayolaRadio.xcodeproj/**"]
 requiresEvidence: ["PlayolaRadio/**", "PlayolaRadio.xcodeproj/**"]
 ignored: ["**/*Tests.swift", "PlayolaRadioTests/**", "**/*.md",
