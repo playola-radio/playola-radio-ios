@@ -88,6 +88,7 @@ class SeriesDetailsSheetModel: ViewModel, Identifiable {
   var presentedAlert: PlayolaAlert?
   @ObservationIgnored var onSaved: @MainActor (CuratorSeries) async -> Void = { _ in }
   @ObservationIgnored var onCancel: @MainActor () -> Void = {}
+  @ObservationIgnored var onDismissed: @MainActor () -> Void = {}
 
   var navigationTitle: String { editedSeries == nil ? "New Series" : "Edit Series" }
   var cancelButtonTitle: String { "Cancel" }

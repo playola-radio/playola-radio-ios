@@ -56,9 +56,9 @@ class SeriesPickerSheetModel: ViewModel {
   let timeZone: TimeZone
   var series: [CuratorSeries] = []
   var isLoading = true
-  var seriesDetails: SeriesDetailsSheetModel?
   @ObservationIgnored var onSeriesChange: @MainActor (SeriesChange) async -> Void = { _ in }
   @ObservationIgnored var onDismissed: @MainActor () -> Void = {}
+  @ObservationIgnored private var isHandingOff = false
   @ObservationIgnored private var hasCommitted = false
   @ObservationIgnored private var hasNotifiedDismissal = false
 
@@ -110,13 +110,15 @@ class SeriesPickerSheetModel: ViewModel {
     let details = withDependencies(from: self) {
       SeriesDetailsSheetModel(stationId: stationId, timeZone: timeZone)
     }
-    details.onSaved = { [weak self] created in await self?.seriesCreated(created) }
-    details.onCancel = { [weak self] in self?.seriesDetails = nil }
-    seriesDetails = details
+    isHandingOff = true
+    details.onSaved = { created in await self.seriesCreated(created) }
+    details.onCancel = { self.restorePicker() }
+    details.onDismissed = { self.detailsDismissed() }
+    $navigationCoordinator.withLock { $0.presentedSheet = .seriesDetails(details) }
   }
 
   func dismissed() {
-    guard !hasNotifiedDismissal else { return }
+    guard !isHandingOff, !hasNotifiedDismissal else { return }
     hasNotifiedDismissal = true
     onDismissed()
   }
@@ -159,11 +161,26 @@ class SeriesPickerSheetModel: ViewModel {
   }
 
   private func dismissSheets() {
-    seriesDetails = nil
-    guard case .seriesPicker(let presented) = navigationCoordinator.presentedSheet,
-      presented === self
-    else { return }
-    $navigationCoordinator.withLock { $0.presentedSheet = nil }
+    switch navigationCoordinator.presentedSheet {
+    case .seriesPicker(let presented) where presented === self:
+      $navigationCoordinator.withLock { $0.presentedSheet = nil }
+    case .seriesDetails where isHandingOff:
+      $navigationCoordinator.withLock { $0.presentedSheet = nil }
+    default: break
+    }
+  }
+
+  private func restorePicker() {
+    $navigationCoordinator.withLock { $0.presentedSheet = .seriesPicker(self) }
+  }
+
+  private func detailsDismissed() {
+    isHandingOff = false
+    if hasCommitted {
+      dismissed()
+    } else {
+      restorePicker()
+    }
   }
 
   private func row(for series: CuratorSeries) -> SeriesPickerRow {

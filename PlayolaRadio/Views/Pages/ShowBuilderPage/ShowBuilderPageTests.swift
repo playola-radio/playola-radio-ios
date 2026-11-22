@@ -1255,6 +1255,28 @@ extension ShowBuilderPageTests {
     expectNoDifference(model.rows.map(\.segmentIds), [["s1"], ["s3"], ["s4"]])
   }
 
+  @Test func scheduledShowKeepsItsOnlyQuestionAndAnswerTogether() async {
+    let removed = LockIsolated<[String]>([])
+    let loaded = episode(
+      segments: [
+        segment("s2", position: 0, audio: voicetrack("question-audio", durationMS: 40_000)),
+        segment("s3", position: 1, audio: voicetrack("answer-audio", durationMS: 44_000)),
+      ], airings: [airing()])
+    let model = makeModel(episode: loaded) {
+      $0.api.getListenerQuestions = { [question = mayasQuestion()] _, _ in [question] }
+      $0.api.removeEpisodeSegment = { _, _, id in
+        removed.withValue { $0.append(id) }
+        return loaded
+      }
+    }
+    await model.viewAppeared()
+    await model.rowDeleteTapped("s2")
+    expectNoDifference(removed.value, [])
+    expectNoDifference(model.rows.map(\.segmentIds), [["s2", "s3"]])
+    expectNoDifference(
+      model.presentedAlert?.message, "Unschedule this show before removing its last audio.")
+  }
+
   @Test func removingTheQuestionAndAnswerRowRemovesBothSegments() async {
     let removed = LockIsolated<[String]>([])
     let loaded = showWithQuestionAndAnswer()

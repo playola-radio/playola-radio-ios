@@ -99,7 +99,7 @@ Do NOT use class-level `@Shared` properties in tests.
 
 ## Code Style
 
-- Use async/await, never completion handlers
+- Use `async/await` for asynchronous work, never completion-handler APIs (`func load(completion:)`). Closure properties a child model uses to tell its parent about an event (`onSaved`, `onClose`, `onRecordingAccepted`) are fine.
 - Use `IdentifiedArrayOf<T>` for identifiable collections
 - Run `make format` and `make lint` before committing
 - Comments only when code isn't self-explanatory

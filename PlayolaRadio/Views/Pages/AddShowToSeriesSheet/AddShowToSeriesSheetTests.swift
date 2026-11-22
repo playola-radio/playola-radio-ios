@@ -672,6 +672,42 @@ struct AddShowToSeriesSheetTests {
     expectNoDifference(requests.value, ["schedule", "move tour-stories-airing-0"])
   }
 
+  @Test func retryRequiresRefreshAfterAnUncertainSchedule() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let requests = LockIsolated<[String]>([])
+    let refreshes = LockIsolated(0)
+    let committed = episode("tour-stories", title: "Tour Stories", at: [nearSlot])
+    let model = await makeModel(slot: nearSlot, episodes: [tourStories]) {
+      $0.api.scheduleEpisode = { _, _, _, _ in
+        requests.withValue { $0.append("schedule") }
+        throw URLError(.timedOut)
+      }
+      $0.api.getCuratorEpisode = { _, _ in
+        let count = refreshes.withValue {
+          $0 += 1
+          return $0
+        }
+        guard count >= 3 else { throw AddShowTestError() }
+        return committed
+      }
+      $0.api.moveAiring = { _, id, _ in requests.withValue { $0.append("move \(id)") } }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    coordinator.presentedSheet = .addShowToSeries(model)
+    await model.addButtonTapped("tour-stories")
+    guard case .scheduleShow(let schedule) = coordinator.presentedSheet else {
+      Issue.record("Expected the Schedule sheet")
+      return
+    }
+    await schedule.scheduleButtonTapped()
+    schedule.pickedTime = nearSlot.addingTimeInterval(3600)
+    await schedule.scheduleButtonTapped()
+    expectNoDifference(requests.value, ["schedule"])
+    await schedule.scheduleButtonTapped()
+    expectNoDifference(requests.value, ["schedule", "move tour-stories-airing-0"])
+  }
+
   @Test func aRetryAtTheTimeAFailedScheduleCommittedGoesStraightToTheJoin() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()

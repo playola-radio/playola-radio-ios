@@ -287,7 +287,7 @@ PlayolaRadio/
 
 - All view models inherit from `ViewModel` base class
 - All view models and tests are `@MainActor`
-- Use `async/await`, no completion handlers
+- Use `async/await` for asynchronous work, never completion-handler APIs (`func load(completion:)`). Closure properties a child model uses to tell its parent about an event (`onSaved`, `onClose`, `onRecordingAccepted`) are fine.
 - Use `PlayolaAlert` for failed user actions; use toasts or inline errors for failed loads.
 - Always report caught errors, except cancellations and classified connectivity blips.
 - Navigation via `PlayolaSheet` enum and navigation coordinator (see `.claude/NAVIGATION.md`)

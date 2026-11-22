@@ -353,6 +353,7 @@ class MainContainerModel: ViewModel {
     guard !shownStandardSheets.isEmpty else { return }
     switch shownStandardSheets.removeFirst() {
     case .seriesPicker(let picker): picker.dismissed()
+    case .seriesDetails(let details): details.onDismissed()
     case .addShowToSeries(let addShow): addShow.dismissed()
     case .scheduleShow(let schedule): schedule.dismissed()
     default: break

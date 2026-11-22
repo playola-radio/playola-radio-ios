@@ -239,6 +239,11 @@ class ShowBuilderPageModel: ViewModel {
     _ = await enqueueSave { [weak self, api] jwt, episodeId in
       var updated = self?.episode
       defer { self?.episode = updated }
+      if segmentIds.count > 1, let self, case .scheduled = state,
+        !orderedSegments.contains(where: { !segmentIds.contains($0.id) && $0.audioBlock != nil })
+      {
+        throw APIError.serverError("Unschedule this show before removing its last audio.")
+      }
       for segmentId in segmentIds {
         updated = try await api.removeEpisodeSegment(jwt, episodeId, segmentId)
       }

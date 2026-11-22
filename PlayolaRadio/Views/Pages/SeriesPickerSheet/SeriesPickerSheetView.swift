@@ -72,9 +72,6 @@ struct SeriesPickerSheetView: View {
     .background(Color.playolaSurfaceTile.ignoresSafeArea())
     .presentationDetents([.medium, .large])
     .presentationDragIndicator(.visible)
-    .sheet(item: $model.seriesDetails) { details in
-      SeriesDetailsSheetView(model: details)
-    }
     .task { await model.viewAppeared() }
   }
 

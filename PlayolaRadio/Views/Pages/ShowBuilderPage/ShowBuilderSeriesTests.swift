@@ -100,6 +100,15 @@ extension CuratorEpisode {
 @MainActor
 struct ShowBuilderSeriesTests {
 
+  private func details(_ coordinator: MainContainerNavigationCoordinator) throws
+    -> SeriesDetailsSheetModel
+  {
+    guard case .seriesDetails(let details) = coordinator.presentedSheet else {
+      throw SeriesServerRefusal()
+    }
+    return details
+  }
+
   // MARK: - Test Helpers
 
   private let stationId = "station-1"
@@ -468,7 +477,7 @@ struct ShowBuilderSeriesTests {
     let picker = try await openPicker(model)
 
     picker.newSeriesRowTapped()
-    picker.seriesDetails?.cancelButtonTapped()
+    try details(coordinator).cancelButtonTapped()
     $coordinator.withLock { $0.presentedSheet = nil }
     picker.dismissed()
 
@@ -579,6 +588,25 @@ struct ShowBuilderSeriesTests {
 
   // MARK: - New Series
 
+  @Test func newSeriesUsesCoordinatorAndCancelReturnsToPicker() async throws {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let model = makeModel(server: makeServer())
+    await model.viewAppeared()
+    let picker = try await openPicker(model)
+    picker.newSeriesRowTapped()
+    let form = try details(coordinator)
+    picker.dismissed()
+    form.name = "A New Series"
+    expectNoDifference(form.name, "A New Series")
+    form.cancelButtonTapped()
+    form.onDismissed()
+    #expect(coordinator.presentedSheet == .seriesPicker(picker))
+    $coordinator.withLock { $0.presentedSheet = nil }
+    picker.dismissed()
+    #expect(model.canChangeSeries)
+  }
+
   @Test func newSeriesCreatesTheSeriesThenTheShowThenJoins() async throws {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
@@ -587,7 +615,7 @@ struct ShowBuilderSeriesTests {
     await model.viewAppeared()
     let picker = try await openPicker(model)
     picker.newSeriesRowTapped()
-    let details = try #require(picker.seriesDetails)
+    let details = try details(coordinator)
     details.name = "Porch Sessions"
     details.repeatOption = .noSchedule
 
@@ -596,7 +624,6 @@ struct ShowBuilderSeriesTests {
     expectNoDifference(
       server.writes,
       ["createSeries:Porch Sessions", "createShow", "update:new-episode:join(series-new)"])
-    #expect(picker.seriesDetails == nil)
     #expect(coordinator.presentedSheet == nil)
   }
 
@@ -611,7 +638,7 @@ struct ShowBuilderSeriesTests {
     await model.viewAppeared()
     let picker = try await openPicker(model)
     picker.newSeriesRowTapped()
-    let details = try #require(picker.seriesDetails)
+    let details = try details(coordinator)
     var chicago = Calendar(identifier: .gregorian)
     chicago.timeZone = TimeZone(identifier: "America/Chicago")!
     details.name = "Porch Sessions"
@@ -620,7 +647,7 @@ struct ShowBuilderSeriesTests {
     details.startTime = chicago.date(bySettingHour: 20, minute: 0, second: 0, of: airtime)!
 
     await details.saveButtonTapped()
-    picker.dismissed()
+    details.onDismissed()
 
     expectNoDifference(
       server.series.value.last?.rrule, "FREQ=WEEKLY;BYDAY=TU,TH;BYHOUR=20;BYMINUTE=0")
@@ -646,7 +673,7 @@ struct ShowBuilderSeriesTests {
       await model.viewAppeared()
       let picker = try await openPicker(model)
       picker.newSeriesRowTapped()
-      let details = try #require(picker.seriesDetails)
+      let details = try details(coordinator)
       details.name = "Porch Sessions"
       details.repeatOption = .noSchedule
       server.log.setValue([])
@@ -655,7 +682,7 @@ struct ShowBuilderSeriesTests {
       await Task.megaYield()
 
       #expect(details.isSaving)
-      #expect(picker.seriesDetails != nil)
+      #expect(coordinator.presentedSheet == .seriesDetails(details))
       await details.saveButtonTapped()
 
       open.yield()
@@ -668,7 +695,6 @@ struct ShowBuilderSeriesTests {
           "createSeries:Porch Sessions", "update:episode-1:join(series-new)",
           "getEpisode:episode-1",
         ])
-      #expect(picker.seriesDetails == nil)
       #expect(coordinator.presentedSheet == nil)
     }
   }
@@ -682,14 +708,13 @@ struct ShowBuilderSeriesTests {
     await model.viewAppeared()
     let picker = try await openPicker(model)
     picker.newSeriesRowTapped()
-    let details = try #require(picker.seriesDetails)
+    let details = try details(coordinator)
     details.name = "Porch Sessions"
     details.repeatOption = .noSchedule
 
     await details.saveButtonTapped()
 
-    #expect(picker.seriesDetails === details)
-    #expect(coordinator.presentedSheet == .seriesPicker(picker))
+    #expect(coordinator.presentedSheet == .seriesDetails(details))
     expectNoDifference(details.name, "Porch Sessions")
     expectNoDifference(details.presentedAlert?.message, "Name is taken")
     #expect(!model.isSavingSeries)
@@ -705,7 +730,7 @@ struct ShowBuilderSeriesTests {
     await model.viewAppeared()
     let picker = try await openPicker(model)
     picker.newSeriesRowTapped()
-    let details = try #require(picker.seriesDetails)
+    let details = try details(coordinator)
     details.name = "Porch Sessions"
     details.repeatOption = .noSchedule
 
@@ -713,7 +738,7 @@ struct ShowBuilderSeriesTests {
     details.presentedAlert = nil
     await details.saveButtonTapped()
     #expect(!model.canChangeSeries)
-    picker.dismissed()
+    details.onDismissed()
 
     expectNoDifference(
       server.writes,
@@ -734,12 +759,13 @@ struct ShowBuilderSeriesTests {
     await model.viewAppeared()
     let picker = try await openPicker(model)
     picker.newSeriesRowTapped()
-    let details = try #require(picker.seriesDetails)
+    let details = try details(coordinator)
     details.name = "Porch Sessions"
     details.repeatOption = .noSchedule
 
     await details.saveButtonTapped()
     details.cancelButtonTapped()
+    details.onDismissed()
     await picker.seriesRowTapped("series-2")
 
     expectNoDifference(
@@ -755,16 +781,15 @@ struct ShowBuilderSeriesTests {
     await model.viewAppeared()
     let picker = try await openPicker(model)
     picker.newSeriesRowTapped()
-    let details = try #require(picker.seriesDetails)
+    let details = try details(coordinator)
     details.name = "Porch Sessions"
     details.repeatOption = .noSchedule
 
     await details.saveButtonTapped()
 
-    #expect(picker.seriesDetails == nil)
     #expect(coordinator.presentedSheet == nil)
     #expect(model.presentedAlert == nil)
-    picker.dismissed()
+    details.onDismissed()
     expectNoDifference(model.presentedAlert?.message, "Couldn\u{2019}t join")
 
     let reopened = try await openPicker(model)
@@ -784,16 +809,15 @@ struct ShowBuilderSeriesTests {
     await model.viewAppeared()
     let picker = try await openPicker(model)
     picker.newSeriesRowTapped()
-    let details = try #require(picker.seriesDetails)
+    let details = try details(coordinator)
     details.name = "Porch Sessions"
     details.repeatOption = .noSchedule
 
     await details.saveButtonTapped()
 
-    #expect(picker.seriesDetails == nil)
     #expect(coordinator.presentedSheet == nil)
     #expect(model.presentedAlert == nil)
-    picker.dismissed()
+    details.onDismissed()
     expectNoDifference(model.presentedAlert?.message, "No show for you")
     #expect(model.episodeId == nil)
   }

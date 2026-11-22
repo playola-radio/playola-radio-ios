@@ -307,9 +307,12 @@ struct SeriesPickerSheetTests {
     await picker.viewAppeared()
 
     picker.newSeriesRowTapped()
-    picker.seriesDetails?.cancelButtonTapped()
-
-    #expect(picker.seriesDetails == nil)
+    guard case .seriesDetails(let details) = coordinator.presentedSheet else {
+      Issue.record("Expected the details sheet")
+      return
+    }
+    details.cancelButtonTapped()
+    details.onDismissed()
     #expect(coordinator.presentedSheet == .seriesPicker(picker))
   }
 

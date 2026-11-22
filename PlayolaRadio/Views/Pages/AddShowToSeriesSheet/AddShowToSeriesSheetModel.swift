@@ -110,6 +110,7 @@ class AddShowToSeriesSheetModel: ViewModel {
   @ObservationIgnored private let onAddFinished: @MainActor (AddShowToSeriesFailure?) -> Void
   /// The add has moved to the Schedule sheet, so this sheet's own dismissal doesn't count.
   @ObservationIgnored private var isHandingOff = false
+  @ObservationIgnored private var scheduleNeedsRefresh = false
   @ObservationIgnored private var hasRunSteps = false
   @ObservationIgnored private var isRunningSteps = false
   @ObservationIgnored private var isStepsSheetDismissed = false
@@ -266,7 +267,6 @@ class AddShowToSeriesSheetModel: ViewModel {
   /// have committed, so the Show is refetched first: a retry then moves that airing rather than
   /// creating a second one, or, if it's already at the picked time, goes straight to the join.
   private func scheduleFromScheduleSheet(_ episodeId: String, at airtime: Date) async throws {
-    guard let episode = episodes.first(where: { $0.id == episodeId }) else { return }
     hasRunSteps = true
     isRunningSteps = true
     defer {
@@ -274,11 +274,16 @@ class AddShowToSeriesSheetModel: ViewModel {
       finishIfSettled()
     }
     guard let jwt = auth.jwt else { throw AddShowToSeriesNotSignedIn() }
+    if scheduleNeedsRefresh, !(await refreshEpisode(episodeId, jwt: jwt)) {
+      throw APIError.dataNotValid
+    }
+    guard let episode = episodes.first(where: { $0.id == episodeId }) else { return }
+    scheduleNeedsRefresh = true
     do {
       try await moveOrSchedule(episode, at: airtime, jwt: jwt)
     } catch {
       if !isCancellation(error) { await report(error, endpoint: "scheduleInSeriesSlot") }
-      await refreshEpisode(episodeId, jwt: jwt)
+      _ = await refreshEpisode(episodeId, jwt: jwt)
       postRecordedShowsChanged()
       throw error
     }
@@ -286,13 +291,17 @@ class AddShowToSeriesSheetModel: ViewModel {
     postRecordedShowsChanged()
   }
 
-  private func refreshEpisode(_ episodeId: String, jwt: String) async {
+  @discardableResult
+  private func refreshEpisode(_ episodeId: String, jwt: String) async -> Bool {
     do {
       let fresh = try await api.getCuratorEpisode(jwt, episodeId)
-      guard let index = episodes.firstIndex(where: { $0.id == episodeId }) else { return }
+      guard let index = episodes.firstIndex(where: { $0.id == episodeId }) else { return false }
       episodes[index] = fresh
+      scheduleNeedsRefresh = false
+      return true
     } catch {
       if !isCancellation(error) { await report(error, endpoint: "getCuratorEpisode") }
+      return false
     }
   }
 
