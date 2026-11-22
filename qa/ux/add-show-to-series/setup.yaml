@@ -1,0 +1,58 @@
+appId: fm.playola.playolaradio.staging
+---
+# Switch to broadcasting mode from the profile tab (forgotten on relaunch, so it is done here), then
+# open Station → Upcoming → Series → "Saturday Night Songbook". Run
+# `python3 qa/ux/add-show-to-series/prepare.py` just before recording: it moves earlier runs' data out
+# of the way and makes, on the first station (8750 Radio):
+# - "Saturday Night Songbook", weekly on Saturdays at 8pm, empty;
+# - "Friday Afternoon Drive", weekly at the next whole hour about three hours away (so its first
+#   slot is inside the six-hour lock), empty;
+# - standalone Shows: drafts with audio "Tour Stories", "Holiday Hangout" and "Songs From the
+#   Road"; "Back Porch Requests", scheduled the Wednesday after the first Saturday at 8pm; and
+#   "Empty Draft", with no audio.
+- extendedWaitUntil:
+    visible: "Your Profile"
+    timeout: 60000
+- runFlow:
+    when:
+      visible: "Stay in the Loop?"
+    commands:
+      - tapOn: "No Thanks"
+- tapOn: "Your Profile"
+- extendedWaitUntil:
+    visible: "Switch to Broadcasting Mode"
+    timeout: 30000
+- tapOn: "Switch to Broadcasting Mode"
+- runFlow:
+    when:
+      visible: "Choose Station"
+    commands:
+      - tapOn:
+          text: ".+ - .+"
+          index: 0
+- extendedWaitUntil:
+    visible: "Station"
+    timeout: 30000
+- tapOn: "Station"
+- extendedWaitUntil:
+    visible: "Upcoming"
+    timeout: 30000
+- tapOn: "Upcoming"
+- extendedWaitUntil:
+    visible: "Individual Shows"
+    timeout: 30000
+- tapOn: "Series"
+- extendedWaitUntil:
+    visible: "Create a New Series"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "Saturday Night Songbook"
+    direction: DOWN
+    centerElement: true
+# A tap while the list still glides only stops it.
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Saturday Night Songbook"
+- extendedWaitUntil:
+    visible: "No drafts in this series."
+    timeout: 30000

@@ -699,6 +699,30 @@ struct RecordWithMultiStepPromptTests {
     #expect(model.onUseRecording != nil)
   }
 
+  @Test func recordedShowVoicetrackUploadsTheRecordingAsAVoicetrack() async throws {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let uploads = LockIsolated<[String]>([])
+    let uploaded = AudioBlock.mockWith(id: "voicetrack-1", type: "voicetrack")
+    let url = URL(fileURLWithPath: "/tmp/recording.wav")
+
+    let block = try await withDependencies {
+      $0.audioPlayer = .testValue
+      $0.audioRecorder = .testValue
+      $0.voicetrackUploadService.processVoicetrack = { voicetrack, stationId, jwt, _ in
+        uploads.withValue { $0.append("\(stationId):\(jwt):\(voicetrack.title)") }
+        return uploaded
+      }
+    } operation: {
+      let model = RecordWithMultiStepPromptModel.recordedShowVoicetrack(stationId: "station-abc")
+      expectNoDifference(model.trackLabel, "VOICETRACK")
+      let onUseRecording = try #require(model.onUseRecording)
+      return try await onUseRecording(url) { _ in }
+    }
+
+    expectNoDifference(block, uploaded)
+    expectNoDifference(uploads.value, ["station-abc:test-jwt:Voicetrack"])
+  }
+
   @Test func backButtonTappedPopsNavigation() {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()

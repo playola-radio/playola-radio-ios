@@ -69,6 +69,7 @@ class MainContainerModel: ViewModel {
 
   var presentedAlert: PlayolaAlert?
   var presentedToast: PlayolaToast?
+  @ObservationIgnored private var shownStandardSheets: [PlayolaSheet] = []
 
   var homeTabTitle: String { "Home" }
   var stationsTabTitle: String { "Radio Stations" }
@@ -339,6 +340,24 @@ class MainContainerModel: ViewModel {
       claimModel.laterTapped()
     }
     $mainContainerNavigationCoordinator.withLock { $0.presentedSheet = newSheet }
+  }
+
+  func standardSheetAppeared(_ sheet: PlayolaSheet) {
+    guard shownStandardSheets.last != sheet else { return }
+    shownStandardSheets.append(sheet)
+  }
+
+  /// Tells a sheet that SwiftUI has finished dismissing it, so anything it shows next (an alert
+  /// on the screen behind) doesn't collide with the closing sheet.
+  func standardSheetDismissed() {
+    guard !shownStandardSheets.isEmpty else { return }
+    switch shownStandardSheets.removeFirst() {
+    case .seriesPicker(let picker): picker.dismissed()
+    case .seriesDetails(let details): details.onDismissed()
+    case .addShowToSeries(let addShow): addShow.dismissed()
+    case .scheduleShow(let schedule): schedule.dismissed()
+    default: break
+    }
   }
 
   func checkAndShowRatingPromptIfNeeded() {

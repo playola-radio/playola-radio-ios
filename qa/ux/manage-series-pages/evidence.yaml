@@ -1,0 +1,7 @@
+version: 1
+id: manage-series-pages
+classification: functional
+before:
+  policy: not-applicable
+  reason: The curator Series list and Series page are new; before this change
+    Upcoming's Series row opened nothing.

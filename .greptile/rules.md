@@ -99,7 +99,7 @@ Do NOT use class-level `@Shared` properties in tests.
 
 ## Code Style
 
-- Use async/await, never completion handlers
-- Use `IdentifiedArrayOf<T>` for identifiable collections
+- Use `async/await` for asynchronous work, never completion-handler APIs (`func load(completion:)`). Closure properties a child model uses to tell its parent about an event (`onSaved`, `onClose`, `onRecordingAccepted`) are fine.
+- Use `IdentifiedArrayOf<T>` for identifiable collections a model stores as state (loaded, mutated or looked up by ID). A computed array that only lets a view render an optional row with `ForEach` (instead of an `if`) can stay a plain array.
 - Run `make format` and `make lint` before committing
 - Comments only when code isn't self-explanatory

@@ -2,9 +2,9 @@
 
 > **For agentic workers:** this feature spans two repos: two backend PRs, and nine iOS PRs into the `feature/recorded-shows` integration branch. Drive it with the `orchestrate-feature` skill: one fresh implementation session and one PR per row in the PR graph table, each executed with `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans`. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Curators can make, schedule, edit, move and unschedule recorded shows and manage series in the iOS app, with server-enforced six-hour locks, overlap refusals, a LIVE badge that follows real playback, and an "on now" follower push.
+**Goal:** Curators can make, schedule, edit, move and unschedule recorded shows and manage series in the iOS app, with server-enforced six-hour locks, overlap refusals, and a LIVE badge that follows real playback.
 
-**Architecture:** The backend keeps its existing routes and models and adds the missing rules: the lock length and a fixed time zone on the station response, one lock check, one overlap validator, and one bounded schedule repair for Unschedule and move. It also adds a batched segment insert, a Series change on `PUT /v1/episodes`, a LIVE-status fix, and an "on now" worker. iOS adds its own curator data types decoded straight from these routes, rule parsing and slot expansion, then the builder, sheets, lists and Station tab in one PR.
+**Architecture:** The backend keeps its existing routes and models and adds the missing rules: the lock length and a fixed time zone on the station response, one lock check, one overlap validator, and one bounded schedule repair for Unschedule and move. It also adds a batched segment insert, a Series change on `PUT /v1/episodes`, and a LIVE-status fix. iOS adds its own curator data types decoded straight from these routes, rule parsing and slot expansion, then the builder, sheets, lists and Station tab in one PR.
 
 **Tech Stack:** Backend: Node/TypeScript, Express, Sequelize (Postgres), mocha + supertest, BullMQ worker. iOS: Swift 6, SwiftUI, `@Observable` models, swift-dependencies, swift-sharing, swift-testing.
 
@@ -18,7 +18,7 @@
 ## PR graph
 
 ```
-B1 backend: scheduling contract ──┬──> B2 backend: on-air signals (LIVE + "on now" push)
+B1 backend: scheduling contract ──┬──> B2 backend: LIVE badge follows real playback
                                   └──> iOS integration branch feature/recorded-shows:
                                          I1 data layer ──> S1 ──> S2 ──> … ──> S7 ──> merge to develop
 ```
@@ -27,8 +27,8 @@ All iOS work goes into the integration branch `feature/recorded-shows` (cut from
 
 | PR | Repo | Base | Title (plain English) | Plan tasks |
 |---|---|---|---|---|
-| B1 | playola | `develop` | `feature: let shows be safely scheduled, edited and moved from the app` | B1.1–B1.5 |
-| B2 | playola | `develop` (after B1) | `feature: show recorded shows as live and tell followers when they start` | B2.1–B2.2 |
+| B1 | playola | `develop` | `feature: let shows be safely scheduled, edited and moved from the app` | B1.1–B1.5. Merged (playola #1141) |
+| B2 | playola | `develop` (after B1) | `bugfix: show the LIVE badge only while a recorded show is actually playing` | B2.1 (B2.2 superseded by #1120). Merged (#1142) |
 | I1 | ios | `feature/recorded-shows` | `chore: teach the app to read and save recorded shows` | I1.1–I1.3 |
 | S1 | ios | `feature/recorded-shows` | `feature: split the Station tab into Shows and Library and add Upcoming` | I2.5, plus Upcoming from I2.4 (`upcomingFetchesNoAirings`, `upcomingCountsShowsNotAirings`). Its "Series" and "Individual Shows" rows do nothing until S2 and S6 |
 | S2 | ios | `feature/recorded-shows` | `feature: list a station's individual shows` | Individual Shows from I2.4 (`individualShowsListsDraftsFirstThenByAirtime`, `showInSeriesCarriesSeriesBadge`, `airedShowsAreNotListed`, `failedLoadShowsToastAndKeepsList`) and the `CalendarDateBadge` / `DraftDateBadge` changes. Rows and "Record a New Show" do nothing until S3 |
@@ -53,7 +53,7 @@ All iOS work goes into the integration branch `feature/recorded-shows` (cut from
 - iOS: zero control flow in views. All copy comes from models. Every test suite carries `@Suite(.freshSharedState)`. No `Task.sleep` in tests. Activate the pfw-* skills before writing Swift (`pfw-dependencies`, `pfw-observable-models`, `pfw-testing`, `pfw-custom-dump`, `pfw-modern-swiftui`, `pfw-issue-reporting`).
 - iOS: register every new `.swift` file in `project.pbxproj`, and keep unrelated pbxproj churn out of the PR.
 - Server enums decoded on iOS get an `unknown` fallback.
-- Backend: every changed endpoint updates its module's `ENDPOINTS.md` and `*.api.docs.yaml`. Every changed model updates its `MODEL.md`, then run `npm run docs:check`. Add a `CHANGELOG.md` `[Unreleased]` entry: `### Changes` for user-visible behavior, and `### Ops` `MIGRATION:` lines for each migration.
+- Backend: every changed endpoint updates its module's `ENDPOINTS.md` and `*.api.docs.yaml`. Every changed model updates its `MODEL.md`, then run `npm run docs:check`. Add a `changelog.d/<short-kebab-description>.md` file (both repos use `changelog.d/`, never edit `CHANGELOG.md` in a PR): `### Changes` for user-visible behavior, and `### Ops` `MIGRATION:` lines for each migration.
 - Backend skills: `create-model` (migrations + model changes), `create-lib` (lib functions + tests), `create-endpoint` (route/controller/docs/API tests). iOS guides: `.claude/PAGE_CREATION.md`, `.claude/VIEWS.md`, `.claude/API_CLIENT.md`, `.claude/TESTING.md`, `.claude/NAVIGATION.md`.
 
 ## Review Focus
@@ -214,7 +214,7 @@ Run from `server/`. To run one suite: `npm test -- --grep "<describe title>"`. R
 
 ---
 
-# Backend (`playola`) — PR B2: on-air signals
+# Backend (`playola`) — PR B2: LIVE badge (merged, playola #1142)
 
 ### Task B2.1: LIVE status follows a recorded show's real playback
 
@@ -239,26 +239,7 @@ Run from `server/`. To run one suite: `npm test -- --grep "<describe title>"`. R
 
 ### Task B2.2: "On now" follower push
 
-**Files:**
-- Create: `server/src/db/migrations/<timestamp>-add-airing-on-now-notification-sent-at.js`
-- Modify: `server/src/db/models/airing.model/airing.model.ts`, `MODEL.md`
-- Create: `server/src/lib/airings/recordedShowOnNowWorker.ts`, `recordedShowOnNowWorker.test.ts`
-- Modify: `server/src/worker.js:329-335`: in the `LIVE_SHOW` worker's tick branch, call `processRecordedShowOnNowTick()` after `processLiveShowGoLiveTick()`. No new queue.
-
-**Interfaces:**
-- Produces: `processRecordedShowOnNowTick(now?: Date): Promise<void>`. It publishes with the same follower-topic helper `sendLiveShowGoLivePush` uses (`lib/liveShows/liveShowGoLiveWorker.ts:54`).
-
-- [ ] **Step 1: Write failing tests** (stub the publisher with sinon):
-  - `pushes once for an airing whose first spin has started`: two ticks → one publish; body `"<Episode title> is on now."`, title = station name, payload `stationId`.
-  - `does not push before the first spin`.
-  - `does not push after the last spin ended` (no late push).
-  - `does not push for an unscheduled airing`.
-  - `pushes at the new time after a move`.
-  - `sets onNowNotificationSentAt after publishing`.
-- [ ] **Step 2:** Run `npm test -- --grep "on now"`. Expect FAIL.
-- [ ] **Step 3:** Implement per models.md "Airing" → "On now" worker: find candidates from currently playing airing spins, re-read under `SELECT … FOR UPDATE`, re-check, publish, set the marker.
-- [ ] **Step 4:** Run the full `npm test`, `npm run lint`, `npm run docs:check`. Add `CHANGELOG.md` Changes ("followers are told when a recorded show starts") and Ops (`MIGRATION:` airing on-now marker; deploy the migration before the worker).
-- [ ] **Step 5:** Commit `feat: tell station followers when a recorded show starts`.
+Superseded by playola #1120, which already pushes followers when a scheduled show starts (8am–9pm Central starts, at most once per station per Central day, skipped after a manual or Ask Me Anything push in the prior 4 hours). Not implemented; there is no worker, no `airings.onNowNotificationSentAt` column and no migration.
 
 ---
 

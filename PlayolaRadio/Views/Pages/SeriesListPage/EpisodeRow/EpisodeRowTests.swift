@@ -3,6 +3,7 @@
 //  PlayolaRadio
 //
 
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -187,5 +188,30 @@ struct EpisodeRowModelTests {
     components.minute = minute
     components.timeZone = TimeZone.current
     return Calendar.current.date(from: components)!
+  }
+}
+
+@Suite(.freshSharedState)
+@MainActor
+struct CalendarDateBadgeTests {
+  private let afternoonInChicago = Date(timeIntervalSince1970: 1_800_000_000 + 12 * 3600)
+
+  @Test func calendarBadgeUsesTheGivenTimeZone() {
+    let chicago = CalendarDateBadge(
+      date: afternoonInChicago, timeZone: TimeZone(identifier: "America/Chicago")!)
+    let auckland = CalendarDateBadge(
+      date: afternoonInChicago, timeZone: TimeZone(identifier: "Pacific/Auckland")!)
+
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMM"
+    let expectedMonth = formatter.string(from: afternoonInChicago).uppercased()
+    expectNoDifference([chicago.monthString, chicago.dayString], [expectedMonth, "15"])
+    expectNoDifference([auckland.monthString, auckland.dayString], [expectedMonth, "16"])
+  }
+
+  @Test func calendarBadgeDefaultsToTheDeviceTimeZone() {
+    let badge = CalendarDateBadge(date: afternoonInChicago)
+
+    expectNoDifference(badge.timeZone, .current)
   }
 }

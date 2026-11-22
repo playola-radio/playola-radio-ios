@@ -37,7 +37,7 @@ the files into `CHANGELOG.md` at release time.
 
 - The tool lives in `playola-radio/ai-skills`; clone it to `~/playola/playola-skills` (or set `UX_EVIDENCE_HOME` to its `ux-evidence/tool` folder). First time on a machine: `make ux-evidence-setup`, then sign in to the Staging app in a simulator and run `make ux-evidence-ios-login` (add `DEVICE=<udid>` when more than one booted simulator has it).
 - If the branch changes anything under `PlayolaRadio/` or `PlayolaRadio.xcodeproj/`, then before the PR is opened either `make ux-evidence-verify` passes or the PR body contains `UX evidence: none — <reason>`.
-- The agent that implemented the change writes the case under `qa/ux/` and runs `make ux-evidence CASE=<case-id>`. Create it with `make ux-evidence-new CASE=<case-id> CLASSIFICATION=<visual|functional> BEFORE=<required|not-applicable>` (visual = screenshots, functional = a video of `flow.yaml` only), then edit `setup.yaml` and `flow.yaml`; `qa/ux/example-stations/` and `qa/ux/example-navigation/` are examples. Never show the profile tab or account details in a flow.
+- The agent that implemented the change writes the case under `qa/ux/` and runs `make ux-evidence CASE=<case-id>`. Create it with `make ux-evidence-new CASE=<case-id> CLASSIFICATION=<visual|functional> BEFORE=<required|not-applicable>` (visual = screenshots, functional = a video of `flow.yaml` only), then edit `setup.yaml` and `flow.yaml`; `qa/ux/example-stations/` and `qa/ux/example-navigation/` are examples. The session is the owner's own staging account, so a flow may open the profile tab, switch to broadcasting mode, and create or change things on staging.
 - Right after the PR is created, run `make ux-evidence-publish PR=<number>`. After any later push, run `make ux-evidence-verify`; if stale, re-record and publish again. Both steps apply only when the branch has evidence cases; a PR using `UX evidence: none — <reason>` skips both.
 - A failed "before" run is a failure to fix, never a reason to switch to `not-applicable`.
 - See `qa/ux/README.md`.
@@ -287,7 +287,7 @@ PlayolaRadio/
 
 - All view models inherit from `ViewModel` base class
 - All view models and tests are `@MainActor`
-- Use `async/await`, no completion handlers
+- Use `async/await` for asynchronous work, never completion-handler APIs (`func load(completion:)`). Closure properties a child model uses to tell its parent about an event (`onSaved`, `onClose`, `onRecordingAccepted`) are fine.
 - Use `PlayolaAlert` for failed user actions; use toasts or inline errors for failed loads.
 - Always report caught errors, except cancellations and classified connectivity blips.
 - Navigation via `PlayolaSheet` enum and navigation coordinator (see `.claude/NAVIGATION.md`)

@@ -46,7 +46,7 @@ Let a station curator make a **recorded show** in the iOS app and schedule it, a
 6. **No show types for recorded shows.** A "pre-recorded AMA" is just a Show whose content is Q&A. Listener-facing per-type behavior (e.g. the live AMA "Ask a Question" prompt) does not apply. (Claude's recommendation; user agreed.)
 7. **Listeners cannot tell a recorded show from a live one** (rerun labeling comes later). While a recorded Show airs:
    - the station gets the **LIVE badge** and floats to the top of the station list, exactly like a live show;
-   - followers get the same **"on now" push** when it starts (scheduled ahead of time; must follow moves/cancels);
+   - followers get the existing show-start push (playola #1120) when it starts, under #1120's rules: daytime starts only (8am–9pm Central), at most once a day per station, no per-airing guarantee;
    - the player looks the same, except the live-AMA "Ask a Question" prominence does not appear (no one is there to answer); the normal message button still works.
    - Existing "Radio Shows" listener page shows them; no new listener screens.
 8. **After scheduling**, the curator can **edit content or move** a Show until it is **6 hours from air** (user, 2026-11-06). Inside those 6 hours, and while it airs, the Show is **locked**: no content edits and no moves. Renaming it and changing its Series still work (Phase 7, R4).
@@ -78,7 +78,7 @@ Let a station curator make a **recorded show** in the iOS app and schedule it, a
 - **Existing web-made data:** iOS lists every Series and Show of the station, whoever made it. A Show whose airing is inside the lock window or on air is locked; aired Shows are not listed. Shows with more than one airing (web-made) are listed by their next airing and are read-only in iOS v1.
 - **Repeating schedule richness:** every week only, on one or more days, at one time, in the **station's** time zone (not the device's; Central for every station in v1). The server accepts only this weekly form (the website editor already writes nothing else, and production holds no other rules as of 2026-11-11). If the app ever reads a rule it can't parse, it shows "Custom schedule" read-only and offers no slots. A slot is open when no Show on that station airs at that time. The Schedule step offers the next 8 open slots. Moving/unscheduling a Show reopens its slot.
 - **Listener-facing title:** a standalone Show's title is its own (the hidden series mirrors it). Scheduled Shows appear on "Radio Shows" before they air, as web-made ones do today.
-- **"On now" push:** names the station and the Show, doesn't say "live" or "recorded", and is sent once per airing (the server has no notification cooldown to follow).
+- **Show-start push:** already shipped by playola #1120 (`lib/showStartNotifications`); this feature adds nothing to it. It goes out when an airing's first spin airs, only for starts between 8am and 9pm Central, at most once per station per Central day, and is skipped if the station sent a manual or Ask Me Anything push in the prior 4 hours. So a recorded show is not guaranteed a push of its own.
 - **What can be scheduled:** at least one piece of audio. No minimum or maximum length, and no "doesn't fit the slot" warning in v1.
 - **Multiple editors:** all of a station's editors see and edit all its Shows and Series. Last write wins; no locking.
 - **Saving a new Show:** nothing is saved until its first change (first piece of content or a rename), so an untouched "Record a New Show" leaves no empty draft.
@@ -152,7 +152,7 @@ Backend facts below are from `origin/develop` `cc82f93a` and still hold at `15e6
 
 ### Backend needs
 
-Designed in [endpoints.md](./endpoints.md) and [models.md](./models.md): content changes checked against the lock and overlaps in one transaction; a bounded schedule repair for Unschedule and move instead of today's rebuild; station-editor auth on segment routes; lead-time check on create; the "on now" push; the 6-hour lock (length serialized on the station); moving a Show into and out of a Series; overlap rejection; LIVE status that follows a recorded Show's real playback; and the Series repeating schedule (weekly, Central time, slots computed on iOS).
+Designed in [endpoints.md](./endpoints.md) and [models.md](./models.md): content changes checked against the lock and overlaps in one transaction; a bounded schedule repair for Unschedule and move instead of today's rebuild; station-editor auth on segment routes; lead-time check on create; the 6-hour lock (length serialized on the station); moving a Show into and out of a Series; overlap rejection; LIVE status that follows a recorded Show's real playback; and the Series repeating schedule (weekly, Central time, slots computed on iOS).
 
 ## Acceptance criteria
 
@@ -164,7 +164,7 @@ Backend (each a server test):
 - `POST …/segments { audioBlockIds: [q, a] }` adds both or neither.
 - Two concurrent writes to one Show serialize.
 - Writes to an Episode with Airings on two stations need edit rights on both.
-- The "on now" push goes once for a Show that plays across several ticks, never for an unscheduled one, and follows a moved one.
+- The show-start push is playola #1120's and is not changed by this feature: daytime starts only (8am–9pm Central), at most once a day per station, no per-airing guarantee.
 - A recorded Show's station is LIVE from its first to its last spin, and not before.
 - Creating or updating a Series with an `rrule` that isn't the weekly form (e.g. `INTERVAL=2`, `MONTHLY`) is refused with 400.
 
@@ -253,3 +253,4 @@ Every disposition was checked against `origin/develop` (backend `fd456a53`, iOS 
 15. 2026-11-10 — Mockups updated to match entry 14 (no new design decisions): Past link and frame removed; Every-other-week option removed from Edit Series and New Series; Airing soon became the single Locked state (Rename and Series "Change" kept, "Shows lock 6 hours before they air" banner); Series-slots, locks-right-away and overlap frames are now one Schedule sheet (Cancel / Schedule bar, open slots when in a Series, then the date/time picker). Final PNG, HTML, design-token and per-screen JSON exports regenerated.
 16. 2026-11-11 — Second CodeRabbit review decisions: (1) a create whose response is lost may leave an extra draft — accepted, not handled in v1; (2) repeating schedules are weekly-only everywhere: the server refuses any other `rrule` on Series create/update, the website drops its non-weekly display text, and iOS shows an unparseable rule as "Custom schedule" read-only (supersedes the "legacy rule" handling in entries 13–14); (3) New/Edit Series Save is disabled while Every week has no day selected; (4) the read-only rule state on Edit Series has no separate mockup. Mockups: open-slot wording removed from the Series picker; button layers renamed; the sample "Kitchen Table Songs" series is now weekly ("Every Wednesday at 8pm", "1 show · 1 open") because every-other-week is no longer allowed.
 17. 2026-11-11 — iOS ships one screen at a time into the integration branch `feature/recorded-shows` (off `develop`), merged to `develop` once all screens are in. This replaces the single I2 PR; the order follows the tap path (Station tab + Upcoming, Individual Shows, builder, Schedule sheet, Series sheets, Series list, Series page + Add a show). See implementation-plan.md.
+18. 2026-11-12 — B2.2 dropped: playola #1120 already pushes followers when a show starts, and Brian accepted #1120's rules for recorded shows (daytime starts only, at most once a day per station, no per-airing guarantee). No `Airing` column is added. B2 shipped as the LIVE-status fix only (#1142). Supersedes entry 13's "one 'on now' push per airing".
