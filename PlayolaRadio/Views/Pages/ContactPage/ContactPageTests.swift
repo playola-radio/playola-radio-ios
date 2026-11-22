@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 7/29/25.
 //
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import IdentifiedCollections
@@ -586,5 +587,137 @@ struct ContactPageTests {
     let build = Bundle.main.buildVersionNumber ?? "—"
 
     #expect(ContactPageModel().appVersionLabel == "Version \(version) (\(build))")
+  }
+
+  // MARK: - Contact Us error reporting
+
+  private func makeConversation() -> Conversation {
+    Conversation(
+      id: "conv-1",
+      type: "support",
+      contextType: nil,
+      contextId: nil,
+      status: "open",
+      createdAt: Date(),
+      updatedAt: Date(),
+      participants: nil
+    )
+  }
+
+  private func makeAdminAuth() -> Auth {
+    Auth(
+      currentUser: LoggedInUser(
+        id: "admin-1", firstName: "Ada", email: "ada@example.com", role: "admin"),
+      jwt: "test-jwt")
+  }
+
+  private func runContactUsTapped(
+    overrides: @escaping (inout DependencyValues) -> Void
+  ) async -> ContactPageModel {
+    let model = withDependencies {
+      overrides(&$0)
+    } operation: {
+      ContactPageModel()
+    }
+    await model.onContactUsTapped()
+    return model
+  }
+
+  @Test
+  func testOnContactUsTappedReportsGetConversationsFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = makeAdminAuth()
+    let reports = LockIsolated<[String]>([])
+    let model = await runContactUsTapped {
+      $0.api.getConversations = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    }
+
+    expectNoDifference(reports.value, ["getConversations"])
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
+    expectNoDifference(model.isCheckingSupport, false)
+  }
+
+  @Test
+  func testOnContactUsTappedReportsGetSupportConversationFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reports = LockIsolated<[String]>([])
+    let model = await runContactUsTapped {
+      $0.api.getSupportConversation = { _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    }
+
+    expectNoDifference(reports.value, ["getSupportConversation"])
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
+    expectNoDifference(model.isCheckingSupport, false)
+  }
+
+  @Test
+  func testOnContactUsTappedReportsGetConversationMessagesFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reports = LockIsolated<[String]>([])
+    let conversation = makeConversation()
+    let model = await runContactUsTapped {
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: conversation, unreadCount: 0)
+      }
+      $0.api.getConversationMessages = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    }
+
+    expectNoDifference(reports.value, ["getConversationMessages"])
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
+    expectNoDifference(model.isCheckingSupport, false)
+  }
+
+  @Test
+  func testOnContactUsTappedReportsAdminGetConversationMessagesFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = makeAdminAuth()
+    let reports = LockIsolated<[String]>([])
+    let conversation = makeConversation()
+    let model = await runContactUsTapped {
+      $0.api.getConversations = { _, _ in
+        [AdminConversationResponse(conversation: conversation, unreadCountFromOwner: 0)]
+      }
+      $0.api.getConversationMessages = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    }
+
+    expectNoDifference(reports.value, ["getConversationMessages"])
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
+    expectNoDifference(model.isCheckingSupport, false)
+  }
+
+  @Test
+  func testOnContactUsTappedDoesNotReportConnectivityFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = await runContactUsTapped {
+      $0.api.getSupportConversation = { _ in throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    }
+
+    expectNoDifference(reportCount.value, 0)
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
+  }
+
+  @Test
+  func testOnContactUsTappedDoesNotReportCancellation() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = await runContactUsTapped {
+      $0.api.getSupportConversation = { _ in throw CancellationError() }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    }
+
+    expectNoDifference(reportCount.value, 0)
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
   }
 }
