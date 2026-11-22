@@ -1,8 +1,0 @@
-appId: fm.playola.playolaradio.staging
----
-- extendedWaitUntil:
-    visible: "Search stations"
-    timeout: 30000
-- tapOn: "Search stations"
-- inputText: "a"
-- takeScreenshot: station-search-with-clear-button

@@ -1,5 +1,0 @@
-version: 1
-id: player-station-list-cleanups
-classification: visual
-before:
-  policy: required

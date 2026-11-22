@@ -1,7 +1,0 @@
-appId: fm.playola.playolaradio.staging
----
-- tapOn: "Radio Stations"
-- extendedWaitUntil:
-    visible: "Stay in the Loop?"
-    timeout: 60000
-- tapOn: "No Thanks"
