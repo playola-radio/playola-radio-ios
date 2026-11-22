@@ -252,6 +252,160 @@ struct NotificationsSettingsPageTests {
     }
   }
 
+  @Test
+  func testViewAppearedReportsLoadFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.stationLists) var stationLists = mockStationLists()
+    let reports = LockIsolated<[String]>([])
+
+    await withDependencies {
+      $0.api.getPushNotificationSubscriptions = { _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    } operation: {
+      let model = NotificationsSettingsPageModel()
+
+      await model.viewAppeared()
+
+      #expect(reports.value == ["getPushNotificationSubscriptions"])
+      #expect(model.presentedAlert == .loadSubscriptionsErrorAlert)
+    }
+  }
+
+  @Test
+  func testToggleSubscriptionReportsSubscribeFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.stationLists) var stationLists = mockStationLists()
+    let reports = LockIsolated<[String]>([])
+
+    await withDependencies {
+      $0.api.getPushNotificationSubscriptions = { _ in [] }
+      $0.api.subscribeToStationNotifications = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    } operation: {
+      let model = NotificationsSettingsPageModel()
+      await model.viewAppeared()
+
+      await model.toggleSubscription(for: "station-1")
+
+      #expect(reports.value == ["subscribeToStationNotifications"])
+      #expect(model.presentedAlert == .toggleSubscriptionErrorAlert)
+    }
+  }
+
+  @Test
+  func testToggleSubscriptionReportsUnsubscribeFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.stationLists) var stationLists = mockStationLists()
+    let mockSubs = [mockSubscriptionWithStation(stationId: "station-1", isSubscribed: true)]
+    let reports = LockIsolated<[String]>([])
+
+    await withDependencies {
+      $0.api.getPushNotificationSubscriptions = { _ in mockSubs }
+      $0.api.unsubscribeFromStationNotifications = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    } operation: {
+      let model = NotificationsSettingsPageModel()
+      await model.viewAppeared()
+
+      await model.toggleSubscription(for: "station-1")
+
+      #expect(reports.value == ["unsubscribeFromStationNotifications"])
+      #expect(model.presentedAlert == .toggleSubscriptionErrorAlert)
+    }
+  }
+
+  @Test
+  func testToggleAllNotificationsReportsSubscribeFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.stationLists) var stationLists = mockStationLists()
+    let reports = LockIsolated<[String]>([])
+
+    await withDependencies {
+      $0.api.getPushNotificationSubscriptions = { _ in [] }
+      $0.api.subscribeToStationNotifications = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    } operation: {
+      let model = NotificationsSettingsPageModel()
+      await model.viewAppeared()
+
+      await model.toggleAllNotifications()
+
+      #expect(reports.value == ["subscribeToStationNotifications"])
+      #expect(model.presentedAlert == .toggleSubscriptionErrorAlert)
+    }
+  }
+
+  @Test
+  func testToggleAllNotificationsReportsUnsubscribeFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.stationLists) var stationLists = mockStationLists()
+    let mockSubs = [
+      mockSubscriptionWithStation(stationId: "station-1", isSubscribed: true),
+      mockSubscriptionWithStation(stationId: "station-2", isSubscribed: true),
+    ]
+    let reports = LockIsolated<[String]>([])
+
+    await withDependencies {
+      $0.api.getPushNotificationSubscriptions = { _ in mockSubs }
+      $0.api.unsubscribeFromStationNotifications = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    } operation: {
+      let model = NotificationsSettingsPageModel()
+      await model.viewAppeared()
+
+      await model.toggleAllNotifications()
+
+      #expect(reports.value == ["unsubscribeFromStationNotifications"])
+    }
+  }
+
+  @Test
+  func testViewAppearedDoesNotReportConnectivityFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.stationLists) var stationLists = mockStationLists()
+    let reportCount = LockIsolated(0)
+
+    await withDependencies {
+      $0.api.getPushNotificationSubscriptions = { _ in throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      let model = NotificationsSettingsPageModel()
+
+      await model.viewAppeared()
+
+      #expect(reportCount.value == 0)
+      #expect(model.presentedAlert == .loadSubscriptionsErrorAlert)
+    }
+  }
+
+  @Test
+  func testViewAppearedDoesNotReportCancellation() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.stationLists) var stationLists = mockStationLists()
+    let reportCount = LockIsolated(0)
+
+    await withDependencies {
+      $0.api.getPushNotificationSubscriptions = { _ in throw CancellationError() }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      let model = NotificationsSettingsPageModel()
+
+      await model.viewAppeared()
+
+      #expect(reportCount.value == 0)
+    }
+  }
+
   // MARK: - Helper Methods
 
   private func mockStationLists() -> IdentifiedArrayOf<StationList> {

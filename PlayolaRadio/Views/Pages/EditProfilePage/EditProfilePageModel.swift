@@ -15,6 +15,7 @@ import SwiftUI
 class EditProfilePageModel: ViewModel {
   @ObservationIgnored @Shared(.auth) var auth
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
   @ObservationIgnored @Dependency(\.continuousClock) var clock
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
@@ -58,7 +59,7 @@ class EditProfilePageModel: ViewModel {
       self.mainContainerNavigationCoordinator.pop()
 
     } catch let error {
-      print(error)
+      await reportUnexpectedError(error, endpoint: "updateUser")
       self.presentedAlert = .updateProfileErrorAlert
     }
   }
@@ -67,6 +68,17 @@ class EditProfilePageModel: ViewModel {
     self.firstName = auth.currentUser?.firstName ?? ""
     self.lastName = auth.currentUser?.lastName ?? ""
     self.email = auth.currentUser?.email ?? ""
+  }
+
+  // MARK: - Private Helpers
+
+  private func reportUnexpectedError(_ error: Error, endpoint: String) async {
+    guard !Task.isCancelled, !(error is CancellationError),
+      !NetworkErrorClassifier.isNetworkError(error)
+    else { return }
+    var tags = NetworkErrorClassifier.errorTags(for: error)
+    tags["endpoint"] = endpoint
+    await errorReporting.reportError(error, tags)
   }
 
   // MARK: - View Helpers

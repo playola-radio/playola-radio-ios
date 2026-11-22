@@ -55,6 +55,7 @@ class NotificationsSettingsPageModel: ViewModel {
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   var presentedAlert: PlayolaAlert?
   var isLoading = false
@@ -138,6 +139,7 @@ class NotificationsSettingsPageModel: ViewModel {
         )
       }
     } catch {
+      await reportUnexpectedError(error, endpoint: "getPushNotificationSubscriptions")
       presentedAlert = .loadSubscriptionsErrorAlert
     }
   }
@@ -167,6 +169,10 @@ class NotificationsSettingsPageModel: ViewModel {
       }
       await loadSubscriptions()
     } catch {
+      await reportUnexpectedError(
+        error,
+        endpoint: currentlySubscribed
+          ? "unsubscribeFromStationNotifications" : "subscribeToStationNotifications")
       presentedAlert = .toggleSubscriptionErrorAlert
     }
   }
@@ -191,10 +197,25 @@ class NotificationsSettingsPageModel: ViewModel {
       }
       await loadSubscriptions()
     } catch {
+      await reportUnexpectedError(
+        error,
+        endpoint: shouldSubscribe
+          ? "subscribeToStationNotifications" : "unsubscribeFromStationNotifications")
       presentedAlert = .toggleSubscriptionErrorAlert
     }
 
     togglingStationIds.removeAll()
+  }
+
+  // MARK: - Private Helpers
+
+  private func reportUnexpectedError(_ error: Error, endpoint: String) async {
+    guard !Task.isCancelled, !(error is CancellationError),
+      !NetworkErrorClassifier.isNetworkError(error)
+    else { return }
+    var tags = NetworkErrorClassifier.errorTags(for: error)
+    tags["endpoint"] = endpoint
+    await errorReporting.reportError(error, tags)
   }
 
   // MARK: - View Helpers
