@@ -185,6 +185,7 @@ class AskQuestionPageModel: ViewModel {
       recordingPhase = .review
     } catch {
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
+      await reportUnexpectedError(error, operation: "stopAskQuestionRecording")
     }
   }
 
@@ -209,6 +210,7 @@ class AskQuestionPageModel: ViewModel {
       return true
     } catch {
       presentedAlert = .recordingFailedAlert(error.localizedDescription)
+      await reportUnexpectedError(error, operation: "startAskQuestionRecording")
       return false
     }
   }
@@ -389,8 +391,8 @@ class AskQuestionPageModel: ViewModel {
       }
 
     } catch {
-      print("DEBUG AskQuestionPage error: \(error)")
       uploadPhase = .failed(error: error.localizedDescription)
+      await reportUnexpectedError(error, operation: "submitAskQuestion")
     }
   }
 
@@ -410,7 +412,16 @@ class AskQuestionPageModel: ViewModel {
     throw AskQuestionError.normalizationTimeout
   }
 
-  // MARK: - Helpers
+  // MARK: - Private Helpers
+
+  private func reportUnexpectedError(_ error: Error, operation: String) async {
+    guard !Task.isCancelled, !(error is CancellationError),
+      !NetworkErrorClassifier.isNetworkError(error)
+    else { return }
+    var tags = NetworkErrorClassifier.errorTags(for: error)
+    tags["operation"] = operation
+    await errorReporting.reportError(error, tags)
+  }
 
   private func pauseStationIfPlaying() {
     if case .playing(let station) = stationPlayer.state.playbackStatus {
