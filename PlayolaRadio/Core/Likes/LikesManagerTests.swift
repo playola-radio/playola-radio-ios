@@ -151,7 +151,7 @@ struct LikesManagerTests {
       return manager
     }
 
-    #expect(manager.pendingOperations.count == 1)
+    #expect(manager.pendingOperations.count == 2)
     #expect(manager.pendingOperations.last?.audioBlock == audioBlock)
     #expect(manager.pendingOperations.last?.type == .unlike)
   }

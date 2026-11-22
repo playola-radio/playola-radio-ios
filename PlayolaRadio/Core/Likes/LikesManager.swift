@@ -140,7 +140,9 @@ final class LikesManager: ObservableObject {
       timestamp: now,
       spinId: spinId
     )
-    enqueue(operation)
+    $pendingOperations.withLock {
+      $0.append(operation)
+    }
 
     Task {
       await syncPendingOperations()
@@ -177,7 +179,9 @@ final class LikesManager: ObservableObject {
       type: .unlike,
       timestamp: now
     )
-    enqueue(operation)
+    $pendingOperations.withLock {
+      $0.append(operation)
+    }
 
     Task {
       await syncPendingOperations()
@@ -224,19 +228,16 @@ final class LikesManager: ObservableObject {
 
   // MARK: - Private Helpers
 
-  /// The newest action on a song replaces any queued one, so a stale like can't be sent after an unlike.
-  private func enqueue(_ operation: LikeOperation) {
-    $pendingOperations.withLock {
-      $0.removeAll { $0.audioBlock.id == operation.audioBlock.id }
-      $0.append(operation)
-    }
-  }
-
   private func sendPendingOperations() async {
     guard let jwt = auth.jwt else { return }
 
     for operation in pendingOperations {
-      guard pendingOperations.contains(where: { $0.id == operation.id }) else { continue }
+      // Only the newest queued action on a song is sent, so a stale like can't follow an unlike.
+      let newest = pendingOperations.last { $0.audioBlock.id == operation.audioBlock.id }
+      guard newest?.id == operation.id else {
+        $pendingOperations.withLock { $0.removeAll { $0.id == operation.id } }
+        continue
+      }
       do {
         switch operation.type {
         case .like:
