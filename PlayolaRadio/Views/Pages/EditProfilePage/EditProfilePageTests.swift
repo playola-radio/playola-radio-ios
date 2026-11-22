@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 8/1/25.
 //
 
+import CustomDump
 import Dependencies
 import Foundation
 import Sharing
@@ -287,5 +288,14 @@ struct EditProfilePageTests {
     #expect(navigationCoordinator.path.count == 0)
 
     navigationCoordinator.popToRoot()
+  }
+
+  @Test
+  func testEmailHelpTextDoesNotMentionAProvider() {
+    let model = EditProfilePageModel()
+
+    expectNoDifference(
+      model.emailHelpText,
+      "This email is linked to your sign-in account and can't be changed here.")
   }
 }
