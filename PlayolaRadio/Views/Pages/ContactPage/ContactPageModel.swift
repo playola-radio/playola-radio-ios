@@ -19,6 +19,7 @@ class ContactPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   // MARK: - Shared State
 
@@ -191,6 +192,7 @@ class ContactPageModel: ViewModel {
       } catch {
         isCheckingSupport = false
         presentedAlert = .errorLoadingConversation
+        await reportUnexpectedError(error, endpoint: "getConversations")
       }
     } else {
       // Regular user flow
@@ -216,6 +218,7 @@ class ContactPageModel: ViewModel {
   }
 
   private func handleRegularUserFlow(jwt: String) async {
+    var endpoint = "getSupportConversation"
     do {
       let response = try await api.getSupportConversation(jwt)
 
@@ -228,6 +231,7 @@ class ContactPageModel: ViewModel {
         return
       }
 
+      endpoint = "getConversationMessages"
       let messages = try await api.getConversationMessages(jwt, conversation.id)
 
       isCheckingSupport = false
@@ -248,6 +252,7 @@ class ContactPageModel: ViewModel {
     } catch {
       isCheckingSupport = false
       presentedAlert = .errorLoadingConversation
+      await reportUnexpectedError(error, endpoint: endpoint)
     }
   }
 
@@ -263,6 +268,18 @@ class ContactPageModel: ViewModel {
       mainContainerNavigationCoordinator.path.append(.supportPage(model))
     } catch {
       presentedAlert = .errorLoadingConversation
+      await reportUnexpectedError(error, endpoint: "getConversationMessages")
     }
+  }
+
+  // MARK: - Private Helpers
+
+  private func reportUnexpectedError(_ error: Error, endpoint: String) async {
+    guard !Task.isCancelled, !(error is CancellationError),
+      !NetworkErrorClassifier.isNetworkError(error)
+    else { return }
+    var tags = NetworkErrorClassifier.errorTags(for: error)
+    tags["endpoint"] = endpoint
+    await errorReporting.reportError(error, tags)
   }
 }

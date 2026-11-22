@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 7/29/25.
 //
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import IdentifiedCollections
@@ -586,5 +587,114 @@ struct ContactPageTests {
     let build = Bundle.main.buildVersionNumber ?? "—"
 
     #expect(ContactPageModel().appVersionLabel == "Version \(version) (\(build))")
+  }
+
+  // MARK: - Contact Us error reporting
+
+  private func makeConversation() -> Conversation {
+    Conversation(
+      id: "conv-1",
+      type: "support",
+      contextType: nil,
+      contextId: nil,
+      status: "open",
+      createdAt: Date(),
+      updatedAt: Date(),
+      participants: nil
+    )
+  }
+
+  private func makeAdminAuth() -> Auth {
+    Auth(
+      currentUser: LoggedInUser(
+        id: "admin-1", firstName: "Ada", email: "ada@example.com", role: "admin"),
+      jwt: "test-jwt")
+  }
+
+  private func runContactUsTapped(
+    auth: Auth,
+    overrides: @escaping (inout DependencyValues) -> Void
+  ) async -> ContactPageModel {
+    @Shared(.auth) var sharedAuth = auth
+    let model = withDependencies {
+      overrides(&$0)
+    } operation: {
+      ContactPageModel()
+    }
+    await model.onContactUsTapped()
+    return model
+  }
+
+  @Test
+  func testOnContactUsTappedReportsGetConversationsFailureWithEndpointTag() async {
+    let reports = LockIsolated<[String]>([])
+    let model = await runContactUsTapped(auth: makeAdminAuth()) {
+      $0.api.getConversations = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    }
+
+    expectNoDifference(reports.value, ["getConversations"])
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
+    expectNoDifference(model.isCheckingSupport, false)
+  }
+
+  @Test
+  func testOnContactUsTappedReportsGetSupportConversationFailureWithEndpointTag() async {
+    let reports = LockIsolated<[String]>([])
+    let model = await runContactUsTapped(auth: Auth(jwt: "test-jwt")) {
+      $0.api.getSupportConversation = { _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    }
+
+    expectNoDifference(reports.value, ["getSupportConversation"])
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
+    expectNoDifference(model.isCheckingSupport, false)
+  }
+
+  @Test
+  func testOnContactUsTappedReportsGetConversationMessagesFailureWithEndpointTag() async {
+    let reports = LockIsolated<[String]>([])
+    let conversation = makeConversation()
+    let model = await runContactUsTapped(auth: Auth(jwt: "test-jwt")) {
+      $0.api.getSupportConversation = { _ in
+        SupportConversationResponse(conversation: conversation, unreadCount: 0)
+      }
+      $0.api.getConversationMessages = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    }
+
+    expectNoDifference(reports.value, ["getConversationMessages"])
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
+    expectNoDifference(model.isCheckingSupport, false)
+  }
+
+  @Test
+  func testOnContactUsTappedDoesNotReportConnectivityFailure() async {
+    let reportCount = LockIsolated(0)
+    let model = await runContactUsTapped(auth: Auth(jwt: "test-jwt")) {
+      $0.api.getSupportConversation = { _ in throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    }
+
+    expectNoDifference(reportCount.value, 0)
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
+  }
+
+  @Test
+  func testOnContactUsTappedDoesNotReportCancellation() async {
+    let reportCount = LockIsolated(0)
+    let model = await runContactUsTapped(auth: Auth(jwt: "test-jwt")) {
+      $0.api.getSupportConversation = { _ in throw CancellationError() }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    }
+
+    expectNoDifference(reportCount.value, 0)
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
   }
 }
