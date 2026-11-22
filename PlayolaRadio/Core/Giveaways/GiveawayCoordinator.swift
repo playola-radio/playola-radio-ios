@@ -147,7 +147,8 @@ final class GiveawayCoordinator {
       cancelArmedReveal()
       await revealEvent(jwt: jwt, eventId: item.id, expectedStationId: stationId)
     case .scheduled:
-      if activeGiveaway?.id != item.id {
+      // A moved open time hides an already-revealed button until the re-armed reveal.
+      if activeGiveaway?.id != item.id || activeGiveaway?.opensAt != item.opensAt {
         reconciliationGeneration += 1
         $activeGiveaway.withLock { $0 = nil }
       }
@@ -223,6 +224,7 @@ final class GiveawayCoordinator {
     do {
       guard let event = try await api.giveawayEvent(jwt, eventId) else {
         log("reveal: \(eventId) is gone (404)")
+        $activeGiveaway.withLock { if $0?.id == eventId { $0 = nil } }
         return
       }
       guard auth.identity.isSameAccount(as: identity),
@@ -249,17 +251,36 @@ final class GiveawayCoordinator {
   }
 
   /// Handle the feed having no event for the current station — happens transiently at the open
-  /// transition AND permanently when a contest closes (closed events leave the feed). Never cancels
-  /// an in-flight arm (it self-validates via GET at opensAt). Drops a stale cross-station event;
+  /// transition AND permanently when a contest closes or is cancelled (both leave the feed). Keeps an
+  /// armed reveal unless its GET says the event is gone. Drops a stale cross-station event;
   /// confirms a same-station published event via GET and clears it only once it's no longer open.
   private func handleNoFeedEvent(jwt: String, stationId: String) async {
-    log("reconcile: no feed event for current station — keeping any armed reveal")
-    guard let active = activeGiveaway else { return }
+    log("reconcile: no feed event for current station")
+    guard let active = activeGiveaway else {
+      if let armedEventId { await releaseArmIfGone(jwt: jwt, eventId: armedEventId) }
+      return
+    }
     if active.stationId != stationId {
       $activeGiveaway.withLock { $0 = nil }
     } else {
       await clearActiveIfNoLongerOpen(jwt: jwt, event: active, stationId: stationId)
     }
+  }
+
+  /// An armed event has dropped out of the feed. Keep the arm unless the authoritative GET says the
+  /// event was cancelled, deleted (404) or closed; a transient GET failure keeps it too.
+  private func releaseArmIfGone(jwt: String, eventId: String) async {
+    let fresh: GiveawayEvent?
+    do {
+      fresh = try await api.giveawayEvent(jwt, eventId)
+    } catch {
+      return
+    }
+    guard armedEventId == eventId, fresh?.status != .scheduled, fresh?.status != .open else {
+      return
+    }
+    cancelArmedReveal()
+    log("arm: \(eventId) is \(fresh?.status.rawValue ?? "gone") → released")
   }
 
   /// A published event has dropped out of the feed. Confirm via the authoritative GET: keep it if

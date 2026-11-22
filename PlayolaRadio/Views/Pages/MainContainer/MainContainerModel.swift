@@ -413,8 +413,9 @@ class MainContainerModel: ViewModel {
     model.giveawayOverlayModel.onTap = { [weak self] event in
       try await self?.giveawayCoordinator.tap(event: event)
     }
-    model.giveawayOverlayModel.onError = { [weak self] error in
-      self?.presentedAlert =
+    // Alert from the player sheet itself; one raised behind the sheet would dismiss it.
+    model.giveawayOverlayModel.onError = { [weak model] error in
+      model?.presentedAlert =
         error as? GiveawayTapError == .ended ? .giveawayEnded : .giveawayTapFailed
     }
     return model
