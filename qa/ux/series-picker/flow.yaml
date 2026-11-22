@@ -2,8 +2,10 @@ appId: fm.playola.playolaradio.staging
 ---
 # Opens the series picker and the New Series sheet, then cancels. Nothing is picked or saved.
 - tapOn: "Add to a series"
-- extendedWaitUntil:
-    visible: "New Series"
+# Earlier runs' Series stay on staging, so the New Series row can sit below the fold.
+- scrollUntilVisible:
+    element: "New Series"
+    direction: DOWN
     timeout: 30000
 - takeScreenshot: series-picker
 - tapOn: "New Series"

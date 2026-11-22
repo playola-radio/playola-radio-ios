@@ -3,8 +3,10 @@ appId: fm.playola.playolaradio.staging
 # Creates a weekly series from the show builder, which saves the new show into it, then reopens
 # the picker and takes the show back out of the series.
 - tapOn: "Add to a series"
-- extendedWaitUntil:
-    visible: "New Series"
+# Earlier runs' Series stay on staging, so the New Series row can sit below the fold.
+- scrollUntilVisible:
+    element: "New Series"
+    direction: DOWN
     timeout: 30000
 - tapOn: "New Series"
 - extendedWaitUntil:
@@ -20,8 +22,9 @@ appId: fm.playola.playolaradio.staging
     visible: "Change"
     timeout: 30000
 - tapOn: "UX Evidence Series"
-- extendedWaitUntil:
-    visible: "Remove from UX Evidence Series"
+- scrollUntilVisible:
+    element: "Remove from UX Evidence Series"
+    direction: DOWN
     timeout: 30000
 - tapOn: "Remove from UX Evidence Series"
 - extendedWaitUntil:
