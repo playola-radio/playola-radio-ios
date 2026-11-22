@@ -7,6 +7,7 @@
 import CustomDump
 import Dependencies
 import IdentifiedCollections
+import ObjectiveC
 import Sharing
 import Testing
 
@@ -160,6 +161,54 @@ struct CarPlaySceneDelegateTests {
     expectNoDifference(connectedRowCount(of: delegate), 2)
   }
 
+  @Test
+  func testPlaybackErrorAfterReconnectShowsAlert() {
+    let player = StationPlayerMock()
+    let delegate = delegate(using: player)
+    let firstController = FakeInterfaceController.make()
+    connect(delegate, to: firstController)
+    disconnect(delegate, from: firstController)
+    let secondController = FakeInterfaceController.make()
+    defer { disconnect(delegate, from: secondController) }
+
+    connect(delegate, to: secondController)
+    player.state = StationPlayer.State(playbackStatus: .error)
+
+    expectNoDifference(secondController.presentedAlertTitles, [["Unable to Connect"]])
+  }
+
+  @Test
+  func testReconnectWithoutDisconnectShowsOneAlert() {
+    let player = StationPlayerMock()
+    let delegate = delegate(using: player)
+    let controller = FakeInterfaceController.make()
+    defer { disconnect(delegate, from: controller) }
+    connect(delegate, to: FakeInterfaceController.make())
+
+    connect(delegate, to: controller)
+    player.state = StationPlayer.State(playbackStatus: .error)
+
+    expectNoDifference(controller.presentedAlertTitles.count, 1)
+  }
+
+  private func delegate(using player: StationPlayerMock) -> CarPlaySceneDelegate {
+    withDependencies {
+      $0.stationPlayer = player
+    } operation: {
+      CarPlaySceneDelegate()
+    }
+  }
+
+  private func connect(_ delegate: CarPlaySceneDelegate, to controller: CPInterfaceController) {
+    delegate.templateApplicationScene(FakeInterfaceController.scene(), didConnect: controller)
+  }
+
+  private func disconnect(_ delegate: CarPlaySceneDelegate, from controller: CPInterfaceController)
+  {
+    delegate.templateApplicationScene(
+      FakeInterfaceController.scene(), didDisconnectInterfaceController: controller)
+  }
+
   private func connectedRowCount(of delegate: CarPlaySceneDelegate) -> Int {
     guard let template = delegate.tabBarTemplate?.templates.first as? CPListTemplate else {
       return 0
@@ -182,5 +231,68 @@ struct CarPlaySceneDelegateTests {
       yields += 1
     }
     #expect(!player.callsToPlay.isEmpty, "Expected a tapped CarPlay row to start playback")
+  }
+}
+
+/// CarPlay's interface controller has no public initializer, so tests allocate the
+/// subclass directly and record what the delegate presents. The instance never runs
+/// an initializer, so it holds no stored properties; recordings live in an associated object.
+private final class FakeInterfaceController: CPInterfaceController {
+  private final class Recording {
+    var presentedAlerts: [CPAlertTemplate] = []
+  }
+
+  private static var recordingKey = 0
+
+  static func make() -> FakeInterfaceController {
+    guard
+      let controller = class_createInstance(FakeInterfaceController.self, 0)
+        as? FakeInterfaceController
+    else { preconditionFailure("Could not allocate FakeInterfaceController") }
+    objc_setAssociatedObject(controller, &recordingKey, Recording(), .OBJC_ASSOCIATION_RETAIN)
+    return controller
+  }
+
+  static func scene() -> CPTemplateApplicationScene {
+    guard
+      let scene = class_createInstance(CPTemplateApplicationScene.self, 0)
+        as? CPTemplateApplicationScene
+    else { preconditionFailure("Could not allocate CPTemplateApplicationScene") }
+    return scene
+  }
+
+  private var recording: Recording {
+    guard let recording = objc_getAssociatedObject(self, &Self.recordingKey) as? Recording else {
+      preconditionFailure("FakeInterfaceController must be created with make()")
+    }
+    return recording
+  }
+
+  var presentedAlertTitles: [[String]] { recording.presentedAlerts.map(\.titleVariants) }
+
+  override var delegate: CPInterfaceControllerDelegate? {
+    get { nil }
+    set {}
+  }
+
+  override var presentedTemplate: CPTemplate? { nil }
+
+  override var topTemplate: CPTemplate? { nil }
+
+  override func setRootTemplate(
+    _ rootTemplate: CPTemplate, animated: Bool,
+    completion: ((Bool, Error?) -> Void)? = nil
+  ) {
+    completion?(true, nil)
+  }
+
+  override func presentTemplate(
+    _ templateToPresent: CPTemplate, animated: Bool,
+    completion: ((Bool, Error?) -> Void)? = nil
+  ) {
+    if let alert = templateToPresent as? CPAlertTemplate {
+      recording.presentedAlerts.append(alert)
+    }
+    completion?(true, nil)
   }
 }

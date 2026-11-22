@@ -5,6 +5,8 @@
 //  Created by Brian D Keane on 8/1/25.
 //
 
+import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import Sharing
@@ -287,5 +289,74 @@ struct EditProfilePageTests {
     #expect(navigationCoordinator.path.count == 0)
 
     navigationCoordinator.popToRoot()
+  }
+
+  @Test
+  func testSaveButtonTappedReportsUpdateFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reports = LockIsolated<[String]>([])
+    let model = withDependencies {
+      $0.api.updateUser = { _, _, _, _ in throw APIError.dataNotValid }
+      $0.continuousClock = ImmediateClock()
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    } operation: {
+      EditProfilePageModel()
+    }
+
+    await model.saveButtonTapped()
+
+    expectNoDifference(reports.value, ["updateUser"])
+    expectNoDifference(model.presentedAlert, .updateProfileErrorAlert)
+  }
+
+  @Test
+  func testSaveButtonTappedDoesNotReportConnectivityFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.updateUser = { _, _, _, _ in throw URLError(.notConnectedToInternet) }
+      $0.continuousClock = ImmediateClock()
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      EditProfilePageModel()
+    }
+
+    await model.saveButtonTapped()
+
+    expectNoDifference(reportCount.value, 0)
+    expectNoDifference(model.presentedAlert, .updateProfileErrorAlert)
+  }
+
+  @Test
+  func testSaveButtonTappedDoesNotReportCancellation() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.updateUser = { _, _, _, _ in throw CancellationError() }
+      $0.continuousClock = ImmediateClock()
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      EditProfilePageModel()
+    }
+
+    await model.saveButtonTapped()
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  @Test
+  func testEmailHelpTextDoesNotMentionAProvider() {
+    let model = EditProfilePageModel()
+
+    expectNoDifference(
+      model.emailHelpText,
+      "This email is linked to your sign-in account and can't be changed here.")
+  }
+
+  @Test
+  func testBackButtonAccessibilityLabel() {
+    expectNoDifference(EditProfilePageModel().backButtonAccessibilityLabel, "Back")
   }
 }

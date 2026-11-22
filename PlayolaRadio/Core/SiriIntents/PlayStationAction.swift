@@ -5,6 +5,7 @@ enum PlayStationOutcome: Equatable {
   case requiresSignIn
   case notFound
   case playing(stationName: String)
+  case couldNotStart(stationName: String)
 }
 
 @MainActor
@@ -18,7 +19,7 @@ struct PlayStationAction {
     guard let station = catalog.station(id: stationID) else { return .notFound }
     let label = catalog.match(id: stationID)?.label ?? station.stationName
     await PlaybackBootstrap().prepareForPlayback()
-    await stationPlayer.play(station: station)
-    return .playing(stationName: label)
+    let started = await stationPlayer.play(station: station)
+    return started ? .playing(stationName: label) : .couldNotStart(stationName: label)
   }
 }

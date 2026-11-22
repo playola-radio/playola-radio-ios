@@ -132,6 +132,7 @@ result.json  comment.md
 
 ## Troubleshooting
 
+- "unknown key in ios: iosVersion" (or `xcodeVersion`): your copy of the tool is older than this repo's `qa/ux/config.yaml`. Update it: `git -C ~/playola/playola-skills checkout main && git -C ~/playola/playola-skills pull`, then `make ux-evidence-setup`. Do not remove the keys from the config; the current tool needs them (or `runtime` and `xcodePath`).
 - "UX evidence tool missing": clone `playola-radio/ai-skills` to `~/playola/playola-skills`, or set `UX_EVIDENCE_HOME`, then run `make ux-evidence-setup`.
 - "no saved staging session", "rejected the saved session" or "expires … less than 30 minutes from now": sign in to the Staging app in a simulator and run `make ux-evidence-ios-login`.
 - "missing Secrets….xcconfig": copy the four files into `secretsSource`'s `PlayolaRadio/Config/` (see `make setup-conductor`).

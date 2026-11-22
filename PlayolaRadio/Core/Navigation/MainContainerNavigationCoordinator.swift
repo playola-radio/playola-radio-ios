@@ -85,7 +85,6 @@ final class MainContainerNavigationCoordinator {
 
   enum Path: Hashable, Equatable {
     case editProfilePage(EditProfilePageModel)
-    case likedSongsPage(LikedSongsPageModel)
     case listeningHistoryPage(ListeningHistoryPageModel)
     case rewardsPage(RewardsPageModel)
     case broadcastPage(BroadcastPageModel)
@@ -125,8 +124,6 @@ final class MainContainerNavigationCoordinator {
       switch self {
       case .editProfilePage(let model):
         EditProfilePageView(model: model)
-      case .likedSongsPage(let model):
-        LikedSongsPage(model: model)
       case .listeningHistoryPage(let model):
         ListeningHistoryPageView(model: model)
       case .rewardsPage(let model):

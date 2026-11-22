@@ -504,6 +504,30 @@ struct MainContainerTests {
     #expect(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet == nil)
   }
 
+  // MARK: - Giveaway Tap Alert Tests
+
+  @Test
+  func testGiveawayTapAfterContestEndedShowsGiveawayEndedAlertOnPlayer() async {
+    let mainContainerModel = withDependencies {
+      $0.stationPlayer = StationPlayerMock.mockPlayingPlayer()
+    } operation: {
+      MainContainerModel()
+    }
+    mainContainerModel.onSmallPlayerTapped()
+    guard
+      case .player(let playerPageModel) = mainContainerModel.mainContainerNavigationCoordinator
+        .presentedSheet
+    else {
+      Issue.record("Expected player sheet to be presented")
+      return
+    }
+
+    await playerPageModel.giveawayOverlayModel.onError?(GiveawayTapError.ended)
+
+    #expect(playerPageModel.presentedAlert == .giveawayEnded)
+    #expect(mainContainerModel.presentedAlert == nil)
+  }
+
   // MARK: - Playola Station Player Configuration Tests
 
   @Test
