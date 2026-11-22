@@ -1,3 +1,3 @@
 ### Changes
 
-- Siri no longer says a station is playing when it couldn't start. It now tells you the station couldn't be started.
+- Siri no longer says a station is playing when it couldn't start; it now says it couldn't confirm the station started.

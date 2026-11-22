@@ -18,7 +18,7 @@ struct PlayStationIntent: AppIntent {
     case .playing(let name):
       return .result(dialog: "Playing \(name)")
     case .couldNotStart(let name):
-      return .result(dialog: "I couldn't start \(name) right now")
+      return .result(dialog: "I couldn't confirm that \(name) started playing")
     }
   }
 }

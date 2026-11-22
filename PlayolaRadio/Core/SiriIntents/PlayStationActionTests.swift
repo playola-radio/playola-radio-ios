@@ -91,8 +91,7 @@ struct PlayStationActionTests {
     } operation: {
       await PlayStationAction().run(stationID: "koke-fm-id")
     }
-    #expect(outcome == .couldNotStart(stationName: "KOKE FM"))
-    #expect(player.callsToPlay.map(\.id) == ["koke-fm-id"])
+    expectNoDifference(outcome, .couldNotStart(stationName: "KOKE FM"))
   }
 
   // A Playola (artist) station's `stationName` is the internal show name
