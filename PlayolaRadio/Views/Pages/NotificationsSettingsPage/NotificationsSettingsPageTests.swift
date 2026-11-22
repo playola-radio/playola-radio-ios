@@ -6,6 +6,7 @@
 //
 
 import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import IdentifiedCollections
@@ -268,8 +269,8 @@ struct NotificationsSettingsPageTests {
 
       await model.viewAppeared()
 
-      #expect(reports.value == ["getPushNotificationSubscriptions"])
-      #expect(model.presentedAlert == .loadSubscriptionsErrorAlert)
+      expectNoDifference(reports.value, ["getPushNotificationSubscriptions"])
+      expectNoDifference(model.presentedAlert, .loadSubscriptionsErrorAlert)
     }
   }
 
@@ -291,8 +292,8 @@ struct NotificationsSettingsPageTests {
 
       await model.toggleSubscription(for: "station-1")
 
-      #expect(reports.value == ["subscribeToStationNotifications"])
-      #expect(model.presentedAlert == .toggleSubscriptionErrorAlert)
+      expectNoDifference(reports.value, ["subscribeToStationNotifications"])
+      expectNoDifference(model.presentedAlert, .toggleSubscriptionErrorAlert)
     }
   }
 
@@ -315,8 +316,8 @@ struct NotificationsSettingsPageTests {
 
       await model.toggleSubscription(for: "station-1")
 
-      #expect(reports.value == ["unsubscribeFromStationNotifications"])
-      #expect(model.presentedAlert == .toggleSubscriptionErrorAlert)
+      expectNoDifference(reports.value, ["unsubscribeFromStationNotifications"])
+      expectNoDifference(model.presentedAlert, .toggleSubscriptionErrorAlert)
     }
   }
 
@@ -338,8 +339,8 @@ struct NotificationsSettingsPageTests {
 
       await model.toggleAllNotifications()
 
-      #expect(reports.value == ["subscribeToStationNotifications"])
-      #expect(model.presentedAlert == .toggleSubscriptionErrorAlert)
+      expectNoDifference(reports.value, ["subscribeToStationNotifications"])
+      expectNoDifference(model.presentedAlert, .toggleSubscriptionErrorAlert)
     }
   }
 
@@ -365,7 +366,7 @@ struct NotificationsSettingsPageTests {
 
       await model.toggleAllNotifications()
 
-      #expect(reports.value == ["unsubscribeFromStationNotifications"])
+      expectNoDifference(reports.value, ["unsubscribeFromStationNotifications"])
     }
   }
 
@@ -383,8 +384,8 @@ struct NotificationsSettingsPageTests {
 
       await model.viewAppeared()
 
-      #expect(reportCount.value == 0)
-      #expect(model.presentedAlert == .loadSubscriptionsErrorAlert)
+      expectNoDifference(reportCount.value, 0)
+      expectNoDifference(model.presentedAlert, .loadSubscriptionsErrorAlert)
     }
   }
 
@@ -402,7 +403,7 @@ struct NotificationsSettingsPageTests {
 
       await model.viewAppeared()
 
-      #expect(reportCount.value == 0)
+      expectNoDifference(reportCount.value, 0)
     }
   }
 

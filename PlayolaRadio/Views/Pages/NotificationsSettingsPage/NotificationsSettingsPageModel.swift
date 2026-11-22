@@ -207,6 +207,15 @@ class NotificationsSettingsPageModel: ViewModel {
     togglingStationIds.removeAll()
   }
 
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Notifications" }
+  var emptyStateTitle: String { "No stations available" }
+  var emptyStateMessage: String { "No stations are currently available for notifications." }
+  var allNotificationsTitle: String { "All Notifications" }
+  var allNotificationsSubtitle: String { "Enable or disable all station notifications" }
+  var stationsSectionTitle: String { "Stations" }
+
   // MARK: - Private Helpers
 
   private func reportUnexpectedError(_ error: Error, endpoint: String) async {
@@ -217,15 +226,6 @@ class NotificationsSettingsPageModel: ViewModel {
     tags["endpoint"] = endpoint
     await errorReporting.reportError(error, tags)
   }
-
-  // MARK: - View Helpers
-
-  var navigationTitle: String { "Notifications" }
-  var emptyStateTitle: String { "No stations available" }
-  var emptyStateMessage: String { "No stations are currently available for notifications." }
-  var allNotificationsTitle: String { "All Notifications" }
-  var allNotificationsSubtitle: String { "Enable or disable all station notifications" }
-  var stationsSectionTitle: String { "Stations" }
 }
 
 extension PlayolaAlert {

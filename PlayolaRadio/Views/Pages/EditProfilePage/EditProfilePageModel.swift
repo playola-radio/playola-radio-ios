@@ -70,17 +70,6 @@ class EditProfilePageModel: ViewModel {
     self.email = auth.currentUser?.email ?? ""
   }
 
-  // MARK: - Private Helpers
-
-  private func reportUnexpectedError(_ error: Error, endpoint: String) async {
-    guard !Task.isCancelled, !(error is CancellationError),
-      !NetworkErrorClassifier.isNetworkError(error)
-    else { return }
-    var tags = NetworkErrorClassifier.errorTags(for: error)
-    tags["endpoint"] = endpoint
-    await errorReporting.reportError(error, tags)
-  }
-
   // MARK: - View Helpers
 
   var navigationTitle: String { "Edit Profile" }
@@ -91,6 +80,17 @@ class EditProfilePageModel: ViewModel {
     "This email is linked to your sign-in account and can't be changed here."
   }
   var saveButtonTitle: String { "Save Profile" }
+
+  // MARK: - Private Helpers
+
+  private func reportUnexpectedError(_ error: Error, endpoint: String) async {
+    guard !Task.isCancelled, !(error is CancellationError),
+      !NetworkErrorClassifier.isNetworkError(error)
+    else { return }
+    var tags = NetworkErrorClassifier.errorTags(for: error)
+    tags["endpoint"] = endpoint
+    await errorReporting.reportError(error, tags)
+  }
 }
 
 extension PlayolaAlert {
