@@ -34,6 +34,7 @@ final class LikesManager: ObservableObject {
 
   private var authCancellable: AnyCancellable?
   private var lastJWT: String?
+  private var currentSync: Task<Void, Never>?
 
   init() {
     setupAuthObserver()
@@ -213,13 +214,30 @@ final class LikesManager: ObservableObject {
     }
   }
 
-  /// Syncs pending operations with the server
+  /// Syncs pending operations with the server, one sync at a time.
+  /// A call made while a sync is running waits for it, then sends whatever is still queued.
   func syncPendingOperations() async {
+    let previousSync = currentSync
+    let sync = Task {
+      await previousSync?.value
+      await sendPendingOperations()
+    }
+    currentSync = sync
+    await sync.value
+  }
+
+  // MARK: - Private Helpers
+
+  private func sendPendingOperations() async {
     guard let jwt = auth.jwt else { return }
 
-    let operations = pendingOperations
-
-    for operation in operations {
+    for operation in pendingOperations {
+      // Only the newest queued action on a song is sent, so a stale like can't follow an unlike.
+      let newest = pendingOperations.last { $0.audioBlock.id == operation.audioBlock.id }
+      guard newest?.id == operation.id else {
+        $pendingOperations.withLock { $0.removeAll { $0.id == operation.id } }
+        continue
+      }
       do {
         switch operation.type {
         case .like:
