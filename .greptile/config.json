@@ -68,7 +68,7 @@
     },
     {
       "id": "identified-array-for-collections",
-      "rule": "Use `IdentifiedArrayOf<T>` from IdentifiedCollections for arrays of identifiable items displayed in lists. This provides O(1) lookup by ID and safer list diffing.",
+      "rule": "Use `IdentifiedArrayOf<T>` from IdentifiedCollections for identifiable collections a model stores as state and displays in lists (loaded, mutated, or looked up by ID). This provides O(1) lookup by ID and safer list diffing. A computed array that only lets a view render an optional row with `ForEach` instead of an `if` may stay a plain array.",
       "scope": ["PlayolaRadio/Views/**/*Model.swift"],
       "severity": "low"
     },
