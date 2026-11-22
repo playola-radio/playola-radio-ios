@@ -68,6 +68,7 @@ class StationListModel: ViewModel {
   let suggestStationShortText = "Suggest a station"
   let searchBarPlaceholder = "Search stations"
   let noResultsIconName = "music.note.list"
+  let clearSearchButtonAccessibilityLabel = "Clear search"
   let noResultsMessage = "No stations found"
   let noResultsHint = "Try a different search, or suggest a station to request one."
 
@@ -216,6 +217,14 @@ class StationListModel: ViewModel {
   }
 
   // MARK: - View Helpers
+
+  var isSearchBarPlaceholderVisible: Bool { searchText.isEmpty }
+
+  var isClearSearchButtonVisible: Bool { !searchText.isEmpty }
+
+  var visibleSections: [DisplayedStationSection] {
+    displayedSections.filter { !displayedRows(for: $0).isEmpty }
+  }
 
   var isShowingNoResults: Bool {
     guard !searchText.isEmpty else { return false }

@@ -77,8 +77,9 @@ struct StationListPadView: View {
           .font(.system(size: 16))
           .foregroundColor(.playolaGray)
       }
-      .opacity(model.searchText.isEmpty ? 0 : 1)
-      .disabled(model.searchText.isEmpty)
+      .accessibilityLabel(model.clearSearchButtonAccessibilityLabel)
+      .opacity(model.isClearSearchButtonVisible ? 1 : 0)
+      .disabled(!model.isClearSearchButtonVisible)
     }
     .padding(.horizontal, 12)
     .padding(.vertical, 10)
@@ -138,7 +139,7 @@ struct StationListPadView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 28) {
         noResults
-        ForEach(model.displayedSections) { section in
+        ForEach(model.visibleSections) { section in
           gridSection(section)
         }
       }
@@ -153,16 +154,14 @@ struct StationListPadView: View {
   @ViewBuilder
   private func gridSection(_ section: DisplayedStationSection) -> some View {
     let rows = model.displayedRows(for: section)
-    if !rows.isEmpty {
-      VStack(alignment: .leading, spacing: 12) {
-        Text(section.title)
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
-          .foregroundColor(.white)
+    VStack(alignment: .leading, spacing: 12) {
+      Text(section.title)
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+        .foregroundColor(.white)
 
-        LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
-          ForEach(rows) { row in
-            stationRow(row)
-          }
+      LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
+        ForEach(rows) { row in
+          stationRow(row)
         }
       }
     }

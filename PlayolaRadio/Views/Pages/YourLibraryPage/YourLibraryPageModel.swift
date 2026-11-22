@@ -51,6 +51,7 @@ class YourLibraryPageModel: ViewModel {
 
   var navigationTitle: String { "Your Library" }
   var likedSongsSectionTitle: String { "Liked Songs" }
+  var songMenuButtonAccessibilityLabel: String { "More" }
   var listeningHistoryTitle: String { "Listening History" }
   var listeningHistorySubtitle: String { "Songs and channels you’ve heard" }
 
@@ -104,4 +105,10 @@ class YourLibraryPageModel: ViewModel {
   func removeSong(_ audioBlock: AudioBlock) {
     likesManager.unlike(audioBlock)
   }
+}
+
+struct SongActionSheet: Identifiable {
+  let id = UUID()
+  let audioBlock: AudioBlock
+  let likedDate: Date
 }

@@ -110,7 +110,7 @@ struct StationListPage: View {
           .padding(.top, 64)
         } else {
           VStack(alignment: .leading, spacing: 20) {
-            ForEach(model.displayedSections) { section in
+            ForEach(model.visibleSections) { section in
               stationSection(section: section)
             }
           }
@@ -135,7 +135,7 @@ struct StationListPage: View {
         .autocorrectionDisabled()
         .textInputAutocapitalization(.never)
 
-      if !model.searchText.isEmpty {
+      if model.isClearSearchButtonVisible {
         Button {
           model.searchText = ""
         } label: {
@@ -143,6 +143,7 @@ struct StationListPage: View {
             .font(.system(size: 16))
             .foregroundColor(.playolaGray)
         }
+        .accessibilityLabel(model.clearSearchButtonAccessibilityLabel)
       }
     }
     .padding(.horizontal, 12)
@@ -158,38 +159,36 @@ struct StationListPage: View {
   @ViewBuilder
   private func stationSection(section: DisplayedStationSection) -> some View {
     let rows = model.displayedRows(for: section)
-    if !rows.isEmpty {
-      VStack(alignment: .leading, spacing: 1) {
-        Text(section.title)
-          .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
-          .foregroundColor(.white)
-          .padding(.horizontal)
-          .padding(.bottom, 8)
+    VStack(alignment: .leading, spacing: 1) {
+      Text(section.title)
+        .font(.custom(FontNames.Inter_600_SemiBold, size: 14))
+        .foregroundColor(.white)
+        .padding(.horizontal)
+        .padding(.bottom, 8)
 
-        SuggestStationRow(
-          isVisible: section.isArtistList,
-          text: model.suggestArtistButtonText,
-          action: { model.suggestArtistTapped() }
-        )
+      SuggestStationRow(
+        isVisible: section.isArtistList,
+        text: model.suggestArtistButtonText,
+        action: { model.suggestArtistTapped() }
+      )
 
-        VStack(spacing: 1) {
-          ForEach(rows) { row in
-            let item = row.item
-            let rowModel = StationListStationRowModel(
-              item: item, liveStatus: row.liveStatus,
-              hasUpcomingGiveaway: row.hasUpcomingGiveaway)
-            let isPreset = model.presetsModel.isPreset(stationId: item.anyStation.id)
-            StationListStationRowView(
-              model: rowModel,
-              action: {
-                Task { await model.stationSelected(item) }
-              },
-              isPreset: isPreset,
-              presetAccessibilityLabel: model.presetsModel.presetStarAccessibilityLabel(
-                isPreset: isPreset, stationName: rowModel.titleText),
-              onTogglePreset: { await model.presetsModel.starTapped(for: item) }
-            )
-          }
+      VStack(spacing: 1) {
+        ForEach(rows) { row in
+          let item = row.item
+          let rowModel = StationListStationRowModel(
+            item: item, liveStatus: row.liveStatus,
+            hasUpcomingGiveaway: row.hasUpcomingGiveaway)
+          let isPreset = model.presetsModel.isPreset(stationId: item.anyStation.id)
+          StationListStationRowView(
+            model: rowModel,
+            action: {
+              Task { await model.stationSelected(item) }
+            },
+            isPreset: isPreset,
+            presetAccessibilityLabel: model.presetsModel.presetStarAccessibilityLabel(
+              isPreset: isPreset, stationName: rowModel.titleText),
+            onTogglePreset: { await model.presetsModel.starTapped(for: item) }
+          )
         }
       }
     }
