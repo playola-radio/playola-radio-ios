@@ -13,7 +13,8 @@ Why this build and no other:
 - `PlayolaRadio` (Debug) talks to the production API, and `PlayolaRadio-Staging` still sends
   source-tape uploads to the production API. Neither is used here.
 - `PlayolaRadio-Local` sends every request to `localhost`. `make demo-env` builds it with
-  `LOCAL_API_URL` set to the demo server, and checks that address is `localhost`.
+  `LOCAL_API_URL` set to the demo server, `http://localhost:10120`. The app ignores any
+  `LOCAL_API_URL` that isn't `localhost`, so a Local build can't reach a deployed server.
 - The app signs in through the server's `POST /v1/auth/dev-login`, which only a development
   server has (production and staging answer 404). If that call fails, `make demo-env` stops
   before installing anything.
@@ -30,7 +31,8 @@ Why this build and no other:
   what it needs: Docker (colima), and one secret the first time it downloads production data:
   - `RENDER_PRODUCTION_FOLLOWER_DB_URL`: the **external** connection string of the production
     **read replica** (Render dashboard → the production Postgres read replica → Connect →
-    External). Put it in `~/factory/secrets.env` (sourced by the factory, never committed):
+    External). Put it in `~/factory/secrets.env` (never committed). `make demo-env` loads that
+    file before it starts the server's demo, so it works the same from the factory or by hand:
 
     ```bash
     RENDER_PRODUCTION_FOLLOWER_DB_URL=postgres://...
@@ -55,8 +57,7 @@ It:
    signed-in session into the app, and launches it.
 
 Re-running it is safe: the simulator, the build and the backend are reused, and the session is
-rewritten. Override `DEMO_API_URL` (default `http://localhost:10120`; must be `localhost`) or
-`PLAYOLA_SERVER_DIR` if yours differ.
+rewritten. Set `PLAYOLA_SERVER_DIR` if your server checkout isn't at `~/playola/playola`.
 
 **Record at:** the **Playola Demo** simulator, app `fm.playola.playolaradio`
 (`PlayolaRadio-Local`), signed in, against `http://localhost:10120`. `make demo-env` prints the
@@ -97,5 +98,12 @@ Never open the profile tab or any screen with the account's name or email in a r
 make demo-env-down
 ```
 
-Deletes the **Playola Demo** simulator (and with it the app and its session) and runs the server
-repo's `make demo-env-down` to stop the backend. The next `make demo-env` starts from scratch.
+Deletes the **Playola Demo** simulator (and with it the app and its session). The next
+`make demo-env` rebuilds it, signed in, from scratch.
+
+The backend keeps running, because a web demo may be using it at the same time. To stop it and
+drop its database too, so the next `make demo-env` restores a fresh copy of the data:
+
+```bash
+make -C ~/playola/playola demo-env-down   # or your PLAYOLA_SERVER_DIR
+```

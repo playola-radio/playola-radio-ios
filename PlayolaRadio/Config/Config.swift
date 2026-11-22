@@ -44,9 +44,12 @@ final class Config: Sendable {
   }
 
   /// Local builds talk to `localhost:10020` unless the `LOCAL_API_URL` build setting names another
-  /// local server (the factory demo environment runs its API on its own port).
+  /// server on this machine (the factory demo environment runs its API on its own port). Anything
+  /// that isn't localhost is ignored, so a Local build can never reach a deployed server.
   static func localBaseUrl(override: String?) -> URL {
-    guard let override, !override.isEmpty, let url = URL(string: override) else {
+    guard let override, let url = URL(string: override), let host = url.host,
+      ["localhost", "127.0.0.1"].contains(host)
+    else {
       return URL(string: "http://localhost:10020")!
     }
     return url

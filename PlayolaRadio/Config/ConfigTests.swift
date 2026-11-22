@@ -23,4 +23,10 @@ struct ConfigTests {
       Config.localBaseUrl(override: "http://localhost:10120")
         == URL(string: "http://localhost:10120")!)
   }
+
+  @Test func localBaseUrlIgnoresBuildSettingThatIsNotOnThisMachine() {
+    #expect(
+      Config.localBaseUrl(override: "https://admin-api.playola.fm")
+        == URL(string: "http://localhost:10020")!)
+  }
 }

@@ -57,7 +57,7 @@ release-staging:
 demo-env:
 	./scripts/demo-env.sh up
 
-# Delete the demo simulator and stop the local demo backend.
+# Delete the demo simulator. The shared demo backend is left running (see factory/DEMO.md).
 demo-env-down:
 	./scripts/demo-env.sh down
 

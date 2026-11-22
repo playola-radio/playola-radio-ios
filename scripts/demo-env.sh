@@ -3,32 +3,25 @@
 #
 #   scripts/demo-env.sh up     bring up the local backend if needed, build the Local app,
 #                              install it on the "Playola Demo" simulator, sign it in, launch it
-#   scripts/demo-env.sh down   delete the "Playola Demo" simulator and stop the local backend
+#   scripts/demo-env.sh down   delete the "Playola Demo" simulator (the backend keeps running)
 #
-# The app only ever talks to a server on this machine: DEMO_API_URL must be a localhost URL,
-# and the server must answer the development-only dev-login endpoint, which production does not
-# serve. Safe to re-run: every step reuses what already exists.
+# The app only ever talks to the demo server on this machine, and that server must answer the
+# development-only dev-login endpoint, which production does not serve. Safe to re-run: every
+# step reuses what already exists.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEMO_API_URL="${DEMO_API_URL:-http://localhost:10120}"
+DEMO_API_URL="http://localhost:10120"
 PLAYOLA_SERVER_DIR="${PLAYOLA_SERVER_DIR:-$HOME/playola/playola}"
-SIMULATOR_NAME="${DEMO_SIMULATOR_NAME:-Playola Demo}"
+SIMULATOR_NAME="Playola Demo"
 DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro"
-DERIVED_DATA="${DEMO_DERIVED_DATA:-/tmp/playola-ios-demo-derived-data}"
+DERIVED_DATA="/tmp/playola-ios-demo-derived-data"
 BUNDLE_ID="fm.playola.playolaradio"
-BACKEND_TIMEOUT_SECONDS="${DEMO_BACKEND_TIMEOUT_SECONDS:-900}"
+BACKEND_TIMEOUT_SECONDS=900
 
 fail() {
   echo "demo-env: $*" >&2
   exit 1
-}
-
-require_local_api_url() {
-  case "$DEMO_API_URL" in
-  http://localhost:* | http://127.0.0.1:*) ;;
-  *) fail "DEMO_API_URL must be a localhost URL (got '$DEMO_API_URL'); the demo never uses a deployed server." ;;
-  esac
 }
 
 api_is_up() {
@@ -46,6 +39,13 @@ ensure_backend() {
   fi
   server_has_target demo-env ||
     fail "nothing answers at $DEMO_API_URL and $PLAYOLA_SERVER_DIR has no 'make demo-env'. Set PLAYOLA_SERVER_DIR to a checkout of playola-radio/playola that has it, or start that repo's demo environment yourself."
+  # The server's demo needs the read-replica URL the first time it downloads production data.
+  if [ -f "$HOME/factory/secrets.env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . "$HOME/factory/secrets.env"
+    set +a
+  fi
   echo "Starting the local backend: make -C $PLAYOLA_SERVER_DIR demo-env"
   make -C "$PLAYOLA_SERVER_DIR" demo-env
   local waited=0
@@ -146,7 +146,6 @@ print(json.dumps({"currentUser": user, "jwt": token}))
 }
 
 up() {
-  require_local_api_url
   ensure_backend
   local token udid
   token="$(dev_login_token)"
@@ -175,11 +174,8 @@ down() {
     xcrun simctl delete "$udid"
     echo "Deleted simulator \"$SIMULATOR_NAME\" ($udid)"
   fi
-  if server_has_target demo-env-down; then
-    make -C "$PLAYOLA_SERVER_DIR" demo-env-down
-  else
-    echo "No 'make demo-env-down' in $PLAYOLA_SERVER_DIR; stop the backend from that repo if it is running."
-  fi
+  # Other demos may share the backend, so it is left running.
+  echo "The demo backend is still up. To stop it and drop its data: make -C $PLAYOLA_SERVER_DIR demo-env-down"
 }
 
 case "${1:-}" in
