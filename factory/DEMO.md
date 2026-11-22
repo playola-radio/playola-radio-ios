@@ -13,7 +13,8 @@ Why this build and no other:
 - `PlayolaRadio` (Debug) talks to the production API, and `PlayolaRadio-Staging` still sends
   source-tape uploads to the production API. Neither is used here.
 - `PlayolaRadio-Local` sends every request to `localhost`. `make demo-env` builds it with
-  `LOCAL_API_URL` set to the demo server, `http://localhost:10120`. The app ignores any
+  `LOCAL_API_URL` set to the demo server, `http://localhost:10070` (the `SERVER_PORT` in the
+  server repo's `docker/demo/compose.env`, read at run time). The app ignores any
   `LOCAL_API_URL` that isn't `localhost`, so a Local build can't reach a deployed server.
 - The app signs in through the server's `POST /v1/auth/dev-login`, which only a development
   server has (production and staging answer 404). If that call fails, `make demo-env` stops
@@ -48,7 +49,7 @@ make demo-env
 
 It:
 
-1. Uses the demo backend if it already answers at `http://localhost:10120/v1/health-check`;
+1. Uses the demo backend if it already answers at `http://localhost:10070/v1/health-check`;
    otherwise runs `make -C $PLAYOLA_SERVER_DIR demo-env` (downloads and restores production
    data the first time, starts the server) and waits for it.
 2. Gets a token from the backend's dev-login (the development admin user).
@@ -60,7 +61,7 @@ Re-running it is safe: the simulator, the build and the backend are reused, and 
 rewritten. Set `PLAYOLA_SERVER_DIR` if your server checkout isn't at `~/playola/playola`.
 
 **Record at:** the **Playola Demo** simulator, app `fm.playola.playolaradio`
-(`PlayolaRadio-Local`), signed in, against `http://localhost:10120`. `make demo-env` prints the
+(`PlayolaRadio-Local`), signed in, against `http://localhost:10070`. `make demo-env` prints the
 simulator's id and a ready-made recording command:
 
 ```bash
@@ -83,7 +84,7 @@ Never open the profile tab or any screen with the account's name or email in a r
     UX evidence on.
   - Build: its own derived data at `/tmp/playola-ios-demo-derived-data`.
   - Backend (owned by the server repo, whose `factory/DEMO.md` is the reference): Docker
-    Compose project `playola-demo`, database `playola_demo`, API on `10120`, Postgres on
+    Compose project `playola-demo`, database `playola_demo`, API on `10070`, Postgres on
     `127.0.0.1:5442`, so it never collides with a dev server on `10020` or another repo's
     Postgres on `5432`/`5433`.
 - **Known limits:**

@@ -9,6 +9,7 @@ import Testing
 @testable import PlayolaRadio
 
 @Suite(.freshSharedState)
+@MainActor
 struct ConfigTests {
   @Test func localBaseUrlDefaultsToStandardLocalServerWhenBuildSettingIsUnset() {
     #expect(Config.localBaseUrl(override: nil) == URL(string: "http://localhost:10020")!)
@@ -20,8 +21,8 @@ struct ConfigTests {
 
   @Test func localBaseUrlUsesBuildSettingWhenSet() {
     #expect(
-      Config.localBaseUrl(override: "http://localhost:10120")
-        == URL(string: "http://localhost:10120")!)
+      Config.localBaseUrl(override: "http://localhost:10070")
+        == URL(string: "http://localhost:10070")!)
   }
 
   @Test func localBaseUrlIgnoresBuildSettingThatIsNotOnThisMachine() {

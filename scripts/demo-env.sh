@@ -11,8 +11,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEMO_API_URL="http://localhost:10120"
 PLAYOLA_SERVER_DIR="${PLAYOLA_SERVER_DIR:-$HOME/playola/playola}"
+# The server repo owns the demo backend's ports; read its API port so the two never drift apart.
+DEMO_API_PORT="$(sed -n 's/^SERVER_PORT=//p' "$PLAYOLA_SERVER_DIR/docker/demo/compose.env" 2>/dev/null)"
+DEMO_API_URL="http://localhost:${DEMO_API_PORT:-10070}"
 SIMULATOR_NAME="Playola Demo"
 DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro"
 DERIVED_DATA="/tmp/playola-ios-demo-derived-data"
@@ -25,7 +27,7 @@ fail() {
 }
 
 api_is_up() {
-  curl -fsS -m 5 -o /dev/null "$DEMO_API_URL/v1/health-check"
+  curl -fs -m 5 -o /dev/null "$DEMO_API_URL/v1/health-check"
 }
 
 server_has_target() {
@@ -39,15 +41,17 @@ ensure_backend() {
   fi
   server_has_target demo-env ||
     fail "nothing answers at $DEMO_API_URL and $PLAYOLA_SERVER_DIR has no 'make demo-env'. Set PLAYOLA_SERVER_DIR to a checkout of playola-radio/playola that has it, or start that repo's demo environment yourself."
-  # The server's demo needs the read-replica URL the first time it downloads production data.
-  if [ -f "$HOME/factory/secrets.env" ]; then
-    set -a
-    # shellcheck disable=SC1091
-    . "$HOME/factory/secrets.env"
-    set +a
-  fi
   echo "Starting the local backend: make -C $PLAYOLA_SERVER_DIR demo-env"
-  make -C "$PLAYOLA_SERVER_DIR" demo-env
+  # The server's demo needs the read-replica URL the first time it downloads production data.
+  # The subshell keeps those secrets out of the iOS build that runs afterwards.
+  (
+    if [ -f "$HOME/factory/secrets.env" ]; then
+      set -a
+      # shellcheck disable=SC1091
+      . "$HOME/factory/secrets.env"
+    fi
+    make -C "$PLAYOLA_SERVER_DIR" demo-env
+  )
   local waited=0
   until api_is_up; do
     [ "$waited" -lt "$BACKEND_TIMEOUT_SECONDS" ] || fail "backend did not answer at $DEMO_API_URL/v1/health-check within ${BACKEND_TIMEOUT_SECONDS}s"
@@ -114,8 +118,9 @@ ensure_simulator() {
 
 build_app() {
   local udid="$1"
-  # LOCAL_API_URL points the Local build at the demo server; the placeholder Mixpanel token keeps
-  # demo sessions out of the real analytics project.
+  # DEV_ENVIRONMENT=local pins the build to localhost whatever the xcconfig says, LOCAL_API_URL
+  # points it at the demo server, and the placeholder Mixpanel token keeps demo sessions out of
+  # the real analytics project.
   xcodebuild build \
     -project "$ROOT/PlayolaRadio.xcodeproj" \
     -scheme PlayolaRadio-Local \
@@ -124,6 +129,7 @@ build_app() {
     -derivedDataPath "$DERIVED_DATA" \
     -skipPackagePluginValidation \
     -quiet \
+    DEV_ENVIRONMENT=local \
     LOCAL_API_URL="$DEMO_API_URL" \
     MIXPANEL_TOKEN=demo-environment-no-analytics
 }
