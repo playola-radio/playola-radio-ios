@@ -13,7 +13,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PLAYOLA_SERVER_DIR="${PLAYOLA_SERVER_DIR:-$HOME/playola/playola}"
 # The server repo owns the demo backend's ports; read its API port so the two never drift apart.
-DEMO_API_PORT="$(sed -n 's/^SERVER_PORT=//p' "$PLAYOLA_SERVER_DIR/docker/demo/compose.env" 2>/dev/null)"
+DEMO_API_PORT="$(sed -n 's/^SERVER_PORT=//p' "$PLAYOLA_SERVER_DIR/docker/demo/compose.env" 2>/dev/null || true)"
 DEMO_API_URL="http://localhost:${DEMO_API_PORT:-10070}"
 SIMULATOR_NAME="Playola Demo"
 DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro"
