@@ -612,10 +612,8 @@ struct ContactPageTests {
   }
 
   private func runContactUsTapped(
-    auth: Auth,
     overrides: @escaping (inout DependencyValues) -> Void
   ) async -> ContactPageModel {
-    @Shared(.auth) var sharedAuth = auth
     let model = withDependencies {
       overrides(&$0)
     } operation: {
@@ -627,8 +625,9 @@ struct ContactPageTests {
 
   @Test
   func testOnContactUsTappedReportsGetConversationsFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = makeAdminAuth()
     let reports = LockIsolated<[String]>([])
-    let model = await runContactUsTapped(auth: makeAdminAuth()) {
+    let model = await runContactUsTapped {
       $0.api.getConversations = { _, _ in throw APIError.dataNotValid }
       $0.errorReporting.reportError = { _, tags in
         reports.withValue { $0.append(tags["endpoint"] ?? "") }
@@ -642,8 +641,9 @@ struct ContactPageTests {
 
   @Test
   func testOnContactUsTappedReportsGetSupportConversationFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let reports = LockIsolated<[String]>([])
-    let model = await runContactUsTapped(auth: Auth(jwt: "test-jwt")) {
+    let model = await runContactUsTapped {
       $0.api.getSupportConversation = { _ in throw APIError.dataNotValid }
       $0.errorReporting.reportError = { _, tags in
         reports.withValue { $0.append(tags["endpoint"] ?? "") }
@@ -657,9 +657,10 @@ struct ContactPageTests {
 
   @Test
   func testOnContactUsTappedReportsGetConversationMessagesFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let reports = LockIsolated<[String]>([])
     let conversation = makeConversation()
-    let model = await runContactUsTapped(auth: Auth(jwt: "test-jwt")) {
+    let model = await runContactUsTapped {
       $0.api.getSupportConversation = { _ in
         SupportConversationResponse(conversation: conversation, unreadCount: 0)
       }
@@ -675,9 +676,30 @@ struct ContactPageTests {
   }
 
   @Test
+  func testOnContactUsTappedReportsAdminGetConversationMessagesFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = makeAdminAuth()
+    let reports = LockIsolated<[String]>([])
+    let conversation = makeConversation()
+    let model = await runContactUsTapped {
+      $0.api.getConversations = { _, _ in
+        [AdminConversationResponse(conversation: conversation, unreadCountFromOwner: 0)]
+      }
+      $0.api.getConversationMessages = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    }
+
+    expectNoDifference(reports.value, ["getConversationMessages"])
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
+    expectNoDifference(model.isCheckingSupport, false)
+  }
+
+  @Test
   func testOnContactUsTappedDoesNotReportConnectivityFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let reportCount = LockIsolated(0)
-    let model = await runContactUsTapped(auth: Auth(jwt: "test-jwt")) {
+    let model = await runContactUsTapped {
       $0.api.getSupportConversation = { _ in throw URLError(.notConnectedToInternet) }
       $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
     }
@@ -688,8 +710,9 @@ struct ContactPageTests {
 
   @Test
   func testOnContactUsTappedDoesNotReportCancellation() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     let reportCount = LockIsolated(0)
-    let model = await runContactUsTapped(auth: Auth(jwt: "test-jwt")) {
+    let model = await runContactUsTapped {
       $0.api.getSupportConversation = { _ in throw CancellationError() }
       $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
     }
