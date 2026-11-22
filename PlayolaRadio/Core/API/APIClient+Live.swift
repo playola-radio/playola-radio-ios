@@ -878,7 +878,8 @@ extension APIClient: DependencyKey {
           path: "/v1/giveaway-events?status=open,scheduled", token: jwtToken)
       },
       giveawayEvent: { jwtToken, eventId in
-        try await authenticatedGet(path: "/v1/giveaway-events/\(eventId)", token: jwtToken)
+        // 404 = the event was cancelled or deleted → nil (authoritative, not a transient failure).
+        try await authenticatedGetOrNil(path: "/v1/giveaway-events/\(eventId)", token: jwtToken)
       },
       activeGiveawayEvent: { jwtToken, stationId in
         // 404 = no open event for this station → nil (not an error).

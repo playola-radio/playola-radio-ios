@@ -144,6 +144,38 @@ struct GiveawayCoordinatorTests {
     #expect(activeGiveaway == nil)
   }
 
+  @Test func reconcileClearsSameStationEventOnceGone() async {
+    // A cancelled or deleted contest leaves the feed and its detail GET answers 404 (nil). That is
+    // authoritative, not a transient failure, so the TAP button must go away.
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = GiveawayEvent(
+      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open)
+    await withDependencies {
+      $0.api.giveawayEventsFeed = { _ in [] }
+      $0.api.giveawayEvent = { _, _ in nil }
+    } operation: {
+      await GiveawayCoordinator().reconcile()
+    }
+    expectNoDifference(activeGiveaway, nil)
+  }
+
+  @Test func revealClearsButtonWhenOpenEventIsGone() async {
+    // The feed still lists the event as open, but its detail GET answers 404: it was cancelled in
+    // between, so the button must go.
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    let event = openEvent()
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = event
+    await withDependencies {
+      $0.api.giveawayEventsFeed = { _ in [event] }
+      $0.api.giveawayEvent = { _, _ in nil }
+    } operation: {
+      await GiveawayCoordinator().reconcile()
+    }
+    expectNoDifference(activeGiveaway, nil)
+  }
+
   @Test func reconcileClearsActiveButKeepsUpcomingWhenNotOnPlayolaStation() async {
     // Not on a Playola station: the open event is torn down, but the all-stations "coming up"
     // projection must still populate so badges show while browsing the list without playback.
@@ -451,14 +483,41 @@ struct GiveawayCoordinatorTests {
       @Shared(.auth) var auth = Auth(jwt: "jwt")
       @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
       $participations.withLock { $0 = [:] }
-      // A 400 race is surfaced by the API as `.notOpenYet`; tap swallows it silently (no rethrow).
-      await withDependencies {
-        $0.api.tapGiveawayEvent = { _, _ in throw GiveawayTapError.notOpenYet }
-      } operation: {
-        try? await GiveawayCoordinator().tap(event: openEvent())
+      let event = GiveawayEvent(
+        id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open,
+        opensAt: Date(timeIntervalSince1970: 2000))
+      // A 400 before the event's open time is the "not open yet" race; tap swallows it silently.
+      await #expect(throws: Never.self) {
+        try await withDependencies {
+          $0.date = .constant(Date(timeIntervalSince1970: 1000))
+          $0.api.tapGiveawayEvent = { _, _ in throw GiveawayTapError.notOpenYet }
+        } operation: {
+          try await GiveawayCoordinator().tap(event: event)
+        }
       }
       #expect(participations["e1"] == nil)
     }
+  }
+
+  @Test func tapReportsEndedAndHidesButtonWhenRejectedAfterOpenTime() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.giveawayParticipations) var participations: [String: GiveawayParticipation] = [:]
+    let event = GiveawayEvent(
+      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open,
+      opensAt: Date(timeIntervalSince1970: 1000))
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = event
+    // The server sends the same 400 when the contest is already due to close; at or after the
+    // open time that means the listener tapped too late.
+    await #expect(throws: GiveawayTapError.ended) {
+      try await withDependencies {
+        $0.date = .constant(Date(timeIntervalSince1970: 1300))
+        $0.api.tapGiveawayEvent = { _, _ in throw GiveawayTapError.notOpenYet }
+      } operation: {
+        try await GiveawayCoordinator().tap(event: event)
+      }
+    }
+    expectNoDifference(activeGiveaway, nil)
+    #expect(participations["e1"] == nil)
   }
 
   @Test func tapRethrowsUnexpectedErrorAndDoesNotPersist() async {
@@ -1364,6 +1423,162 @@ extension GiveawayCoordinatorTests {
       await clock.advance(by: .seconds(60))
       await Task.megaYield()
 
+      expectNoDifference(activeGiveaway?.id, "e1")
+    }
+  }
+
+  @Test func armDoesNotRevealAnEventTheDetailSaysIsClosed() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "jwt")
+      @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+      @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+      let clock = TestClock()
+      let coordinator = withDependencies {
+        $0.continuousClock = clock
+        $0.api.giveawayEventsFeed = { _ in
+          [
+            GiveawayEvent(
+              id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+              status: .scheduled, opensAt: Date(timeIntervalSince1970: 1060))
+          ]
+        }
+        $0.api.giveawayEvent = { _, id in
+          GiveawayEvent(
+            id: id, stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+            status: .closed, opensAt: Date(timeIntervalSince1970: 1060),
+            serverTime: Date(timeIntervalSince1970: 1000))
+        }
+      } operation: {
+        GiveawayCoordinator()
+      }
+
+      await coordinator.reconcile()
+      await Task.megaYield()
+      await clock.advance(by: .seconds(60))
+      await Task.megaYield()
+
+      expectNoDifference(activeGiveaway, nil)
+    }
+  }
+
+  @Test func armRearmsAtTheNewTimeWhenOpenTimeMoves() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "jwt")
+      @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+      @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+      let clock = TestClock()
+      let opensAt = LockIsolated(Date(timeIntervalSince1970: 1060))
+      let coordinator = withDependencies {
+        $0.continuousClock = clock
+        $0.api.giveawayEventsFeed = { _ in
+          [
+            GiveawayEvent(
+              id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+              status: .scheduled, opensAt: opensAt.value)
+          ]
+        }
+        $0.api.giveawayEvent = { _, id in
+          GiveawayEvent(
+            id: id, stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+            status: .scheduled, opensAt: opensAt.value,
+            serverTime: Date(timeIntervalSince1970: 1000))
+        }
+      } operation: {
+        GiveawayCoordinator()
+      }
+
+      await coordinator.reconcile()
+      await Task.megaYield()
+      // An editor moves the contest 60 s later after this phone armed it.
+      opensAt.setValue(Date(timeIntervalSince1970: 1120))
+      await coordinator.reconcile()
+      await Task.megaYield()
+
+      await clock.advance(by: .seconds(60))
+      await Task.megaYield()
+      expectNoDifference(activeGiveaway, nil)
+
+      await clock.advance(by: .seconds(60))
+      await Task.megaYield()
+      expectNoDifference(activeGiveaway?.id, "e1")
+    }
+  }
+
+  @Test func armIsDroppedWhenEventIsCancelledAfterArming() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "jwt")
+      @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+      @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = nil
+      let clock = TestClock()
+      let isCancelled = LockIsolated(false)
+      let coordinator = withDependencies {
+        $0.continuousClock = clock
+        $0.api.giveawayEventsFeed = { _ in
+          guard !isCancelled.value else { return [] }
+          return [
+            GiveawayEvent(
+              id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+              status: .scheduled, opensAt: Date(timeIntervalSince1970: 1060))
+          ]
+        }
+        $0.api.giveawayEvent = { _, id in
+          guard !isCancelled.value else { return nil }
+          return GiveawayEvent(
+            id: id, stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+            status: .scheduled, opensAt: Date(timeIntervalSince1970: 1060),
+            serverTime: Date(timeIntervalSince1970: 1000))
+        }
+      } operation: {
+        GiveawayCoordinator()
+      }
+
+      await coordinator.reconcile()
+      await Task.megaYield()
+      // The station cancels the contest after this phone armed it: it leaves the feed and 404s.
+      isCancelled.setValue(true)
+      await coordinator.reconcile()
+      await Task.megaYield()
+      await clock.advance(by: .seconds(60))
+      await Task.megaYield()
+
+      expectNoDifference(activeGiveaway, nil)
+    }
+  }
+
+  @Test func rescheduleAfterRevealHidesButtonUntilTheNewTime() async {
+    await withMainSerialExecutor {
+      @Shared(.auth) var auth = Auth(jwt: "jwt")
+      @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+      // Revealed locally at the old open time (1060).
+      @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = GiveawayEvent(
+        id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open,
+        opensAt: Date(timeIntervalSince1970: 1060))
+      let clock = TestClock()
+      let coordinator = withDependencies {
+        $0.continuousClock = clock
+        $0.api.giveawayEventsFeed = { _ in
+          [
+            GiveawayEvent(
+              id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+              status: .scheduled, opensAt: Date(timeIntervalSince1970: 1120))
+          ]
+        }
+        $0.api.giveawayEvent = { _, id in
+          GiveawayEvent(
+            id: id, stationId: "s1", prizeName: "Two tickets", winningNumber: 9,
+            status: .scheduled, opensAt: Date(timeIntervalSince1970: 1120),
+            serverTime: Date(timeIntervalSince1970: 1060))
+        }
+      } operation: {
+        GiveawayCoordinator()
+      }
+
+      await coordinator.reconcile()
+      await Task.megaYield()
+      expectNoDifference(activeGiveaway, nil)
+
+      await clock.advance(by: .seconds(60))
+      await Task.megaYield()
       expectNoDifference(activeGiveaway?.id, "e1")
     }
   }

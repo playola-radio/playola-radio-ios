@@ -185,6 +185,25 @@ struct GiveawayOverlayModelTests {
     #expect(capturedError is Boom)
   }
 
+  @Test func tapAfterGiveawayEndedHidesPromptAndReportsEnded() async {
+    @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
+    let model = GiveawayOverlayModel()
+    var capturedError: (any Error)?
+    // The coordinator clears the button and throws `.ended` for a late tap.
+    model.onTap = { _ in
+      $activeGiveaway.withLock { $0 = nil }
+      throw GiveawayTapError.ended
+    }
+    model.onError = { capturedError = $0 }
+
+    await model.tapButtonTapped()
+
+    #expect(capturedError as? GiveawayTapError == .ended)
+    #expect(model.showsPrompt == false)
+    #expect(model.isVisible == false)
+  }
+
   @Test func promptOrdinalHandlesTeensAndOnes() {
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
     @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()

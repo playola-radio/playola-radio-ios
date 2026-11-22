@@ -145,6 +145,7 @@ struct PlayerPage: View {
       //            Spacer()
     }
     .background(Color.black)
+    .playolaAlert($model.presentedAlert)
     .onChange(of: scenePhase) { _, newValue in
       model.scenePhaseChanged(newPhase: newValue)
     }

@@ -10,11 +10,13 @@ struct GiveawayTapResponse: Decodable, Sendable, Equatable {
   }
 }
 
-/// Domain errors for a tap, translated from the transport layer inside `APIClient` so callers never
-/// touch HTTP/Alamofire details. `.notOpenYet` is the expected 400 race at the open moment (callers
-/// stay silent); any other failure propagates as-is for the caller to surface.
+/// Domain errors for a tap. `APIClient` translates the server's 400 ("not open for taps") into
+/// `.notOpenYet` so callers never touch HTTP/Alamofire details. The server sends that same 400 when
+/// the contest is already due to close, so `GiveawayCoordinator` turns one received at or after the
+/// event's open time into `.ended` for the listener. Any other failure propagates as-is.
 enum GiveawayTapError: Error, Equatable {
   case notOpenYet
+  case ended
 }
 
 /// Domain errors for submitting an artist congrats, translated from the transport layer inside
