@@ -363,6 +363,38 @@ struct ShowBuilderPageTests {
     #expect(model.refusedAsLocked)
   }
 
+  @Test func retryingQAndAAfterLostResponseDoesNotAddItTwice() async throws {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let attempts = LockIsolated(0)
+    let loaded = episode(segments: [segment("s1", position: 0)])
+    let added = episode(segments: [
+      segment("s1", position: 0),
+      segment("s2", position: 1, audio: block("question-audio")),
+      segment("s3", position: 2, audio: block("answer-audio")),
+    ])
+    let model = makeModel(episode: loaded) {
+      $0.api.getCuratorEpisode = { _, _ in attempts.value > 0 ? added : loaded }
+      $0.api.addEpisodeSegments = { _, _, _, _ in
+        attempts.withValue { $0 += 1 }
+        throw ShowBuilderTestError()
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.viewAppeared()
+    model.qaActionTapped()
+    guard case .amaQuestionPickerPage(let picker) = coordinator.path.last else {
+      Issue.record("Expected the question picker")
+      return
+    }
+    let answer = AMAQuestionAnswer(
+      questionId: "question-1", listenerName: "Maya",
+      questionBlock: block("question-audio"), answerBlock: block("answer-audio"))
+    await #expect(throws: ShowBuilderTestError.self) { try await picker.addToShow(answer) }
+    try await picker.addToShow(answer)
+    expectNoDifference(attempts.value, 1)
+  }
+
   @Test func songPickerOffersAvailableSongsOnly() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
@@ -454,6 +486,35 @@ struct ShowBuilderPageTests {
     await retry()
 
     expectNoDifference(attempts.value, 2)
+    expectNoDifference(model.rows.map(\.id), ["s1", "s2"])
+  }
+
+  @Test func retryDoesNotDuplicateARecordedVoicetrackWhoseResponseWasLost() async throws {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let attempts = LockIsolated(0)
+    let loaded = episode(segments: [segment("s1", position: 0)])
+    let added = episode(segments: [
+      segment("s1", position: 0),
+      segment("s2", position: 1, audio: block("voicetrack-1", type: "voiceTrack")),
+    ])
+    let model = makeModel(episode: loaded) {
+      $0.api.getCuratorEpisode = { _, _ in attempts.value > 0 ? added : loaded }
+      $0.api.addEpisodeSegments = { _, _, _, _ in
+        attempts.withValue { $0 += 1 }
+        throw ShowBuilderTestError()
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.viewAppeared()
+    model.voicetrackActionTapped()
+    guard case .recordWithMultiStepPromptPage(let recorder) = coordinator.path.last else {
+      Issue.record("Expected the recorder")
+      return
+    }
+    await recorder.onCompleted?(block("voicetrack-1", type: "voiceTrack"))
+    if let retry = model.presentedAlert?.primaryAction { await retry() }
+    expectNoDifference(attempts.value, 1)
     expectNoDifference(model.rows.map(\.id), ["s1", "s2"])
   }
 
@@ -988,7 +1049,20 @@ extension ShowBuilderPageTests {
         "Voicetrack | Your voice | AMA-mic | 3:00",
       ])
     expectNoDifference(reported.value, ["getListenerQuestions"])
-    expectNoDifference(shownToasts.value, 0)
+    expectNoDifference(shownToasts.value, 1)
+  }
+
+  @Test func simultaneousPageLoadFailuresShowOnlyOneToast() async {
+    let shownToasts = LockIsolated(0)
+    let model = makeModel {
+      $0.api.getListenerQuestions = { _, _ in throw ShowBuilderTestError() }
+      $0.api.getStationSchedulingSettings = { _, _ in throw ShowBuilderTestError() }
+      $0.api.getCuratorEpisode = { _, _ in throw ShowBuilderTestError() }
+      $0.errorReporting.reportError = { _, _ in }
+      $0.toast.show = { _ in shownToasts.withValue { $0 += 1 } }
+    }
+    await model.viewAppeared()
+    expectNoDifference(shownToasts.value, 1)
   }
 
   @Test func newlyAddedQAndAShowsAsOneRowWithoutRefetchingQuestions() async throws {

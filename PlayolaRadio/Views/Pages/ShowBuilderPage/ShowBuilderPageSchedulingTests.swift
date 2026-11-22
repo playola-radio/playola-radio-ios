@@ -293,6 +293,98 @@ struct ShowBuilderPageSchedulingTests {
     expectNoDifference(model.unscheduleButtons, ["Unschedule"])
   }
 
+  @Test func retryAfterCommittedScheduleDoesNotMoveTheLockedAiring() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let current = LockIsolated(episode())
+    let calls = LockIsolated(0)
+    let scheduled = episode(airings: [airing()])
+    let model = makeModel(current: current) {
+      $0.api.scheduleEpisode = { _, _, _, _ in
+        current.setValue(scheduled)
+        throw APIError.serverError("Response lost")
+      }
+      $0.api.moveAiring = { _, _, _ in calls.withValue { $0 += 1 } }
+    }
+    await model.viewAppeared()
+    await model.scheduleButtonTapped()
+    let sheet = presentedScheduleSheet(coordinator)
+    await sheet?.scheduleButtonTapped()
+    await sheet?.scheduleButtonTapped()
+    expectNoDifference(calls.value, 0)
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  @Test func failedRefreshAfterSchedulingKeepsScheduleChangesUnavailable() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let reads = LockIsolated(0)
+    let model = makeModel {
+      $0.api.getCuratorEpisode = { [draft = episode()] _, _ in
+        let count = reads.withValue {
+          $0 += 1
+          return $0
+        }
+        if count > 1 { throw APIError.dataNotValid }
+        return draft
+      }
+      $0.api.scheduleEpisode = { _, _, _, _ in }
+    }
+    await model.viewAppeared()
+    await model.scheduleButtonTapped()
+    await presentedScheduleSheet(coordinator)?.scheduleButtonTapped()
+    expectNoDifference(model.scheduleButtons, [])
+    #expect(coordinator.presentedSheet != nil)
+  }
+
+  @Test func failedRefreshAfterMovingKeepsScheduleChangesUnavailable() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let reads = LockIsolated(0)
+    let model = makeModel {
+      $0.api.getCuratorEpisode = { [scheduled = episode(airings: [airing()])] _, _ in
+        let count = reads.withValue {
+          $0 += 1
+          return $0
+        }
+        if count > 1 { throw APIError.dataNotValid }
+        return scheduled
+      }
+      $0.api.moveAiring = { _, _, _ in }
+    }
+    await model.viewAppeared()
+    await model.changeTimeButtonTapped()
+    let sheet = presentedScheduleSheet(coordinator)
+    sheet?.pickedTime = airtime.addingTimeInterval(week)
+    await sheet?.scheduleButtonTapped()
+    expectNoDifference(model.changeTimeButtons, [])
+    expectNoDifference(model.unscheduleButtons, [])
+    #expect(coordinator.presentedSheet != nil)
+  }
+
+  @Test func failedRefreshAfterUnschedulingKeepsScheduleChangesUnavailable() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let reads = LockIsolated(0)
+    let model = makeModel {
+      $0.api.getCuratorEpisode = { [scheduled = episode(airings: [airing()])] _, _ in
+        let count = reads.withValue {
+          $0 += 1
+          return $0
+        }
+        if count > 1 { throw APIError.dataNotValid }
+        return scheduled
+      }
+      $0.api.unscheduleAiring = { _, _ in }
+    }
+    await model.viewAppeared()
+    await model.unscheduleButtonTapped()
+    await presentedUnscheduleSheet(coordinator)?.unscheduleConfirmed()
+    expectNoDifference(model.changeTimeButtons, [])
+    expectNoDifference(model.unscheduleButtons, [])
+    #expect(coordinator.presentedSheet != nil)
+  }
+
   // MARK: - Change notifications
 
   @Test func schedulingMovingAndUnschedulingPostRecordedShowsChanged() async {

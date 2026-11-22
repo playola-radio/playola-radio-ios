@@ -83,6 +83,9 @@ class ShowBuilderPageModel: ViewModel {
   var isSavingSeries = false
   private var pendingSaveCount = 0
   private var questionAnswerRoles: [String: QuestionAnswerRole] = [:]
+  private var pendingAudioAdds: [[String]: [String]] = [:]
+  private var scheduleNeedsRefresh = false
+  private var initialLoadNoticeShown = false
   @ObservationIgnored private var lastOperation: Task<(any Error)?, Never>?
   @ObservationIgnored private var seriesSheetsAreOpen = false
   @ObservationIgnored private var finishedSeriesChange: FinishedSeriesChange?
@@ -119,18 +122,23 @@ class ShowBuilderPageModel: ViewModel {
 
   func viewAppeared() async {
     guard let jwt = auth.jwt else { return }
-    async let settingsLoad: Void = loadSettings(jwt: jwt)
-    async let questionsLoad: Void = loadQuestionAnswerRoles(jwt: jwt)
-    if episodeId != nil, episode == nil {
+    initialLoadNoticeShown = false
+    async let settingsLoad: Bool = loadSettings(jwt: jwt, coalesceNotice: true)
+    async let questionsLoad: Bool = loadQuestionAnswerRoles(jwt: jwt)
+    var episodeLoaded = true
+    if episodeId != nil, episode == nil || scheduleNeedsRefresh {
       isLoading = true
       defer { isLoading = false }
       _ = await enqueue { [self] in
-        await loadEpisode(showsToastOnFailure: true)
+        episodeLoaded = await loadEpisode(showsToastOnFailure: true)
         return nil
       }.value
     }
-    await settingsLoad
-    await questionsLoad
+    let settingsLoaded = await settingsLoad
+    let questionsLoaded = await questionsLoad
+    if !questionsLoaded, settingsLoaded, episodeLoaded {
+      await showInitialLoadNotice("Question details couldn’t load.")
+    }
   }
 
   func save(_ change: @escaping @MainActor (_ episodeId: String) async throws -> Void) async {
@@ -246,7 +254,7 @@ class ShowBuilderPageModel: ViewModel {
   }
 
   func unscheduleButtonTapped() async {
-    guard !isReadOnly, let airing = state.airing, let episode,
+    guard !scheduleNeedsRefresh, !isReadOnly, let airing = state.airing, let episode,
       let settings = await resolvedSettings()
     else { return }
     let sheet = UnscheduleShowSheetModel(
@@ -335,7 +343,7 @@ class ShowBuilderPageModel: ViewModel {
   }
 
   var changeTimeButtons: [String] {
-    guard !isReadOnly, case .scheduled = state else { return [] }
+    guard !scheduleNeedsRefresh, !isReadOnly, case .scheduled = state else { return [] }
     return [changeTimeButtonTitle]
   }
 
@@ -406,12 +414,12 @@ class ShowBuilderPageModel: ViewModel {
   }
 
   var scheduleButtons: [String] {
-    guard !isReadOnly, case .draft = state else { return [] }
+    guard !scheduleNeedsRefresh, !isReadOnly, case .draft = state else { return [] }
     return ["Schedule"]
   }
 
   var unscheduleButtons: [String] {
-    guard !isReadOnly, state.airing != nil else { return [] }
+    guard !scheduleNeedsRefresh, !isReadOnly, state.airing != nil else { return [] }
     return ["Unschedule"]
   }
 
@@ -470,13 +478,26 @@ class ShowBuilderPageModel: ViewModel {
     -> Task<(any Error)?, Never>
   {
     enqueueSave(alertsOnFailure: alertsOnFailure) { [weak self, api] jwt, episodeId in
-      let position = self?.episode?.segments.count ?? 0
-      self?.episode = try await api.addEpisodeSegments(jwt, episodeId, audioBlockIds, position)
+      guard let self else { throw CancellationError() }
+      if let previousIds = pendingAudioAdds[audioBlockIds] {
+        guard await loadEpisode(showsToastOnFailure: false) else { throw APIError.dataNotValid }
+        let added = orderedSegments.filter { !previousIds.contains($0.id) }.compactMap {
+          $0.audioBlock?.id
+        }
+        if added == audioBlockIds {
+          pendingAudioAdds[audioBlockIds] = nil
+          return
+        }
+      }
+      let position = orderedSegments.count
+      pendingAudioAdds[audioBlockIds] = orderedSegments.map(\.id)
+      episode = try await api.addEpisodeSegments(jwt, episodeId, audioBlockIds, position)
+      pendingAudioAdds[audioBlockIds] = nil
     }
   }
 
   private func presentScheduleSheet() async {
-    guard !isReadOnly else { return }
+    guard !scheduleNeedsRefresh, !isReadOnly else { return }
     guard let episode, episode.hasAudio else {
       presentedAlert = Self.alert(title: emptyShowAlertTitle, message: emptyShowAlertMessage)
       return
@@ -520,21 +541,35 @@ class ShowBuilderPageModel: ViewModel {
   private func schedule(at airtime: Date) async throws {
     let failure = await enqueueSave(alertsOnFailure: false) {
       [weak self, api, stationId] jwt, episodeId in
-      if let airing = self?.state.airing {
+      guard let self else { throw CancellationError() }
+      if scheduleNeedsRefresh, !(await loadEpisode(showsToastOnFailure: false)) {
+        throw APIError.dataNotValid
+      }
+      if let airing = state.airing, airing.airtime == airtime { return }
+      scheduleNeedsRefresh = true
+      if let airing = state.airing {
         try await api.moveAiring(jwt, airing.id, airtime)
       } else {
         try await api.scheduleEpisode(jwt, episodeId, stationId, airtime)
       }
     }.value
     if let failure { throw failure }
+    if scheduleNeedsRefresh { throw APIError.dataNotValid }
   }
 
   private func unschedule(_ airing: CuratorAiring) async throws {
     let failure = await enqueueSave(alertsOnFailure: false) { [weak self, api] jwt, _ in
+      guard let self else { throw CancellationError() }
+      if scheduleNeedsRefresh, !(await loadEpisode(showsToastOnFailure: false)) {
+        throw APIError.dataNotValid
+      }
+      guard state.airing?.id == airing.id else { return }
+      scheduleNeedsRefresh = true
       try await api.unscheduleAiring(jwt, airing.id)
-      self?.refusedAsLocked = false
+      refusedAsLocked = false
     }.value
     if let failure { throw failure }
+    if scheduleNeedsRefresh { throw APIError.dataNotValid }
   }
 
   private func appendVoicetrackToShow(_ audioBlockId: String) async {
@@ -608,29 +643,47 @@ class ShowBuilderPageModel: ViewModel {
     return created.id
   }
 
-  private func loadEpisode(showsToastOnFailure: Bool) async {
-    guard let jwt = auth.jwt, let episodeId else { return }
+  @discardableResult
+  private func loadEpisode(showsToastOnFailure: Bool) async -> Bool {
+    guard let jwt = auth.jwt, let episodeId else { return false }
     do {
       episode = try await api.getCuratorEpisode(jwt, episodeId)
+      scheduleNeedsRefresh = false
+      return true
     } catch {
-      guard !isCancellation(error) else { return }
+      guard !isCancellation(error) else { return false }
       await report(error, endpoint: "getCuratorEpisode")
-      guard showsToastOnFailure else { return }
-      await toast.show(PlayolaToast(message: "This show couldn\u{2019}t load.", buttonTitle: "OK"))
+      if showsToastOnFailure {
+        await showInitialLoadNotice("This show couldn\u{2019}t load.")
+      }
+      return false
     }
   }
 
-  private func loadSettings(jwt: String) async {
+  @discardableResult
+  private func loadSettings(jwt: String, coalesceNotice: Bool = false) async -> Bool {
     do {
       settings = try await api.getStationSchedulingSettings(jwt, stationId)
+      return true
     } catch {
-      guard !isCancellation(error) else { return }
+      guard !isCancellation(error) else { return false }
       await report(error, endpoint: "getStationSchedulingSettings")
-      await toast.show(PlayolaToast(message: settingsLoadErrorMessage, buttonTitle: "OK"))
+      if coalesceNotice {
+        await showInitialLoadNotice(settingsLoadErrorMessage)
+      } else {
+        await toast.show(PlayolaToast(message: settingsLoadErrorMessage, buttonTitle: "OK"))
+      }
+      return false
     }
   }
 
-  private func loadQuestionAnswerRoles(jwt: String) async {
+  private func showInitialLoadNotice(_ message: String) async {
+    guard !initialLoadNoticeShown else { return }
+    initialLoadNoticeShown = true
+    await toast.show(PlayolaToast(message: message, buttonTitle: "OK"))
+  }
+
+  private func loadQuestionAnswerRoles(jwt: String) async -> Bool {
     do {
       let questions = try await api.getListenerQuestions(jwt, stationId)
       for question in questions {
@@ -641,9 +694,11 @@ class ShowBuilderPageModel: ViewModel {
           questionAnswerRoles[answerId] = .answer
         }
       }
+      return true
     } catch {
-      guard !isCancellation(error) else { return }
+      guard !isCancellation(error) else { return true }
       await report(error, endpoint: "getListenerQuestions")
+      return false
     }
   }
 
