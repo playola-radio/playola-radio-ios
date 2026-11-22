@@ -356,11 +356,14 @@ struct LikesManagerTests {
 
   @Test
   func testOverlappingSyncsDoNotDoubleSend() async {
+    let audioBlock = AudioBlock.mock
+
     @Shared(.auth) var auth = Auth(jwt: "test-jwt")
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
-    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+    @Shared(.pendingLikeOperations) var pendingOperations = [
+      LikeOperation(audioBlock: audioBlock, type: .like)
+    ]
 
-    let audioBlock = AudioBlock.mock
     let serverCalls = LockIsolated<[String]>([])
 
     await withMainSerialExecutor {
@@ -372,10 +375,6 @@ struct LikesManagerTests {
         }
       } operation: {
         let manager = LikesManager()
-        await Task.megaYield()
-        manager.$pendingOperations.withLock {
-          $0 = [LikeOperation(audioBlock: audioBlock, type: .like)]
-        }
 
         let firstSync = Task { await manager.syncPendingOperations() }
         let secondSync = Task { await manager.syncPendingOperations() }
