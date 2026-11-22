@@ -677,6 +677,7 @@
 		93755B68CD299947FC97A5BC /* RecordingOrientationControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70156A7D2065B7205272F1C4 /* RecordingOrientationControllerTests.swift */; };
 		FAF000000000000000000011 /* AudioPlayerClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF000000000000000000010 /* AudioPlayerClientTests.swift */; };
 		FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE02B3B32DF88BD9001BC6F9 /* SharedStateTestTrait.swift */; };
+		DE70C0F1A0000000000000A1 /* ConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE70C0F1A0000000000000A2 /* ConfigTests.swift */; };
 		FE110A0000000000000000B2 /* WelcomeMessagePageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F2 /* WelcomeMessagePageModel.swift */; };
 		FE110A0000000000000000B3 /* WelcomeMessagePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F3 /* WelcomeMessagePageView.swift */; };
 		FE110A0000000000000000B4 /* WelcomeMessagePageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE110A0000000000000000F4 /* WelcomeMessagePageTests.swift */; };
@@ -947,6 +948,7 @@
 		D35673AF2D3DC54F00E4E926 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		D35673B12D3DC59100E4E926 /* RadioStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioStation.swift; sourceTree = "<group>"; };
 		D35673B92D3DC9ED00E4E926 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		DE70C0F1A0000000000000A2 /* ConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigTests.swift; sourceTree = "<group>"; };
 		D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		D35673BF2D3DCA3600E4E926 /* Secrets-Example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Secrets-Example.xcconfig"; sourceTree = "<group>"; };
 		D35673C12D3DCF6000E4E926 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -1849,6 +1851,7 @@
 				D35673BF2D3DCA3600E4E926 /* Secrets-Example.xcconfig */,
 				D35673BD2D3DCA1E00E4E926 /* Secrets.xcconfig */,
 				D35673B92D3DC9ED00E4E926 /* Config.swift */,
+				DE70C0F1A0000000000000A2 /* ConfigTests.swift */,
 				D37257AA2DF87C72001BC6F9 /* LaunchScreen.storyboard */,
 			);
 			path = Config;
@@ -3314,6 +3317,7 @@
 				D35EFBFA2F1579E5000F64A4 /* NewFeatureTileTests.swift in Sources */,
 				D31C43AA2D3C39110021AAE4 /* StationPlayerMock.swift in Sources */,
 				FE01A0C72DFCB368002BAC30 /* SharedStateTestTrait.swift in Sources */,
+				DE70C0F1A0000000000000A1 /* ConfigTests.swift in Sources */,
 				D3776A4D2F2BE8F900200ADF /* LibraryPageTests.swift in Sources */,
 				D35EFBD72F0EC6F7000F64A4 /* APIClientTests.swift in Sources */,
 				E7A1C0DE5AB0000000000001 /* APIClientTestStubs.swift in Sources */,
