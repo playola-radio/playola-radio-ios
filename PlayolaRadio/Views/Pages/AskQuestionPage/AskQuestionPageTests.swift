@@ -224,9 +224,9 @@ struct AskQuestionPageTests {
 
       await model.reRecordTapped()
 
-      #expect(model.recordingPhase == .review)
-      #expect(model.recordingURL == url)
-      #expect(model.recordingDuration == 10.0)
+      expectNoDifference(model.recordingPhase, .review)
+      expectNoDifference(model.recordingURL, url)
+      expectNoDifference(model.recordingDuration, 10.0)
       #expect(deletedURLs.value.isEmpty)
     }
   }
@@ -237,13 +237,13 @@ struct AskQuestionPageTests {
     model.recordingPhase = .review
 
     model.uploadPhase = .notStarted
-    #expect(!model.isReRecordButtonDisabled)
+    expectNoDifference(model.isReRecordButtonDisabled, false)
 
     model.uploadPhase = .uploading(progress: 0.5)
-    #expect(model.isReRecordButtonDisabled)
+    expectNoDifference(model.isReRecordButtonDisabled, true)
 
     model.uploadPhase = .failed(error: "boom")
-    #expect(!model.isReRecordButtonDisabled)
+    expectNoDifference(model.isReRecordButtonDisabled, false)
   }
 
   // MARK: - Cancel
@@ -307,13 +307,52 @@ struct AskQuestionPageTests {
       let model = AskQuestionPageModel(station: .mock)
       coordinator.path = [.askQuestionPage(model)]
       await model.recordTapped()
-      #expect(model.recordingPhase == .recording)
+      expectNoDifference(model.recordingPhase, .recording)
 
       await model.confirmCancel()
 
-      #expect(stopCount.value == 1)
+      expectNoDifference(stopCount.value, 1)
       expectNoDifference(deletedURLs.value, [partialURL])
-      #expect(model.recordingPhase == .idle)
+      expectNoDifference(model.recordingPhase, .idle)
+      #expect(coordinator.path.isEmpty)
+    }
+  }
+
+  @Test
+  func testConfirmCancelWhileStartingRecordingStopsAndDiscardsTheRecording() async {
+    let partialURL = URL(fileURLWithPath: "/tmp/partial.wav")
+    let stopCount = LockIsolated(0)
+    let deletedURLs = LockIsolated<[URL]>([])
+    let (startGate, releaseStart) = AsyncStream<Void>.makeStream()
+    let (startStarted, signalStart) = AsyncStream<Void>.makeStream()
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    await withDependencies {
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.usesExternalMicrophone = { true }
+      $0.audioRecorder.startRecording = {
+        signalStart.yield()
+        for await _ in startGate { break }
+      }
+      $0.audioRecorder.stopRecording = {
+        stopCount.withValue { $0 += 1 }
+        return partialURL
+      }
+      $0.audioRecorder.deleteRecording = { url in deletedURLs.withValue { $0.append(url) } }
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock)
+      coordinator.path = [.askQuestionPage(model)]
+      let starting = Task { await model.recordTapped() }
+      for await _ in startStarted { break }
+
+      await model.confirmCancel()
+      releaseStart.yield()
+      await starting.value
+
+      expectNoDifference(stopCount.value, 1)
+      expectNoDifference(deletedURLs.value, [partialURL])
+      expectNoDifference(model.recordingPhase, .idle)
       #expect(coordinator.path.isEmpty)
     }
   }
@@ -336,13 +375,13 @@ struct AskQuestionPageTests {
     } operation: {
       let model = AskQuestionPageModel(station: .mock)
       await model.recordTapped()
-      #expect(model.recordingPhase == .recording)
+      expectNoDifference(model.recordingPhase, .recording)
 
       await model.viewDisappeared()
 
-      #expect(stopCount.value == 1)
+      expectNoDifference(stopCount.value, 1)
       expectNoDifference(deletedURLs.value, [partialURL])
-      #expect(model.recordingPhase == .idle)
+      expectNoDifference(model.recordingPhase, .idle)
     }
   }
 
@@ -364,9 +403,9 @@ struct AskQuestionPageTests {
 
       await model.viewDisappeared()
 
-      #expect(stopCount.value == 0)
+      expectNoDifference(stopCount.value, 0)
       #expect(deletedURLs.value.isEmpty)
-      #expect(model.recordingPhase == .review)
+      expectNoDifference(model.recordingPhase, .review)
     }
   }
 

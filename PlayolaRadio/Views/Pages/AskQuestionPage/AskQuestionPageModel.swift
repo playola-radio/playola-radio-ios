@@ -4,7 +4,6 @@
 //
 
 import Dependencies
-import IssueReporting
 import PlayolaPlayer
 import Sharing
 import SwiftUI
@@ -42,6 +41,7 @@ class AskQuestionPageModel: ViewModel {
   var recordingURL: URL?
   var waveformSamples: [Float] = []
   private var recordingTask: Task<Void, Never>?
+  private var recordingStartID = 0
   private var playbackTask: Task<Void, Never>?
   private var stationToResume: AnyStation?
 
@@ -55,6 +55,7 @@ class AskQuestionPageModel: ViewModel {
   @ObservationIgnored @Dependency(\.date.now) var now
   @ObservationIgnored @Dependency(\.stationPlayer) var stationPlayer
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   // MARK: - Shared State
 
@@ -160,7 +161,7 @@ class AskQuestionPageModel: ViewModel {
 
   func viewDisappeared() async {
     await flipToRecord.recordingStopped()
-    await discardRecordingInProgress()
+    _ = await discardRecordingInProgress()
   }
 
   func recordTapped() async {
@@ -183,7 +184,9 @@ class AskQuestionPageModel: ViewModel {
   }
 
   private func startRecording() async -> Bool {
+    let startID = recordingStartID
     let hasPermission = await audioRecorder.requestPermission()
+    guard startID == recordingStartID else { return false }
     guard hasPermission else {
       presentedAlert = .microphonePermissionDeniedAlert
       return false
@@ -192,6 +195,10 @@ class AskQuestionPageModel: ViewModel {
     do {
       waveformSamples = []
       try await audioRecorder.startRecording()
+      guard startID == recordingStartID else {
+        _ = await stopAndDiscardRecording()
+        return false
+      }
       recordingPhase = .recording
       startRecordingUpdates()
       return true
@@ -201,18 +208,25 @@ class AskQuestionPageModel: ViewModel {
     }
   }
 
-  private func discardRecordingInProgress() async {
-    guard recordingTask != nil else { return }
+  private func discardRecordingInProgress() async -> Bool {
+    recordingStartID &+= 1
+    guard recordingTask != nil else { return true }
+    return await stopAndDiscardRecording()
+  }
+
+  private func stopAndDiscardRecording() async -> Bool {
     stopRecordingUpdates()
     do {
       let url = try await audioRecorder.stopRecording()
       await audioRecorder.deleteRecording(url)
     } catch {
-      reportIssue(error)
+      await errorReporting.reportError(error, ["operation": "discardAskQuestionRecording"])
+      return false
     }
     recordingDuration = 0
     waveformSamples = []
     recordingPhase = .idle
+    return true
   }
 
   private func startRecordingUpdates() {
@@ -304,7 +318,10 @@ class AskQuestionPageModel: ViewModel {
 
   func confirmCancel() async {
     await flipToRecord.recordingStopped()
-    await discardRecordingInProgress()
+    guard await discardRecordingInProgress() else {
+      presentedAlert = .recordingFailedAlert("We couldn't stop your recording. Please try again.")
+      return
+    }
     stopPlaybackUpdates()
     await audioPlayer.stop()
     if let url = recordingURL {
