@@ -115,6 +115,13 @@ class ConversationListPageModel: ViewModel {
     await loadConversations()
   }
 
+  // MARK: - View Helpers
+
+  var navigationTitle: String { "Support Conversations" }
+  var emptyStateMessage: String { "No conversations" }
+
+  // MARK: - Private Helpers
+
   private func reportUnexpectedError(_ error: Error, endpoint: String) async {
     guard !Task.isCancelled, !(error is CancellationError),
       !NetworkErrorClassifier.isNetworkError(error)
@@ -123,11 +130,6 @@ class ConversationListPageModel: ViewModel {
     tags["endpoint"] = endpoint
     await errorReporting.reportError(error, tags)
   }
-
-  // MARK: - View Helpers
-
-  var navigationTitle: String { "Support Conversations" }
-  var emptyStateMessage: String { "No conversations" }
 }
 
 extension PlayolaAlert {

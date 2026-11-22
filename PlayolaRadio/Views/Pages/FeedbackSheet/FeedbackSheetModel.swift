@@ -99,6 +99,8 @@ class FeedbackSheetModel: ViewModel {
     mainContainerNavigationCoordinator.presentedSheet = nil
   }
 
+  // MARK: - Private Helpers
+
   private func reportUnexpectedError(_ error: Error, endpoint: String) async {
     guard !Task.isCancelled, !(error is CancellationError),
       !NetworkErrorClassifier.isNetworkError(error)
