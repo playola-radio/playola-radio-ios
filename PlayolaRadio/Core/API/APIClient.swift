@@ -604,9 +604,10 @@ struct APIClient: Sendable {
   }
 
   /// Authoritative per-viewer giveaway event by id. Includes `serverTime` for clock-skew
-  /// correction and reconciles open/close on demand.
+  /// correction and reconciles open/close on demand. Nil when the event was cancelled or deleted
+  /// (404).
   var giveawayEvent:
-    @Sendable (_ jwtToken: String, _ eventId: String) async throws -> GiveawayEvent =
+    @Sendable (_ jwtToken: String, _ eventId: String) async throws -> GiveawayEvent? =
       { _, _ in .mock }
 
   /// The currently-open giveaway event for a station, or nil. Late-joiner check on tune-in.

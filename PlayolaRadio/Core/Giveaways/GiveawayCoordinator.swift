@@ -30,6 +30,8 @@ final class GiveawayCoordinator {
   @ObservationIgnored private var lastFeed: [GiveawayEvent] = []
   @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
   @ObservationIgnored private var armedEventId: String?
+  /// The feed's `opensAt` for the armed event, so a contest moved to a new time is re-armed.
+  @ObservationIgnored private var armedOpensAt: Date?
   @ObservationIgnored private var armedIdentity: AuthIdentity?
   @ObservationIgnored private var hasObservedStation = false
   @ObservationIgnored private var lastObservedStationId: String?
@@ -161,7 +163,9 @@ final class GiveawayCoordinator {
   /// Tap into a giveaway. The tap response carries the authoritative `isWinner`, so the outcome is
   /// resolved and persisted (keyed by the per-airing event id) the instant the POST returns — no
   /// wait for the contest to close. The durable write survives an app kill. One tap per event.
-  /// Stays silent on the expected `.notOpenYet` race; rethrows any genuine failure for the caller.
+  /// Stays silent on a `.notOpenYet` before the event's open time. The server sends the same 400
+  /// once the contest is due to close, so at or after the open time it clears the button and throws
+  /// `.ended`. Rethrows any genuine failure for the caller.
   func tap(event: GiveawayEvent) async throws {
     guard let jwt = auth.jwt else { return }
     let identity = auth.identity
@@ -173,7 +177,14 @@ final class GiveawayCoordinator {
       guard auth.identity.isSameAccount(as: identity) else { return }
       persistOutcome(event: event, response: response)
     } catch GiveawayTapError.notOpenYet {
-      log("tap: not-open-yet for \(event.id) — silent (expected race)")
+      if let opensAt = event.opensAt, now < opensAt {
+        log("tap: not-open-yet for \(event.id) — silent (expected race)")
+        return
+      }
+      guard auth.identity.isSameAccount(as: identity) else { return }
+      log("tap: \(event.id) rejected after its open time — ended")
+      $activeGiveaway.withLock { if $0?.id == event.id { $0 = nil } }
+      throw GiveawayTapError.ended
     } catch {
       guard auth.identity.isSameAccount(as: identity) else { return }
       log("tap: unexpected failure for \(event.id) — \(error)")
@@ -210,7 +221,10 @@ final class GiveawayCoordinator {
     revealSequence += 1
     let sequence = revealSequence
     do {
-      let event = try await api.giveawayEvent(jwt, eventId)
+      guard let event = try await api.giveawayEvent(jwt, eventId) else {
+        log("reveal: \(eventId) is gone (404)")
+        return
+      }
       guard auth.identity.isSameAccount(as: identity),
         generation == reconciliationGeneration
           || Self.selectEvent(from: lastFeed.filter { $0.stationId == expectedStationId })?.id
@@ -250,19 +264,25 @@ final class GiveawayCoordinator {
 
   /// A published event has dropped out of the feed. Confirm via the authoritative GET: keep it if
   /// it's still open (a transient feed gap at the open transition), clear it once it has closed.
-  /// A transient GET failure keeps it (the next poll retries). On close, run the loss backstop so a
-  /// last-tapper promotion is caught for the in-app user without waiting on the push.
+  /// A cancelled or deleted event (404) is cleared too. A transient GET failure keeps it (the next
+  /// poll retries). On close, run the loss backstop so a last-tapper promotion is caught for the
+  /// in-app user without waiting on the push.
   func clearActiveIfNoLongerOpen(jwt: String, event: GiveawayEvent, stationId: String) async {
     let identity = auth.identity
     let generation = reconciliationGeneration
-    guard let fresh = try? await api.giveawayEvent(jwt, event.id) else { return }
-    guard auth.identity.isSameAccount(as: identity), fresh.status != .open else { return }
+    let fresh: GiveawayEvent?
+    do {
+      fresh = try await api.giveawayEvent(jwt, event.id)
+    } catch {
+      return
+    }
+    guard auth.identity.isSameAccount(as: identity), fresh?.status != .open else { return }
     if currentPlayolaStationId == stationId,
       generation == reconciliationGeneration || activeGiveaway?.id == event.id
     {
       if armedEventId == event.id { cancelArmedReveal() } else { reconciliationGeneration += 1 }
       $activeGiveaway.withLock { $0 = nil }
-      log("active event \(event.id) is now \(fresh.status.rawValue) → cleared")
+      log("active event \(event.id) is now \(fresh?.status.rawValue ?? "gone") → cleared")
     }
     await reconcileResolvedLoss(jwt: jwt, eventId: event.id)
   }
@@ -344,11 +364,15 @@ final class GiveawayCoordinator {
 
   private func armRevealIfNeeded(jwt: String, item: GiveawayEvent, stationId: String) {
     let identity = auth.identity
-    guard armedEventId != item.id || !(armedIdentity?.isSameAccount(as: identity) ?? false) else {
+    guard
+      armedEventId != item.id || armedOpensAt != item.opensAt
+        || !(armedIdentity?.isSameAccount(as: identity) ?? false)
+    else {
       return
     }
     cancelArmedReveal()
     armedEventId = item.id
+    armedOpensAt = item.opensAt
     armedIdentity = identity
     generation += 1
     let gen = generation
@@ -363,7 +387,7 @@ final class GiveawayCoordinator {
   ) async {
     let rttClock = ContinuousClock()
     let start = rttClock.now
-    let event: GiveawayEvent
+    let event: GiveawayEvent?
     do {
       event = try await api.giveawayEvent(jwt, eventId)
     } catch {
@@ -378,16 +402,19 @@ final class GiveawayCoordinator {
       return
     }
     // The GET may have already reconciled to open (e.g. opensAt just passed) → reveal now.
-    if event.status == .open {
+    if let event, event.status == .open {
       $activeGiveaway.withLock { $0 = event }
       removeUpcomingEntry(stationId: event.stationId, revealedEventId: event.id)
       armedEventId = nil
       log("arm: \(eventId) already open on GET → revealed now")
       return
     }
-    guard let opensAt = event.opensAt, let serverTime = event.serverTime else {
+    // Only a still-scheduled event may be revealed later; a closed, cancelled or deleted one never.
+    guard let event, event.status == .scheduled, let opensAt = event.opensAt,
+      let serverTime = event.serverTime
+    else {
       armedEventId = nil
-      log("arm: \(eventId) missing opensAt/serverTime — cannot arm")
+      log("arm: \(eventId) not armable (\(event?.status.rawValue ?? "gone")) — not arming")
       return
     }
     let delay = Self.revealDelay(
