@@ -5,6 +5,8 @@
 //  Created by Brian D Keane on 8/30/25.
 //
 
+import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import PlayolaPlayer
@@ -149,7 +151,7 @@ struct LikesManagerTests {
       return manager
     }
 
-    #expect(manager.pendingOperations.count == 2)
+    #expect(manager.pendingOperations.count == 1)
     #expect(manager.pendingOperations.last?.audioBlock == audioBlock)
     #expect(manager.pendingOperations.last?.type == .unlike)
   }
@@ -303,5 +305,87 @@ struct LikesManagerTests {
     #expect(manager2.isLiked(audioBlock.id))
     #expect(manager2.allLikedAudioBlocks.count == 1)
     #expect(manager2.pendingOperations.count == 1)
+  }
+
+  // MARK: - Sync Ordering Tests
+
+  @Test
+  func testFailedLikeThenUnlikeDoesNotReLikeOnReplay() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
+    let audioBlock = AudioBlock.mock
+    let likesRequestsFail = LockIsolated(true)
+    let serverCalls = LockIsolated<[String]>([])
+
+    await withMainSerialExecutor {
+      await withDependencies {
+        $0.date = .constant(Date())
+        $0.uuid = .incrementing
+        $0.api.getLikedSongs = { _ in [] }
+        $0.api.likeSong = { _, songId, _ in
+          serverCalls.withValue { $0.append("like \(songId)") }
+          if likesRequestsFail.value { throw URLError(.notConnectedToInternet) }
+        }
+        $0.api.unlikeSong = { _, songId in
+          serverCalls.withValue { $0.append("unlike \(songId)") }
+        }
+      } operation: {
+        let manager = LikesManager()
+        await Task.megaYield()
+
+        manager.like(audioBlock)
+        await Task.megaYield()
+        manager.unlike(audioBlock)
+        await Task.megaYield()
+
+        likesRequestsFail.setValue(false)
+        await manager.syncPendingOperations()
+
+        #expect(!manager.isLiked(audioBlock.id))
+        #expect(manager.pendingOperations.isEmpty)
+      }
+    }
+
+    expectNoDifference(
+      serverCalls.value,
+      ["like \(audioBlock.id)", "unlike \(audioBlock.id)"]
+    )
+  }
+
+  @Test
+  func testOverlappingSyncsDoNotDoubleSend() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
+    @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []
+
+    let audioBlock = AudioBlock.mock
+    let serverCalls = LockIsolated<[String]>([])
+
+    await withMainSerialExecutor {
+      await withDependencies {
+        $0.api.getLikedSongs = { _ in [] }
+        $0.api.likeSong = { _, songId, _ in
+          serverCalls.withValue { $0.append("like \(songId)") }
+          await Task.megaYield()
+        }
+      } operation: {
+        let manager = LikesManager()
+        await Task.megaYield()
+        manager.$pendingOperations.withLock {
+          $0 = [LikeOperation(audioBlock: audioBlock, type: .like)]
+        }
+
+        let firstSync = Task { await manager.syncPendingOperations() }
+        let secondSync = Task { await manager.syncPendingOperations() }
+        await firstSync.value
+        await secondSync.value
+
+        #expect(manager.pendingOperations.isEmpty)
+      }
+    }
+
+    expectNoDifference(serverCalls.value, ["like \(audioBlock.id)"])
   }
 }
