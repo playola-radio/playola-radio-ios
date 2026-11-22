@@ -564,6 +564,109 @@ struct AskQuestionPageTests {
     }
   }
 
+  // MARK: - Error Reporting
+
+  private func makeSubmittableModel(
+    reports: LockIsolated<[String]>? = nil,
+    reportCount: LockIsolated<Int>? = nil,
+    convertError: Error
+  ) -> AskQuestionPageModel {
+    let model = withDependencies {
+      $0.audioPlayer.stop = {}
+      $0.audioConverter.convertToM4A = { _ in throw convertError }
+      $0.errorReporting.reportError = { _, tags in
+        reports?.withValue { $0.append(tags["operation"] ?? "") }
+        reportCount?.withValue { $0 += 1 }
+      }
+    } operation: {
+      AskQuestionPageModel(station: .mock)
+    }
+    model.recordingURL = URL(fileURLWithPath: "/tmp/test.wav")
+    return model
+  }
+
+  @Test
+  func testSubmitTappedReportsFailureWithOperationTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reports = LockIsolated<[String]>([])
+    let model = makeSubmittableModel(reports: reports, convertError: APIError.dataNotValid)
+
+    await model.submitTapped()
+
+    expectNoDifference(reports.value, ["submitAskQuestion"])
+    expectNoDifference(
+      model.uploadPhase, .failed(error: APIError.dataNotValid.localizedDescription))
+  }
+
+  @Test
+  func testSubmitTappedDoesNotReportConnectivityFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = makeSubmittableModel(
+      reportCount: reportCount, convertError: URLError(.notConnectedToInternet))
+
+    await model.submitTapped()
+
+    expectNoDifference(reportCount.value, 0)
+    expectNoDifference(
+      model.uploadPhase,
+      .failed(error: URLError(.notConnectedToInternet).localizedDescription))
+  }
+
+  @Test
+  func testSubmitTappedDoesNotReportCancellation() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = makeSubmittableModel(reportCount: reportCount, convertError: CancellationError())
+
+    await model.submitTapped()
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  @Test
+  func testStopTappedReportsRecordingFailureWithOperationTag() async {
+    let reports = LockIsolated<[String]>([])
+
+    await withDependencies {
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.startRecording = {}
+      $0.audioRecorder.currentTime = { 0 }
+      $0.audioRecorder.stopRecording = { throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["operation"] ?? "") }
+      }
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock)
+      await model.recordTapped()
+
+      await model.stopTapped()
+
+      expectNoDifference(reports.value, ["stopAskQuestionRecording"])
+      #expect(model.presentedAlert != nil)
+    }
+  }
+
+  @Test
+  func testRecordTappedReportsStartRecordingFailureWithOperationTag() async {
+    let reports = LockIsolated<[String]>([])
+
+    await withDependencies {
+      $0.audioRecorder.requestPermission = { true }
+      $0.audioRecorder.startRecording = { throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["operation"] ?? "") }
+      }
+    } operation: {
+      let model = AskQuestionPageModel(station: .mock)
+
+      await model.recordTapped()
+
+      expectNoDifference(reports.value, ["startAskQuestionRecording"])
+      #expect(model.presentedAlert != nil)
+    }
+  }
+
   // MARK: - Alerts
 
   @Test
