@@ -395,6 +395,45 @@ struct ShowBuilderPageTests {
     expectNoDifference(attempts.value, 1)
   }
 
+  @Test func retryingQAndAAfterConcurrentAdditionDoesNotAddItTwice() async throws {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let attempts = LockIsolated(0)
+    let loaded = episode(segments: [segment("s1", position: 0)])
+    let added = episode(segments: [
+      segment("s1", position: 0),
+      segment("s2", position: 1, audio: block("unrelated-audio")),
+      segment("s3", position: 2, audio: block("question-audio")),
+      segment("s4", position: 3, audio: block("answer-audio")),
+    ])
+    let model = makeModel(episode: loaded) {
+      $0.api.getCuratorEpisode = { _, _ in attempts.value > 0 ? added : loaded }
+      $0.api.addEpisodeSegments = { _, _, _, _ in
+        let attempt = attempts.withValue {
+          $0 += 1
+          return $0
+        }
+        if attempt == 1 { throw ShowBuilderTestError() }
+        return added
+      }
+      $0.errorReporting.reportError = { _, _ in }
+    }
+    await model.viewAppeared()
+    model.qaActionTapped()
+    guard case .amaQuestionPickerPage(let picker) = coordinator.path.last else {
+      Issue.record("Expected the question picker")
+      return
+    }
+    let answer = AMAQuestionAnswer(
+      questionId: "question-1", listenerName: "Maya",
+      questionBlock: block("question-audio"), answerBlock: block("answer-audio"))
+    await #expect(throws: ShowBuilderTestError.self) { try await picker.addToShow(answer) }
+    try await picker.addToShow(answer)
+    expectNoDifference(attempts.value, 1)
+    try await picker.addToShow(answer)
+    expectNoDifference(attempts.value, 2)
+  }
+
   @Test func songPickerOffersAvailableSongsOnly() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()

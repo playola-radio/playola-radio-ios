@@ -489,7 +489,7 @@ class ShowBuilderPageModel: ViewModel {
         let added = orderedSegments.filter { !previousIds.contains($0.id) }.compactMap {
           $0.audioBlock?.id
         }
-        if added == audioBlockIds {
+        if added.indices.contains(where: { added[$0...].starts(with: audioBlockIds) }) {
           pendingAudioAdds[audioBlockIds] = nil
           return
         }
