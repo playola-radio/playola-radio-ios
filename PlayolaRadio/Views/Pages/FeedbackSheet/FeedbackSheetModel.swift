@@ -14,6 +14,7 @@ class FeedbackSheetModel: ViewModel {
   // MARK: - Dependencies
 
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   // MARK: - Shared State
 
@@ -71,6 +72,7 @@ class FeedbackSheetModel: ViewModel {
 
     let messageText = message.trimmingCharacters(in: .whitespacesAndNewlines)
     isSending = true
+    var endpoint = "createSupportConversation"
 
     do {
       if conversation == nil {
@@ -80,6 +82,7 @@ class FeedbackSheetModel: ViewModel {
       guard let conversationId = conversation?.id else {
         throw APIError.dataNotValid
       }
+      endpoint = "sendConversationMessage"
       _ = try await api.sendConversationMessage(jwt, conversationId, messageText)
       isSending = false
       message = ""
@@ -88,10 +91,20 @@ class FeedbackSheetModel: ViewModel {
     } catch {
       isSending = false
       presentedAlert = .errorSendingMessage
+      await reportUnexpectedError(error, endpoint: endpoint)
     }
   }
 
   func cancelButtonTapped() {
     mainContainerNavigationCoordinator.presentedSheet = nil
+  }
+
+  private func reportUnexpectedError(_ error: Error, endpoint: String) async {
+    guard !Task.isCancelled, !(error is CancellationError),
+      !NetworkErrorClassifier.isNetworkError(error)
+    else { return }
+    var tags = NetworkErrorClassifier.errorTags(for: error)
+    tags["endpoint"] = endpoint
+    await errorReporting.reportError(error, tags)
   }
 }

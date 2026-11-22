@@ -14,6 +14,7 @@ class ConversationListPageModel: ViewModel {
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Dependency(\.api) var api
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   var conversations: [AdminConversationResponse] = []
   var isLoading = true
@@ -67,6 +68,8 @@ class ConversationListPageModel: ViewModel {
       conversations = fetchedConversations
     } catch {
       guard generation == loadGeneration else { return }
+      await reportUnexpectedError(error, endpoint: "getConversations")
+      guard generation == loadGeneration else { return }
       if !Task.isCancelled {
         presentedAlert = .errorLoadingConversations
       }
@@ -89,7 +92,11 @@ class ConversationListPageModel: ViewModel {
 
       // Mark as read if there are unread messages
       if item.unreadCountFromOwner > 0 {
-        try? await api.markConversationRead(jwt, item.conversation.id)
+        do {
+          try await api.markConversationRead(jwt, item.conversation.id)
+        } catch {
+          await reportUnexpectedError(error, endpoint: "markConversationRead")
+        }
         completedReadCount += 1
         // Update local state
         if let index = conversations.firstIndex(where: { $0.id == item.id }) {
@@ -101,11 +108,21 @@ class ConversationListPageModel: ViewModel {
       }
     } catch {
       presentedAlert = .errorLoadingConversation
+      await reportUnexpectedError(error, endpoint: "getConversationMessages")
     }
   }
 
   func refresh() async {
     await loadConversations()
+  }
+
+  private func reportUnexpectedError(_ error: Error, endpoint: String) async {
+    guard !Task.isCancelled, !(error is CancellationError),
+      !NetworkErrorClassifier.isNetworkError(error)
+    else { return }
+    var tags = NetworkErrorClassifier.errorTags(for: error)
+    tags["endpoint"] = endpoint
+    await errorReporting.reportError(error, tags)
   }
 
   // MARK: - View Helpers

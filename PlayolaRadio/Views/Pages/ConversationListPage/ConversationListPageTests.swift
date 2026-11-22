@@ -478,4 +478,135 @@ struct ConversationListPageTests {
 
     expectNoDifference(model.isLoading, false)
   }
+
+  @Test
+  func testRefreshReportsLoadFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reports = LockIsolated<[String]>([])
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    await model.refresh()
+
+    expectNoDifference(reports.value, ["getConversations"])
+    expectNoDifference(model.presentedAlert, .errorLoadingConversations)
+  }
+
+  @Test
+  func testRefreshDoesNotReportConnectivityFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    await model.refresh()
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  @Test
+  func testRefreshDoesNotReportCancellation() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in throw CancellationError() }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    await model.refresh()
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  @Test
+  func testOnConversationTappedReportsMessagesFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reports = LockIsolated<[String]>([])
+    let item = makeAdminConversation(id: "conv-1", updatedAt: Date(), unreadCountFromOwner: 1)
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    await model.onConversationTapped(item)
+
+    expectNoDifference(reports.value, ["getConversationMessages"])
+    expectNoDifference(model.presentedAlert, .errorLoadingConversation)
+  }
+
+  @Test
+  func testOnConversationTappedDoesNotReportConnectivityFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let item = makeAdminConversation(id: "conv-1", updatedAt: Date(), unreadCountFromOwner: 1)
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in throw URLError(.networkConnectionLost) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    await model.onConversationTapped(item)
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  @Test
+  func testOnConversationTappedReportsMarkReadFailureWithoutAlert() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+    let reports = LockIsolated<[String]>([])
+    let item = makeAdminConversation(id: "conv-1", updatedAt: Date(), unreadCountFromOwner: 2)
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in [] }
+      $0.api.markConversationRead = { _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    await model.onConversationTapped(item)
+
+    expectNoDifference(reports.value, ["markConversationRead"])
+    expectNoDifference(model.presentedAlert, nil)
+  }
+
+  @Test
+  func testOnConversationTappedDoesNotReportMarkReadConnectivityFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var navCoordinator =
+      MainContainerNavigationCoordinator()
+    let reportCount = LockIsolated(0)
+    let item = makeAdminConversation(id: "conv-1", updatedAt: Date(), unreadCountFromOwner: 2)
+    let model = withDependencies {
+      $0.api.getConversationMessages = { _, _ in [] }
+      $0.api.markConversationRead = { _, _ in throw URLError(.timedOut) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    await model.onConversationTapped(item)
+
+    expectNoDifference(reportCount.value, 0)
+  }
 }
