@@ -609,4 +609,42 @@ struct ConversationListPageTests {
 
     expectNoDifference(reportCount.value, 0)
   }
+
+  @Test
+  func testSupersededLoadFailureIsStillReportedWithoutAlert() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let (fetchStarted, fetchStartedContinuation) = AsyncStream.makeStream(of: Void.self)
+    let (releaseOlderFetch, releaseOlderFetchContinuation) = AsyncStream.makeStream(of: Void.self)
+    let fetchCount = LockIsolated(0)
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.getConversations = { _, _ in
+        let isOlderFetch = fetchCount.withValue {
+          $0 += 1
+          return $0 == 1
+        }
+        fetchStartedContinuation.yield(())
+        guard isOlderFetch else { return [] }
+        var releaseIterator = releaseOlderFetch.makeAsyncIterator()
+        _ = await releaseIterator.next()
+        throw APIError.dataNotValid
+      }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      ConversationListPageModel()
+    }
+
+    let olderRefresh = Task { await model.refresh() }
+    var fetchStartedIterator = fetchStarted.makeAsyncIterator()
+    _ = await fetchStartedIterator.next()
+    let newerRefresh = Task { await model.refresh() }
+    _ = await fetchStartedIterator.next()
+    await newerRefresh.value
+    releaseOlderFetchContinuation.yield(())
+    releaseOlderFetchContinuation.finish()
+    await olderRefresh.value
+
+    expectNoDifference(reportCount.value, 1)
+    expectNoDifference(model.presentedAlert, nil)
+  }
 }

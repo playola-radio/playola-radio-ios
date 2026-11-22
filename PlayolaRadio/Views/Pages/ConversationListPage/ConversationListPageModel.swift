@@ -67,7 +67,6 @@ class ConversationListPageModel: ViewModel {
       } while completedReadCount != readCountBeforeFetch
       conversations = fetchedConversations
     } catch {
-      guard generation == loadGeneration else { return }
       await reportUnexpectedError(error, endpoint: "getConversations")
       guard generation == loadGeneration else { return }
       if !Task.isCancelled {
