@@ -203,6 +203,7 @@ class ContactPageModel: ViewModel {
   // MARK: - View Helpers
 
   var navigationTitle: String { "Your Profile" }
+  var editProfileButtonAccessibilityLabel: String { "Edit profile" }
   var switchToListeningModeLabel: String { "Switch to Listening Mode" }
   var switchToBroadcastingModeLabel: String { "Switch to Broadcasting Mode" }
   var rewardsLabel: String { "Rewards" }
