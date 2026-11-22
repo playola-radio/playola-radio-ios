@@ -76,7 +76,7 @@ class EditProfilePageModel: ViewModel {
   var lastNameLabel: String { "Last Name" }
   var emailLabel: String { "Email" }
   var emailHelpText: String {
-    "This email is linked to your Apple ID and can't be changed here."
+    "This email is linked to your sign-in account and can't be changed here."
   }
   var saveButtonTitle: String { "Save Profile" }
 }
