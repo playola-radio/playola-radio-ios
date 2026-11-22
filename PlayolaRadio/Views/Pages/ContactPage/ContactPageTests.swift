@@ -720,4 +720,9 @@ struct ContactPageTests {
     expectNoDifference(reportCount.value, 0)
     expectNoDifference(model.presentedAlert, .errorLoadingConversation)
   }
+
+  @Test
+  func testEditProfileButtonAccessibilityLabel() {
+    expectNoDifference(ContactPageModel().editProfileButtonAccessibilityLabel, "Edit profile")
+  }
 }

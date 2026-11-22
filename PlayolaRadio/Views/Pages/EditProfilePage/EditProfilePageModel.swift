@@ -73,6 +73,7 @@ class EditProfilePageModel: ViewModel {
   // MARK: - View Helpers
 
   var navigationTitle: String { "Edit Profile" }
+  var backButtonAccessibilityLabel: String { "Back" }
   var firstNameLabel: String { "First Name" }
   var lastNameLabel: String { "Last Name" }
   var emailLabel: String { "Email" }

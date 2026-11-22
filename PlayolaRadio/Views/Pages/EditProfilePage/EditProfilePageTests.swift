@@ -354,4 +354,9 @@ struct EditProfilePageTests {
       model.emailHelpText,
       "This email is linked to your sign-in account and can't be changed here.")
   }
+
+  @Test
+  func testBackButtonAccessibilityLabel() {
+    expectNoDifference(EditProfilePageModel().backButtonAccessibilityLabel, "Back")
+  }
 }

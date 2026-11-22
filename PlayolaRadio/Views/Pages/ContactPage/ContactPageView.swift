@@ -101,6 +101,7 @@ struct ContactPageView: View {
                       .padding(8)
                   }
                 )
+                .accessibilityLabel(model.editProfileButtonAccessibilityLabel)
                 .padding(.trailing, 16)
                 .padding(.top, 16)
               }
