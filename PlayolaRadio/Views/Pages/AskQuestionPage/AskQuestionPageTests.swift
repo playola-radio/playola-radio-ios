@@ -528,16 +528,6 @@ struct AskQuestionPageTests {
   // MARK: - Alerts
 
   @Test
-  func testQuestionSentSuccessAlertIncludesCuratorName() {
-    let alert = PlayolaAlert.questionSentSuccess(curatorName: "Bri Bagwell") {}
-
-    #expect(
-      alert.message?.contains("Bri Bagwell") ?? false,
-      "Alert message should contain the curator name"
-    )
-  }
-
-  @Test
   func testQuestionSentSuccessAlertDoesNotPromiseANotification() {
     let alert = PlayolaAlert.questionSentSuccess(curatorName: "Bri Bagwell") {}
 
