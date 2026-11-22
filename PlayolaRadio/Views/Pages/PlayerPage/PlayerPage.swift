@@ -41,14 +41,8 @@ struct PlayerPage: View {
 
         Spacer()
 
-        Button(
-          action: {},
-          label: {
-            Image(systemName: "ellipsis")
-              .foregroundColor(.white)
-              .font(.system(size: 24))
-          }
-        )
+        Color.clear
+          .frame(width: 24, height: 24)
       }
       .padding(.horizontal)
       .padding(.top, 8)

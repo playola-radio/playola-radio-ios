@@ -13,6 +13,7 @@ struct LikedSongsSection: View {
   let title: String
   let songs: [(AudioBlock, Date)]
   let dateText: (Date) -> String
+  let menuButtonAccessibilityLabel: String
   let onMenuTapped: (AudioBlock, Date) -> Void
 
   var body: some View {
@@ -31,6 +32,7 @@ struct LikedSongsSection: View {
             audioBlock: audioBlock,
             dateText: dateText(likedDate),
             horizontalPadding: 20,
+            menuButtonAccessibilityLabel: menuButtonAccessibilityLabel,
             onMenuTapped: { onMenuTapped(audioBlock, likedDate) }
           )
           .transition(
@@ -46,12 +48,13 @@ struct LikedSongsSection: View {
 }
 
 /// A single liked-song row: artwork, title, artist, liked-date, and a "…" menu button.
-/// Reused by the full Liked Songs page and the Your Library section.
+/// Used by the Your Library section.
 struct LikedSongRow: View {
   @Environment(\.displayScale) private var displayScale
   let audioBlock: AudioBlock
   let dateText: String
   var horizontalPadding: CGFloat = 24
+  let menuButtonAccessibilityLabel: String
   let onMenuTapped: () -> Void
 
   var body: some View {
@@ -103,6 +106,7 @@ struct LikedSongRow: View {
             .font(.system(size: 16))
         }
       )
+      .accessibilityLabel(menuButtonAccessibilityLabel)
     }
     .padding(.horizontal, horizontalPadding)
     .padding(.vertical, 8)
