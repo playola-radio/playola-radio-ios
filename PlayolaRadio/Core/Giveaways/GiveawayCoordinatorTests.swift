@@ -165,15 +165,10 @@ struct GiveawayCoordinatorTests {
     // between, so the button must go.
     @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
-    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = GiveawayEvent(
-      id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open)
+    let event = openEvent()
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = event
     await withDependencies {
-      $0.api.giveawayEventsFeed = { _ in
-        [
-          GiveawayEvent(
-            id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open)
-        ]
-      }
+      $0.api.giveawayEventsFeed = { _ in [event] }
       $0.api.giveawayEvent = { _, _ in nil }
     } operation: {
       await GiveawayCoordinator().reconcile()
@@ -492,11 +487,13 @@ struct GiveawayCoordinatorTests {
         id: "e1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open,
         opensAt: Date(timeIntervalSince1970: 2000))
       // A 400 before the event's open time is the "not open yet" race; tap swallows it silently.
-      await withDependencies {
-        $0.date = .constant(Date(timeIntervalSince1970: 1000))
-        $0.api.tapGiveawayEvent = { _, _ in throw GiveawayTapError.notOpenYet }
-      } operation: {
-        try? await GiveawayCoordinator().tap(event: event)
+      await #expect(throws: Never.self) {
+        try await withDependencies {
+          $0.date = .constant(Date(timeIntervalSince1970: 1000))
+          $0.api.tapGiveawayEvent = { _, _ in throw GiveawayTapError.notOpenYet }
+        } operation: {
+          try await GiveawayCoordinator().tap(event: event)
+        }
       }
       #expect(participations["e1"] == nil)
     }

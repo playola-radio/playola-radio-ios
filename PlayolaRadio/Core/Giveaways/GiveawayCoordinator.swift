@@ -305,7 +305,7 @@ final class GiveawayCoordinator {
       $activeGiveaway.withLock { $0 = nil }
       log("active event \(event.id) is now \(fresh?.status.rawValue ?? "gone") → cleared")
     }
-    await reconcileResolvedLoss(jwt: jwt, eventId: event.id)
+    if fresh != nil { await reconcileResolvedLoss(jwt: jwt, eventId: event.id) }
   }
 
   /// Backstop for the last-tapper promotion: when a contest the user provisionally lost has closed,

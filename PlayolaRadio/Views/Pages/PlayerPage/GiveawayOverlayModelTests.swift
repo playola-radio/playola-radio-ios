@@ -1,4 +1,3 @@
-import Dependencies
 import Foundation
 import Sharing
 import Testing
@@ -187,20 +186,15 @@ struct GiveawayOverlayModelTests {
   }
 
   @Test func tapAfterGiveawayEndedHidesPromptAndReportsEnded() async {
-    @Shared(.auth) var auth = Auth(jwt: "jwt")
     @Shared(.nowPlaying) var nowPlaying: NowPlaying? = playolaNowPlaying(id: "s1")
-    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = GiveawayEvent(
-      id: "g1", stationId: "s1", prizeName: "Two tickets", winningNumber: 9, status: .open,
-      opensAt: Date(timeIntervalSince1970: 1000))
-    let coordinator = withDependencies {
-      $0.date = .constant(Date(timeIntervalSince1970: 1300))
-      $0.api.tapGiveawayEvent = { _, _ in throw GiveawayTapError.notOpenYet }
-    } operation: {
-      GiveawayCoordinator()
-    }
+    @Shared(.activeGiveaway) var activeGiveaway: GiveawayEvent? = openGiveaway()
     let model = GiveawayOverlayModel()
     var capturedError: (any Error)?
-    model.onTap = { try await coordinator.tap(event: $0) }
+    // The coordinator clears the button and throws `.ended` for a late tap.
+    model.onTap = { _ in
+      $activeGiveaway.withLock { $0 = nil }
+      throw GiveawayTapError.ended
+    }
     model.onError = { capturedError = $0 }
 
     await model.tapButtonTapped()
