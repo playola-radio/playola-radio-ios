@@ -3,7 +3,7 @@
 # PlayolaRadio/ScreenshotHarness.swift). Run from the repo root.
 #
 # Build the Debug app first:
-#   DEVELOPER_DIR=/Applications/Xcode-26.5.0.app/Contents/Developer \
+#   DEVELOPER_DIR=/Applications/Xcode-27.1.0.app/Contents/Developer \
 #     xcodebuild -project PlayolaRadio.xcodeproj -scheme PlayolaRadio \
 #     -configuration Debug \
 #     -destination "platform=iOS Simulator,name=iPhone 16 Pro Max" \
