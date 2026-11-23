@@ -45,16 +45,22 @@ struct EpisodeRow: View {
 
 struct CalendarDateBadge: View {
   let date: Date
+  var timeZone: TimeZone = .current
+  var headerColor = Color(hex: "#ef6962")
+  var dayColor = Color.white
 
-  private var monthString: String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "MMM"
-    return formatter.string(from: date).uppercased()
+  var monthString: String {
+    formatted("MMM").uppercased()
   }
 
-  private var dayString: String {
+  var dayString: String {
+    formatted("d")
+  }
+
+  private func formatted(_ format: String) -> String {
     let formatter = DateFormatter()
-    formatter.dateFormat = "d"
+    formatter.timeZone = timeZone
+    formatter.dateFormat = format
     return formatter.string(from: date)
   }
 
@@ -67,12 +73,12 @@ struct CalendarDateBadge: View {
         .tracking(1.2)
         .frame(maxWidth: .infinity)
         .padding(.vertical, 2)
-        .background(Color(hex: "#ef6962"))
+        .background(headerColor)
 
       // Day number - gradient background with white text
       Text(dayString)
         .font(.custom(FontNames.Inter_700_Bold, size: 13))
-        .foregroundColor(.white)
+        .foregroundColor(dayColor)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
           LinearGradient(
@@ -88,6 +94,25 @@ struct CalendarDateBadge: View {
       RoundedRectangle(cornerRadius: 6)
         .stroke(Color(hex: "#444444"), lineWidth: 1)
     )
+  }
+}
+
+// MARK: - Draft Date Badge
+
+struct DraftDateBadge: View {
+  var body: some View {
+    Image("RecordedShows-pencil-line")
+      .resizable()
+      .scaledToFit()
+      .frame(width: 16, height: 16)
+      .foregroundColor(.playolaWarningAmber)
+      .frame(width: 36, height: 44)
+      .background(Color(hex: "#1a1a1a"))
+      .cornerRadius(6)
+      .overlay(
+        RoundedRectangle(cornerRadius: 6)
+          .stroke(Color.playolaSurfaceArtPlaceholder, lineWidth: 1)
+      )
   }
 }
 

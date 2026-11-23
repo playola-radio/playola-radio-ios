@@ -5,6 +5,7 @@
 //  Created by Brian D Keane on 8/14/25.
 //
 
+import ConcurrencyExtras
 import CustomDump
 import Dependencies
 import Foundation
@@ -401,13 +402,11 @@ struct NowPlayingUpdaterTests {
       NowPlayingUpdater()
     }
 
-    // Transition from stopped to playing
     await updater.trackListeningSession(
       currentStatus: .playing(station),
       previousStatus: .stopped
     )
 
-    // Verify session started event was tracked
     let events = capturedEvents.value
     #expect(events.count == 1)
     if case .listeningSessionStarted(let stationInfo, _) = events.first {
@@ -433,22 +432,18 @@ struct NowPlayingUpdaterTests {
       NowPlayingUpdater()
     }
 
-    // First start a session
     await updater.trackListeningSession(
       currentStatus: .playing(station),
       previousStatus: .stopped
     )
 
-    // Clear events
     capturedEvents.withValue { $0.removeAll() }
 
-    // Now stop the session
     await updater.trackListeningSession(
       currentStatus: .stopped,
       previousStatus: .playing(station)
     )
 
-    // Verify session ended event was tracked
     let events = capturedEvents.value
     #expect(events.count == 1)
     if case .listeningSessionEnded(let stationInfo, let sessionLengthSec) = events.first {
@@ -475,14 +470,11 @@ struct NowPlayingUpdaterTests {
       NowPlayingUpdater()
     }
 
-    // A is playing, then gets interruption-paused (session stays open).
     await updater.trackListeningSession(currentStatus: .playing(stationA), previousStatus: .stopped)
     await updater.trackListeningSession(
       currentStatus: .paused(stationA), previousStatus: .playing(stationA))
     capturedEvents.withValue { $0.removeAll() }
 
-    // User picks station B from CarPlay while paused: .paused(A) -> .startingNewStation(B)
-    // with no intervening .stopped. A's session must end here.
     await updater.trackListeningSession(
       currentStatus: .startingNewStation(stationB), previousStatus: .paused(stationA))
     guard case .listeningSessionEnded(let endedInfo, _)? = capturedEvents.value.first else {
@@ -492,7 +484,6 @@ struct NowPlayingUpdaterTests {
     }
     #expect(endedInfo.id == stationA.id)
 
-    // sessionStartTime was cleared, so B's session can now start (no leak).
     capturedEvents.withValue { $0.removeAll() }
     await updater.trackListeningSession(
       currentStatus: .playing(stationB), previousStatus: .startingNewStation(stationB))
@@ -502,6 +493,95 @@ struct NowPlayingUpdaterTests {
       return
     }
     #expect(startedInfo.id == stationB.id)
+  }
+
+  @Test
+  func testRestartWhileEndEventInFlightStillStartsNewSession() async {
+    await withMainSerialExecutor {
+      let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+      let (endEventGate, releaseEndEvent) = AsyncStream<Void>.makeStream()
+      let (stationA, stationB) = (AnyStation.mock, makeTestStation2())
+      let updater = withDependencies {
+        $0.analytics.track = { event in
+          capturedEvents.withValue { $0.append(event) }
+          if case .listeningSessionEnded = event { for await _ in endEventGate { break } }
+        }
+        $0.date = .constant(Date())
+      } operation: {
+        NowPlayingUpdater()
+      }
+
+      await updater.trackListeningSession(
+        currentStatus: .playing(stationA), previousStatus: .stopped)
+      capturedEvents.setValue([])
+      let ending = Task {
+        await updater.trackListeningSession(
+          currentStatus: .stopped, previousStatus: .playing(stationA))
+      }
+      await Task.megaYield()
+      await updater.trackListeningSession(
+        currentStatus: .playing(stationB), previousStatus: .stopped)
+      releaseEndEvent.yield()
+      await ending.value
+      expectNoDifference(
+        capturedEvents.value,
+        [
+          .listeningSessionEnded(station: StationInfo(from: stationA), sessionLengthSec: 0),
+          .listeningSessionStarted(station: StationInfo(from: stationB), renderBackend: nil),
+        ])
+    }
+  }
+
+  // Regression: updatePlaybackState read lastPlaybackStatus inside its Task, after
+  // it was overwritten, so sessions never ended or switched. Drives the real `$state`.
+  private func eventsTracked(
+    playing station: AnyStation, then next: StationPlayer.PlaybackStatus
+  ) async -> [AnalyticsEvent] {
+    let capturedEvents = LockIsolated<[AnalyticsEvent]>([])
+    await withMainSerialExecutor {
+      let (stationPlayer, updater) = withDependencies {
+        $0.analytics.track = { event in capturedEvents.withValue { $0.append(event) } }
+        $0.date = .constant(Date())
+      } operation: {
+        let stationPlayer = StationPlayer()
+        stationPlayer.state = StationPlayer.State(playbackStatus: .playing(station))
+        return (stationPlayer, NowPlayingUpdater(stationPlayer: stationPlayer))
+      }
+      await Task.megaYield()
+      stationPlayer.state = StationPlayer.State(playbackStatus: next)
+      await Task.megaYield()
+      withExtendedLifetime(updater) {}
+    }
+    return capturedEvents.value
+  }
+
+  @Test
+  func testStoppingAfterPlayingThroughPlayerStateEndsListeningSession() async {
+    let stationA = AnyStation.mock
+    let events = await eventsTracked(playing: stationA, then: .stopped)
+    expectNoDifference(
+      events,
+      [
+        .listeningSessionStarted(station: StationInfo(from: stationA), renderBackend: nil),
+        .listeningSessionEnded(station: StationInfo(from: stationA), sessionLengthSec: 0),
+      ])
+  }
+
+  @Test
+  func testPlayingNewStationThroughPlayerStateTracksStationSwitch() async {
+    let (stationA, stationB) = (AnyStation.mock, makeTestStation2())
+    let events = await eventsTracked(playing: stationA, then: .playing(stationB))
+    expectNoDifference(
+      events,
+      [
+        .listeningSessionStarted(station: StationInfo(from: stationA), renderBackend: nil),
+        .listeningSessionEnded(station: StationInfo(from: stationA), sessionLengthSec: 0),
+        .switchedStation(
+          from: StationInfo(from: stationA), to: StationInfo(from: stationB),
+          timeBeforeSwitchSec: 0,
+          reason: .userInitiated),
+        .listeningSessionStarted(station: StationInfo(from: stationB), renderBackend: nil),
+      ])
   }
 
   @Test
@@ -531,13 +611,11 @@ struct NowPlayingUpdaterTests {
       NowPlayingUpdater()
     }
 
-    // Start playing station 1
     await updater.trackListeningSession(
       currentStatus: .playing(station1),
       previousStatus: .stopped
     )
 
-    // Verify session was started
     let initialEvents = capturedEvents.value
     #expect(initialEvents.count == 1, "Expected 1 event after starting session")
     guard case .listeningSessionStarted = initialEvents.first else {
@@ -545,14 +623,12 @@ struct NowPlayingUpdaterTests {
       return
     }
 
-    // Clear events and switch to station 2
     capturedEvents.withValue { $0.removeAll() }
     await updater.trackListeningSession(
       currentStatus: .playing(station2),
       previousStatus: .playing(station1)
     )
 
-    // Verify switch generated events
     let events = capturedEvents.value
     #expect(events.count == 3, "Station switch must generate exactly 3 events")
   }
@@ -572,20 +648,17 @@ struct NowPlayingUpdaterTests {
       NowPlayingUpdater()
     }
 
-    // Setup: Start playing station 1 first
     await updater.trackListeningSession(
       currentStatus: .playing(station1),
       previousStatus: .stopped
     )
     capturedEvents.withValue { $0.removeAll() }
 
-    // Switch to station 2
     await updater.trackListeningSession(
       currentStatus: .playing(station2),
       previousStatus: .playing(station1)
     )
 
-    // Verify the three expected events
     let events = capturedEvents.value
     #expect(events.count == 3, "Expected exactly 3 events when switching stations")
     guard events.count == 3 else { return }
@@ -609,38 +682,29 @@ struct NowPlayingUpdaterTests {
       NowPlayingUpdater()
     }
 
-    // First start a session to set up the session state
     await updater.trackListeningSession(
       currentStatus: .playing(AnyStation.mock),
       previousStatus: .stopped
     )
 
-    // Clear events from setup
     capturedEvents.withValue { $0.removeAll() }
 
-    // Set last played station for error tracking
     updater.lastPlayedStation = AnyStation.mock
 
-    // Transition to error state
     await updater.trackListeningSession(
       currentStatus: .error,
       previousStatus: .playing(AnyStation.mock)
     )
 
-    // Verify events were tracked
     let events = capturedEvents.value
     guard events.count > 0 else {
       Issue.record("Expected at least 1 event, got 0")
       return
     }
 
-    // When transitioning from playing to error, only session ended is tracked
-    // The error case in the switch statement is only for non-playing to error transitions
     #expect(events.count == 1)
 
-    // Should be session ended
     if case .listeningSessionEnded = events[0] {
-      // Expected
     } else {
       Issue.record("Expected listeningSessionEnded event, got: \(events[0])")
     }

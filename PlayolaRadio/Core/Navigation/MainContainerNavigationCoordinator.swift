@@ -85,7 +85,6 @@ final class MainContainerNavigationCoordinator {
 
   enum Path: Hashable, Equatable {
     case editProfilePage(EditProfilePageModel)
-    case likedSongsPage(LikedSongsPageModel)
     case listeningHistoryPage(ListeningHistoryPageModel)
     case rewardsPage(RewardsPageModel)
     case broadcastPage(BroadcastPageModel)
@@ -103,18 +102,28 @@ final class MainContainerNavigationCoordinator {
     case musicLibraryPage(MusicLibraryPageModel)
     case musicCategoryDetailPage(MusicCategoryDetailPageModel)
     case showsPage(ShowsPageModel)
+    case upcomingShowsPage(UpcomingShowsPageModel)
+    case individualShowsPage(IndividualShowsPageModel)
+    case curatorSeriesListPage(CuratorSeriesListPageModel)
+    case curatorSeriesPage(CuratorSeriesPageModel)
     case askMeAnythingLivePage(AskMeAnythingLivePageModel)
     case amaQuestionPickerPage(AMAQuestionPickerPageModel)
     case amaAnswerQuestionPage(AMAAnswerQuestionPageModel)
     case recordWithMultiStepPromptPage(RecordWithMultiStepPromptModel)
+    case showBuilderPage(ShowBuilderPageModel)
+
+    var isQuestionAnswerHost: Bool {
+      switch self {
+      case .askMeAnythingLivePage, .showBuilderPage: return true
+      default: return false
+      }
+    }
 
     @MainActor @ViewBuilder
     var destinationView: some View {
       switch self {
       case .editProfilePage(let model):
         EditProfilePageView(model: model)
-      case .likedSongsPage(let model):
-        LikedSongsPage(model: model)
       case .listeningHistoryPage(let model):
         ListeningHistoryPageView(model: model)
       case .rewardsPage(let model):
@@ -149,6 +158,14 @@ final class MainContainerNavigationCoordinator {
         MusicCategoryDetailPageView(model: model)
       case .showsPage(let model):
         ShowsPageView(model: model)
+      case .upcomingShowsPage(let model):
+        UpcomingShowsPageView(model: model)
+      case .individualShowsPage(let model):
+        IndividualShowsPageView(model: model)
+      case .curatorSeriesListPage(let model):
+        CuratorSeriesListPageView(model: model)
+      case .curatorSeriesPage(let model):
+        CuratorSeriesPageView(model: model)
       case .askMeAnythingLivePage(let model):
         AskMeAnythingLivePageView(model: model)
       case .amaQuestionPickerPage(let model):
@@ -157,6 +174,8 @@ final class MainContainerNavigationCoordinator {
         AMAAnswerQuestionPageView(model: model)
       case .recordWithMultiStepPromptPage(let model):
         RecordWithMultiStepPromptView(model: model)
+      case .showBuilderPage(let model):
+        ShowBuilderPageView(model: model)
       }
     }
   }
@@ -199,21 +218,11 @@ final class MainContainerNavigationCoordinator {
     self.path.removeAll()
   }
 
-  /// Pops the AMA question picker/answer sub-flow back to the live show page. Leaves the stack
-  /// untouched if no `.askMeAnythingLivePage` is present (nothing to return to).
-  func popToAskMeAnythingLive() {
-    guard
-      path.contains(where: {
-        if case .askMeAnythingLivePage = $0 { return true }
-        return false
-      })
-    else { return }
-    var newPath = path
-    while let last = newPath.last {
-      if case .askMeAnythingLivePage = last { break }
-      newPath.removeLast()
-    }
-    path = newPath
+  /// Pops the question picker/answer sub-flow back to the page that opened it: the live AMA
+  /// show or the recorded show builder. Leaves the stack untouched if neither is present.
+  func popToQuestionAnswerHost() {
+    guard let hostIndex = path.lastIndex(where: \.isQuestionAnswerHost) else { return }
+    path = Array(path.prefix(through: hostIndex))
   }
 
   func switchToBroadcastMode(stationId: String) {

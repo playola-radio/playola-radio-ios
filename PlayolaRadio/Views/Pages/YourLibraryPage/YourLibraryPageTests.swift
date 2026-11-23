@@ -161,6 +161,11 @@ struct YourLibraryPageTests {
   }
 
   @Test
+  func testSongMenuButtonAccessibilityLabel() {
+    #expect(YourLibraryPageModel().songMenuButtonAccessibilityLabel == "More")
+  }
+
+  @Test
   func testSongMenuTappedPresentsActionSheet() {
     @Shared(.userLikes) var userLikes: [String: UserSongLike] = [:]
     @Shared(.pendingLikeOperations) var pendingOperations: [LikeOperation] = []

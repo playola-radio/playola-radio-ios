@@ -18,6 +18,7 @@ class RewardsPageModel: ViewModel {
 
   @ObservationIgnored @Dependency(\.api) var api
   @ObservationIgnored @Dependency(\.analytics) var analytics
+  @ObservationIgnored @Dependency(\.errorReporting) var errorReporting
 
   // MARK: - Shared State
 
@@ -30,6 +31,7 @@ class RewardsPageModel: ViewModel {
 
   var prizeTiers: [PrizeTier] = []
   var redeemedPrizeTierIds: Set<String> = []
+  @ObservationIgnored private var redeemedAccount: AuthIdentity?
 
   // MARK: - User Actions
 
@@ -133,21 +135,33 @@ class RewardsPageModel: ViewModel {
     do {
       prizeTiers = try await api.getPrizeTiers()
     } catch {
-      // TODO: Add error handling
-      print("Failed to load prize tiers: \(error)")
+      await reportUnexpectedError(error, endpoint: "getPrizeTiers")
     }
   }
 
   private func loadUserPrizes() async {
     guard let jwt = auth.jwt else { return }
+    let identity = auth.identity
+    if let redeemedAccount, !redeemedAccount.isSameAccount(as: identity) {
+      redeemedPrizeTierIds = []
+    }
+    redeemedAccount = identity
     do {
       let userPrizes = try await api.getUserPrizes(jwt)
-      redeemedPrizeTierIds = Set(
-        userPrizes.compactMap { $0.prize?.prizeTierId }
-      )
+      guard auth.identity.isSameAccount(as: identity) else { return }
+      redeemedPrizeTierIds.formUnion(userPrizes.compactMap { $0.prize?.prizeTierId })
     } catch {
-      print("Failed to load user prizes: \(error)")
+      await reportUnexpectedError(error, endpoint: "getUserPrizes")
     }
+  }
+
+  private func reportUnexpectedError(_ error: Error, endpoint: String) async {
+    guard !Task.isCancelled, !(error is CancellationError),
+      !NetworkErrorClassifier.isNetworkError(error)
+    else { return }
+    var tags = NetworkErrorClassifier.errorTags(for: error)
+    tags["endpoint"] = endpoint
+    await errorReporting.reportError(error, tags)
   }
 
   private func getUserListeningHours() -> Int {

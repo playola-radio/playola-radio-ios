@@ -1,0 +1,514 @@
+{
+  "type": "frame",
+  "id": "j1WFOT",
+  "x": 0,
+  "y": 28880,
+  "name": "Station \u00b7 Shows: Live / Upcoming",
+  "clip": true,
+  "width": 393,
+  "height": 852,
+  "fill": "#000000",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "gvmvZ",
+      "name": "Header",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 10,
+      "padding": [
+        28,
+        20,
+        0,
+        20
+      ],
+      "children": [
+        {
+          "type": "text",
+          "id": "bnMDg",
+          "name": "Title",
+          "fill": "#FFFFFF",
+          "content": "Station",
+          "fontFamily": "Space Grotesk",
+          "fontSize": 28,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "uqmJ6",
+          "name": "Station Subtitle",
+          "fill": "#999999",
+          "content": "Reckless Radio",
+          "fontFamily": "Inter",
+          "fontSize": 13,
+          "fontWeight": "500"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "qKrVH",
+      "name": "Broadcast Block",
+      "width": "fill_container",
+      "layout": "vertical",
+      "padding": [
+        24,
+        20,
+        0,
+        20
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "PVtBn",
+          "name": "Broadcast Card",
+          "width": "fill_container",
+          "fill": "#1A1A1A",
+          "cornerRadius": 12,
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            12,
+            14
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "R7uvE",
+              "name": "Header",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ki8Mz",
+                  "name": "Label",
+                  "fill": "#868686",
+                  "content": "ON AIR NOW",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600",
+                  "letterSpacing": 1.2
+                },
+                {
+                  "type": "frame",
+                  "id": "RN4X5",
+                  "name": "Live Badge",
+                  "gap": 5,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "zmkuS",
+                      "name": "Dot",
+                      "fill": "#34C759",
+                      "width": 6,
+                      "height": 6
+                    },
+                    {
+                      "type": "text",
+                      "id": "zXWWf",
+                      "name": "Label",
+                      "fill": "#34C759",
+                      "content": "Auto DJ",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "QnjIU",
+              "name": "Song Row",
+              "width": "fill_container",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "lLdOs",
+                  "name": "Artwork",
+                  "width": 45,
+                  "height": 45,
+                  "fill": "#4D4D4D",
+                  "cornerRadius": 4,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "HDSNP",
+                      "name": "Glyph",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "music",
+                      "library": "lucide",
+                      "fill": "#999999"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "fUSLr",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "AxLVf",
+                      "name": "Title",
+                      "fill": "#FFFFFF",
+                      "content": "Cheat On Your Man",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "MHMHg",
+                      "name": "Artist",
+                      "fill": "#868686",
+                      "content": "Bri Bagwell \u00b7 up next: My Boots",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RgCGl",
+              "name": "Progress",
+              "clip": true,
+              "width": "fill_container",
+              "height": 4,
+              "fill": "#5E5F5F",
+              "cornerRadius": 2,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 2,
+                  "id": "oYgH5",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Fill",
+                  "fill": "#EF6962",
+                  "width": 190,
+                  "height": 4
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "le7YJ",
+              "name": "Footer",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "B94L1",
+                  "name": "Hint",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "o1eyF6",
+                      "name": "Icon",
+                      "width": 13,
+                      "height": 13,
+                      "icon": "radio-tower",
+                      "library": "lucide",
+                      "fill": "#999999"
+                    },
+                    {
+                      "type": "text",
+                      "id": "QkPhS",
+                      "name": "Label",
+                      "fill": "#999999",
+                      "content": "Last went live 4 days ago",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "oK49P",
+                  "name": "Manage Link",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "k7TZmz",
+                      "name": "Label",
+                      "fill": "#EF6962",
+                      "content": "Broadcast settings",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "RYZeD",
+                      "name": "Chevron",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "chevron-right",
+                      "library": "lucide",
+                      "fill": "#EF6962"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ohWSJ",
+      "name": "Links",
+      "width": "fill_container",
+      "layout": "vertical",
+      "padding": [
+        20,
+        20,
+        0,
+        20
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "FxfJb",
+          "name": "Section header \u00b7 SHOWS",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            4,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "drpFW",
+              "name": "Section title",
+              "fill": "#999999",
+              "content": "SHOWS",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "letterSpacing": 0.6
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "CO626",
+          "name": "Link \u00b7 Live",
+          "width": "fill_container",
+          "padding": [
+            13,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "E8yAYl",
+              "name": "Label",
+              "fill": "#C7C7C7",
+              "content": "Live",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "type": "icon",
+              "id": "m9pcV",
+              "name": "Chevron",
+              "width": 14,
+              "height": 14,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "#868686"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "X3VpAT",
+          "name": "Link \u00b7 Upcoming",
+          "width": "fill_container",
+          "padding": [
+            13,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "ee8DA",
+              "name": "Label",
+              "fill": "#C7C7C7",
+              "content": "Upcoming",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "type": "icon",
+              "id": "AFESY",
+              "name": "Chevron",
+              "width": 14,
+              "height": 14,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "#868686"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "pYWIa",
+          "name": "Section header \u00b7 LIBRARY",
+          "width": "fill_container",
+          "padding": [
+            22,
+            0,
+            4,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "i9onAm",
+              "name": "Section title",
+              "fill": "#999999",
+              "content": "LIBRARY",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "letterSpacing": 0.6
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "E5CdvT",
+          "name": "Link \u00b7 Music",
+          "width": "fill_container",
+          "padding": [
+            13,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "A90WD",
+              "name": "Label",
+              "fill": "#C7C7C7",
+              "content": "Music",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "type": "icon",
+              "id": "Bi5kf",
+              "name": "Chevron",
+              "width": 14,
+              "height": 14,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "#868686"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "FOCJE",
+          "name": "Link \u00b7 Breakers",
+          "width": "fill_container",
+          "padding": [
+            13,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "hOXC6",
+              "name": "Label",
+              "fill": "#C7C7C7",
+              "content": "Breakers",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "type": "icon",
+              "id": "joWja",
+              "name": "Chevron",
+              "width": 14,
+              "height": 14,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "#868686"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "XiD3R",
+      "type": "ref",
+      "ref": "R0hsG",
+      "name": "Tab Bar",
+      "layoutPosition": "absolute",
+      "x": 16,
+      "y": 762,
+      "descendants": {
+        "hucGR/Mb28I": {
+          "fill": "#868686"
+        },
+        "hucGR/x7cAoO": {
+          "fill": "#868686"
+        },
+        "Kq4ks/Mb28I": {
+          "fill": "#FFFFFF"
+        },
+        "Kq4ks/x7cAoO": {
+          "fill": "#FFFFFF"
+        },
+        "Z7dIob/Mb28I": {
+          "fill": "#868686"
+        },
+        "Z7dIob/x7cAoO": {
+          "fill": "#868686"
+        }
+      }
+    }
+  ]
+}

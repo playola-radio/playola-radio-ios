@@ -1,0 +1,7 @@
+version: 1
+id: add-show-to-series
+classification: functional
+before:
+  policy: not-applicable
+  reason: The Add a show sheet is new; before this change a slot's "+ Add show" and
+    the Series page's "Add a Show" did nothing.

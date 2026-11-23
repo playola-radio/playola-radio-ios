@@ -69,6 +69,7 @@ class MainContainerModel: ViewModel {
 
   var presentedAlert: PlayolaAlert?
   var presentedToast: PlayolaToast?
+  @ObservationIgnored private var shownStandardSheets: [PlayolaSheet] = []
 
   var homeTabTitle: String { "Home" }
   var stationsTabTitle: String { "Radio Stations" }
@@ -139,6 +140,7 @@ class MainContainerModel: ViewModel {
     // but it is best-effort by design, and a slow config endpoint must not
     // stall station loading for up to the 60s request timeout.
     Task { await loadClientConfig() }
+    observeToasts()
 
     if let userId = auth.currentUser?.id {
       await analytics.identify(userId)
@@ -170,8 +172,6 @@ class MainContainerModel: ViewModel {
     // what happens when we use the Shared nowPlaying value.  In the future we should figure out
     // how to get this to work with the nowPlaying shared state.
     stationPlayer.$state.sink { self.processNewStationState($0) }.store(in: &cancellables)
-
-    observeToasts()
 
     await loadListeningTracker()
     await loadAirings()
@@ -342,6 +342,24 @@ class MainContainerModel: ViewModel {
     $mainContainerNavigationCoordinator.withLock { $0.presentedSheet = newSheet }
   }
 
+  func standardSheetAppeared(_ sheet: PlayolaSheet) {
+    guard shownStandardSheets.last != sheet else { return }
+    shownStandardSheets.append(sheet)
+  }
+
+  /// Tells a sheet that SwiftUI has finished dismissing it, so anything it shows next (an alert
+  /// on the screen behind) doesn't collide with the closing sheet.
+  func standardSheetDismissed() {
+    guard !shownStandardSheets.isEmpty else { return }
+    switch shownStandardSheets.removeFirst() {
+    case .seriesPicker(let picker): picker.dismissed()
+    case .seriesDetails(let details): details.onDismissed()
+    case .addShowToSeries(let addShow): addShow.dismissed()
+    case .scheduleShow(let schedule): schedule.dismissed()
+    default: break
+    }
+  }
+
   func checkAndShowRatingPromptIfNeeded() {
     guard !hasCheckedRatingPromptThisSession else { return }
     guard let tracker = listeningTracker else { return }
@@ -414,8 +432,10 @@ class MainContainerModel: ViewModel {
     model.giveawayOverlayModel.onTap = { [weak self] event in
       try await self?.giveawayCoordinator.tap(event: event)
     }
-    model.giveawayOverlayModel.onError = { [weak self] _ in
-      self?.presentedAlert = .giveawayTapFailed
+    // Alert from the player sheet itself; one raised behind the sheet would dismiss it.
+    model.giveawayOverlayModel.onError = { [weak model] error in
+      model?.presentedAlert =
+        error as? GiveawayTapError == .ended ? .giveawayEnded : .giveawayTapFailed
     }
     return model
   }
@@ -636,6 +656,14 @@ extension PlayolaAlert {
     PlayolaAlert(
       title: "Tap Didn't Go Through",
       message: "Something went wrong tapping in. Please check your connection and try again.",
+      dismissButton: .cancel(Text("OK"))
+    )
+  }
+
+  static var giveawayEnded: PlayolaAlert {
+    PlayolaAlert(
+      title: "Giveaway Ended",
+      message: "This giveaway has ended.",
       dismissButton: .cancel(Text("OK"))
     )
   }

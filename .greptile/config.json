@@ -68,7 +68,7 @@
     },
     {
       "id": "identified-array-for-collections",
-      "rule": "Use `IdentifiedArrayOf<T>` from IdentifiedCollections for arrays of identifiable items displayed in lists. This provides O(1) lookup by ID and safer list diffing.",
+      "rule": "Use `IdentifiedArrayOf<T>` from IdentifiedCollections for identifiable collections a model stores as state and displays in lists (loaded, mutated, or looked up by ID). This provides O(1) lookup by ID and safer list diffing. A computed array that only lets a view render an optional row with `ForEach` instead of an `if` may stay a plain array.",
       "scope": ["PlayolaRadio/Views/**/*Model.swift"],
       "severity": "low"
     },
@@ -86,7 +86,7 @@
     },
     {
       "id": "shared-state-withlocked-update",
-      "rule": "Update `@Shared` state thread-safely using `$sharedVar.withLock { $0 = newValue }`. Do not assign directly to shared state outside of initialization.",
+      "rule": "Update `@Shared` state that holds a value type (struct, enum, array, dictionary, optional) thread-safely using `$sharedVar.withLock { $0 = newValue }`. Do not assign directly to such shared state outside of initialization. This rule does NOT apply when the `@Shared` value is a class instance: setting a property on that object (e.g. `mainContainerNavigationCoordinator.presentedSheet = .someSheet(model)` or `navigationCoordinator.path.append(...)`) does not write to shared storage and is the project's standard pattern. Check the declared type before flagging.",
       "scope": ["PlayolaRadio/**/*.swift"],
       "severity": "medium"
     },

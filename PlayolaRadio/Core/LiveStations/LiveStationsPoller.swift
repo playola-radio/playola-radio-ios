@@ -37,10 +37,13 @@ final class LiveStationsPoller {
   }
 
   func fetchLiveStations() async {
-    guard let jwtToken = auth.jwt else { return }
+    let snapshot = auth
+    guard let jwtToken = snapshot.jwt else { return }
+    let identity = snapshot.identity
 
     do {
       let stations = try await api.fetchLiveStations(jwtToken)
+      guard !Task.isCancelled, auth.identity.isSameAccount(as: identity) else { return }
       $liveStations.withLock { $0 = stations }
     } catch {
       // Silently fail, keep existing data

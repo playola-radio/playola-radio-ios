@@ -108,7 +108,9 @@ struct EditProfilePageView: View {
             Image(systemName: "chevron.left")
               .foregroundColor(.white)
               .font(.title2)
-          })
+          }
+        )
+        .accessibilityLabel(model.backButtonAccessibilityLabel)
       }
     }
     .onAppear {

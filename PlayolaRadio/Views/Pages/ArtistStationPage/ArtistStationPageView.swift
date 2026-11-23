@@ -133,23 +133,39 @@ struct ArtistStationPageView: View {
   }
 
   private var links: some View {
-    VStack(spacing: 0) {
+    VStack(alignment: .leading, spacing: 0) {
+      sectionHeader(model.showsSectionTitle)
       Button {
-        model.showsRowTapped()
+        model.liveRowTapped()
       } label: {
-        linkRow(title: model.showsLinkTitle)
+        linkRow(title: model.liveLinkTitle)
       }
       Button {
-        model.musicLibraryRowTapped()
+        model.upcomingRowTapped()
       } label: {
-        linkRow(title: model.musicLibraryLinkTitle)
+        linkRow(title: model.upcomingLinkTitle)
+      }
+      sectionHeader(model.librarySectionTitle)
+        .padding(.top, 24)
+      Button {
+        model.musicRowTapped()
+      } label: {
+        linkRow(title: model.musicLinkTitle)
       }
       Button {
-        model.breakersLibraryRowTapped()
+        model.breakersRowTapped()
       } label: {
-        linkRow(title: model.breakersLibraryLinkTitle)
+        linkRow(title: model.breakersLinkTitle)
       }
     }
+  }
+
+  private func sectionHeader(_ title: String) -> some View {
+    Text(title)
+      .font(.custom(FontNames.Inter_600_SemiBold, size: 11))
+      .tracking(1.2)
+      .foregroundColor(.playolaGray)
+      .padding(.vertical, 8)
   }
 
   private func linkRow(title: String) -> some View {

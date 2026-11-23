@@ -3,6 +3,8 @@
 //  PlayolaRadio
 //
 
+import ConcurrencyExtras
+import CustomDump
 import Dependencies
 import Foundation
 import Sharing
@@ -321,5 +323,93 @@ struct FeedbackSheetTests {
     model.cancelButtonTapped()
 
     #expect(navCoordinator.presentedSheet == nil)
+  }
+
+  @Test
+  func testSendButtonTappedReportsSendFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reports = LockIsolated<[String]>([])
+    let model = withDependencies {
+      $0.api.sendConversationMessage = { _, _, _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    } operation: {
+      FeedbackSheetModel(conversation: makeConversation())
+    }
+    model.message = "Hi"
+
+    await model.sendButtonTapped()
+
+    expectNoDifference(reports.value, ["sendConversationMessage"])
+    expectNoDifference(model.presentedAlert, .errorSendingMessage)
+  }
+
+  @Test
+  func testSendButtonTappedReportsCreateFailureWithEndpointTag() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reports = LockIsolated<[String]>([])
+    let model = withDependencies {
+      $0.api.createSupportConversation = { _ in throw APIError.dataNotValid }
+      $0.errorReporting.reportError = { _, tags in
+        reports.withValue { $0.append(tags["endpoint"] ?? "") }
+      }
+    } operation: {
+      FeedbackSheetModel()
+    }
+    model.message = "Hi"
+
+    await model.sendButtonTapped()
+
+    expectNoDifference(reports.value, ["createSupportConversation"])
+    expectNoDifference(model.presentedAlert, .errorSendingMessage)
+  }
+
+  @Test
+  func testSendButtonTappedDoesNotReportConnectivityFailure() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.sendConversationMessage = { _, _, _ in throw URLError(.notConnectedToInternet) }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      FeedbackSheetModel(conversation: makeConversation())
+    }
+    model.message = "Hi"
+
+    await model.sendButtonTapped()
+
+    expectNoDifference(reportCount.value, 0)
+    expectNoDifference(model.presentedAlert, .errorSendingMessage)
+  }
+
+  @Test
+  func testSendButtonTappedDoesNotReportCancellation() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    let reportCount = LockIsolated(0)
+    let model = withDependencies {
+      $0.api.sendConversationMessage = { _, _, _ in throw CancellationError() }
+      $0.errorReporting.reportError = { _, _ in reportCount.withValue { $0 += 1 } }
+    } operation: {
+      FeedbackSheetModel(conversation: makeConversation())
+    }
+    model.message = "Hi"
+
+    await model.sendButtonTapped()
+
+    expectNoDifference(reportCount.value, 0)
+  }
+
+  private func makeConversation() -> Conversation {
+    Conversation(
+      id: "conv-1",
+      type: "support",
+      contextType: nil,
+      contextId: nil,
+      status: "open",
+      createdAt: Date(),
+      updatedAt: Date(),
+      participants: nil
+    )
   }
 }

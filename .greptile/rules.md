@@ -63,7 +63,7 @@ func toggleExpanded() { }
 ## Dependencies & Shared State
 
 - All `@Dependency` and `@Shared` properties **must** be `@ObservationIgnored`
-- Update shared state via `$sharedVar.withLock { $0 = newValue }`
+- Update value-type shared state via `$sharedVar.withLock { $0 = newValue }`. Setting a property on a class held in `@Shared` (such as `MainContainerNavigationCoordinator`) is a direct assignment, not a shared-state write — don't flag it
 - Dependencies are `Sendable` structs from `swift-dependencies`
 
 ## Alerts & Navigation
@@ -75,13 +75,13 @@ func toggleExpanded() { }
 ## Testing Rules
 
 - **Test location**: Colocated — `SomePageModel.swift` → `SomePageTests.swift` in same folder
-- **Test class**: `@MainActor final class SomeTests: XCTestCase`
+- **Test suite**: swift-testing — `@Suite(.freshSharedState) @MainActor struct SomeTests` with `@Test` / `#expect`
 - **Naming**: camelCase, no underscores — `testOnRecordTappedRequestsPermission`
 - **NEVER use `Task.sleep` in tests** — it makes tests slow and flaky
 - **@Shared in tests**: Declare locally per test method with initial value:
 
 ```swift
-func testSomething() async {
+@Test func something() async {
   @Shared(.auth) var auth = Auth(jwt: "test-jwt")
   let model = withDependencies { ... } operation: { SomeModel() }
   // ...
@@ -93,13 +93,14 @@ Do NOT use class-level `@Shared` properties in tests.
 ## Error Handling
 
 - All API calls must be in `do/catch` blocks
-- Errors set `presentedAlert` to a `PlayolaAlert` case
+- Every caught error is reported via `errorReporting.reportError` (cancellations and `NetworkErrorClassifier` connectivity blips excepted)
+- A failed action the user just took (Save, Send, Record) sets `presentedAlert` to a `PlayolaAlert` case; a failed page load or user-started refresh shows a toast or inline error instead; a background refresh the user didn't start only reports
 - Use `isLoading = true` / `defer { isLoading = false }` pattern
 - Never silently swallow errors
 
 ## Code Style
 
-- Use async/await, never completion handlers
-- Use `IdentifiedArrayOf<T>` for identifiable collections
+- Use `async/await` for asynchronous work, never completion-handler APIs (`func load(completion:)`). Closure properties a child model uses to tell its parent about an event (`onSaved`, `onClose`, `onRecordingAccepted`) are fine.
+- Use `IdentifiedArrayOf<T>` for identifiable collections a model stores as state (loaded, mutated or looked up by ID). A computed array that only lets a view render an optional row with `ForEach` (instead of an `if`) can stay a plain array.
 - Run `make format` and `make lint` before committing
 - Comments only when code isn't self-explanatory

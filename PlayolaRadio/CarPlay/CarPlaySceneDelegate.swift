@@ -62,7 +62,6 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   override init() {
     super.init()
     setupNowPlayingTemplate()
-    observePlaybackErrors()
   }
 
   private func playStation(_ station: AnyStation?) {
@@ -128,6 +127,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         await analytics.track(.carPlayInitialized)
       }
       observeStationCatalog()
+      observePlaybackErrors()
 
       self.interfaceController = interfaceController
       self.interfaceController?.delegate = self
@@ -140,7 +140,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         [weak self] _, _ in
         guard let self else { return }
         // Replay the current playback status now that the controller exists. The
-        // $state observer's first emission arrives during init (before this
+        // $state observer's first emission arrives during connect (before this
         // controller exists) and is then deduplicated, so without this replay a
         // session already playing/loading/erroring when CarPlay connects would be
         // stuck on the station list until the next real status transition.
@@ -210,7 +210,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     _ = nowPlayingUpdater
   }
 
+  /// Installed on every connect: a disconnect cancels it, and this delegate instance is reused.
   private func observePlaybackErrors() {
+    observers.removeAll()
     // Only react to actual playback-status transitions. `state` republishes on
     // artwork/metadata updates without a status change; without `removeDuplicates`
     // every such update would re-run the template logic and (because `.playing`

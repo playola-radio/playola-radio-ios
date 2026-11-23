@@ -31,8 +31,11 @@ class CuratorSongPickerPageModel: ViewModel {
 
   // MARK: - Initialization
 
-  init(stationId: String, initialAddedSongIds: Set<String> = []) {
+  init(
+    stationId: String, initialAddedSongIds: Set<String> = [], offersSongRequests: Bool = true
+  ) {
     self.stationId = stationId
+    self.offersSongRequests = offersSongRequests
     self.addedSongIds = initialAddedSongIds
     let preview = SongPreviewPlayer()
     self.preview = preview
@@ -45,6 +48,7 @@ class CuratorSongPickerPageModel: ViewModel {
   // MARK: - Properties
 
   let stationId: String
+  let offersSongRequests: Bool
   var onAddSong: ((AudioBlock) -> Void)?
   var onDismiss: (() -> Void)?
   let preview: SongPreviewPlayer
@@ -436,6 +440,7 @@ class CuratorSongPickerPageModel: ViewModel {
   private func searchSongRequests(jwt: String, query: String) async -> (
     results: [SongRequest], errorMessage: String?
   ) {
+    guard offersSongRequests else { return ([], nil) }
     do {
       return (try await api.searchSongRequests(jwt, query), nil)
     } catch {

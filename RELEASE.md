@@ -14,10 +14,14 @@ in both flows.
    ./scripts/release.sh
    ```
 
-   The script creates `release/X.Y.Z`, bumps `MARKETING_VERSION` in
+   The script shows the pending release notes from `changelog.d/` (and stops
+   if any note is malformed), creates `release/X.Y.Z`, collects those notes
+   into a dated `## [X.Y.Z]` section of `CHANGELOG.md` and deletes the note
+   files, bumps `MARKETING_VERSION` in
    `PlayolaRadio.xcodeproj/project.pbxproj`, runs `agvtool` to bump the build
-   number, lists the PRs merged since the last release, and opens a release
-   PR targeting `main`.
+   number, and opens a release PR targeting `main` whose body carries the
+   release notes and the PRs merged since the last release. See
+   [Release notes](#release-notes).
 
 2. **Merge the release PR using "Create a merge commit".** Do NOT squash.
 
@@ -73,6 +77,25 @@ The incremental rollout is:
 - PR 4: add a tag-filtered CircleCI job that builds but does not upload.
 - PR 5: enable `upload_to_testflight` and `sentry_debug_files_upload`.
 
+## Release notes
+
+Pull requests never edit `CHANGELOG.md`. A PR with a user-facing change adds
+its own file under `changelog.d/` (format in
+[`changelog.d/README.md`](changelog.d/README.md)), so release notes never cause
+merge conflicts. CI runs `make changelog-check` on every PR.
+
+`scripts/release.sh` runs `python3 scripts/changelog.py roll --version X.Y.Z`
+on the release branch. It writes one dated `## [X.Y.Z] - YYYY-MM-DD` section,
+leaves `## [Unreleased]` empty apart from a comment pointing to `changelog.d/`,
+and deletes exactly the note files it read. Any bullets still under
+`## [Unreleased]` (from branches opened before `changelog.d/` existed) are
+collected first. It changes nothing and the release stops if a note is
+malformed, the version is missing, or `CHANGELOG.md` already has a section for
+that version.
+
+Run `make changelog-check` to preview the pending notes, and
+`make test-scripts` after changing `scripts/changelog.py`.
+
 ## Hotfix path
 
 For a build-number-only bump on an existing version (for example, to fix a
@@ -95,6 +118,10 @@ The script:
 Merge the hotfix PR using **"Create a merge commit"** (same rule as the
 release PR — do not squash). Auto-tag then fires with `vX.Y.Z-bN` and
 CircleCI uploads a new TestFlight build under the unchanged version.
+
+A build-only bump does not collect release notes: notes merged since the
+last release stay in `changelog.d/` and are collected into the next version's
+section.
 
 If the fix warrants a version bump (not just a build rebuild), use
 `./scripts/release.sh` with the `patch` option instead.

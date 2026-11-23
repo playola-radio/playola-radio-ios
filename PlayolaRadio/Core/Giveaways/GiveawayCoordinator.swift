@@ -30,11 +30,25 @@ final class GiveawayCoordinator {
   @ObservationIgnored private var lastFeed: [GiveawayEvent] = []
   @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
   @ObservationIgnored private var armedEventId: String?
+  /// The feed's `opensAt` for the armed event, so a contest moved to a new time is re-armed.
+  @ObservationIgnored private var armedOpensAt: Date?
+  @ObservationIgnored private var armedIdentity: AuthIdentity?
   @ObservationIgnored private var hasObservedStation = false
   @ObservationIgnored private var lastObservedStationId: String?
   @ObservationIgnored private var inFlightTapIds: Set<String> = []
   /// Bumped whenever an arm is cancelled/replaced; a timer callback ignores itself if stale.
   @ObservationIgnored private var generation = 0
+  /// Bumped per feed fetch so each response can be ordered by when its request started.
+  @ObservationIgnored private var feedGeneration = 0
+  /// The newest successfully applied feed request.
+  @ObservationIgnored private var appliedFeedGeneration = 0
+  /// Bumped per reveal fetch so each response can be ordered by when its request started.
+  @ObservationIgnored private var revealSequence = 0
+  /// The newest successfully applied reveal request.
+  @ObservationIgnored private var appliedRevealSequence = 0
+  /// Bumped only when reconciliation changes or rules out the active giveaway. An empty opening-gap
+  /// feed must not invalidate a pending authoritative reveal.
+  @ObservationIgnored private var reconciliationGeneration = 0
 
   static let feedPollInterval: Duration = .seconds(30)
   /// How far back a `.resolvedLost` participation is still re-checked for a last-tapper promotion on
@@ -80,6 +94,7 @@ final class GiveawayCoordinator {
 
   // MARK: - Reconcile
 
+  // swiftlint:disable:next function_body_length
   func reconcile() async {
     guard let jwt = auth.jwt else {
       // Auth loss: cancel the armed timer + clear the open event, AND clear the badges/banner —
@@ -89,6 +104,9 @@ final class GiveawayCoordinator {
       $upcomingGiveaways.withLock { $0 = [] }
       return
     }
+    let identity = auth.identity
+    feedGeneration += 1
+    let fetchGeneration = feedGeneration
     let feed: [GiveawayEvent]
     do {
       feed = try await api.giveawayEventsFeed(jwt)
@@ -96,6 +114,11 @@ final class GiveawayCoordinator {
       log("reconcile: feed FETCH FAILED (\(error)) — keeping last state")
       return  // transient failure: keep last known state, retry next poll
     }
+    guard auth.identity.isSameAccount(as: identity), fetchGeneration > appliedFeedGeneration else {
+      log("reconcile: feed superseded (account changed or newer feed applied) — discarding")
+      return
+    }
+    appliedFeedGeneration = fetchGeneration
     lastFeed = feed
     // Publish the all-stations "coming up" projection unconditionally — the badges must show in the
     // station list / Home even when nothing is playing, so this runs ahead of the now-playing guard.
@@ -120,12 +143,18 @@ final class GiveawayCoordinator {
     )
     switch item.status {
     case .open:
+      reconciliationGeneration += 1
       cancelArmedReveal()
       await revealEvent(jwt: jwt, eventId: item.id, expectedStationId: stationId)
     case .scheduled:
-      if activeGiveaway?.id != item.id { $activeGiveaway.withLock { $0 = nil } }
+      // A moved open time hides an already-revealed button until the re-armed reveal.
+      if activeGiveaway?.id != item.id || activeGiveaway?.opensAt != item.opensAt {
+        reconciliationGeneration += 1
+        $activeGiveaway.withLock { $0 = nil }
+      }
       armRevealIfNeeded(jwt: jwt, item: item, stationId: stationId)
     case .closed, .canceled, .unknown:
+      reconciliationGeneration += 1
       clearActiveAndArm()
     }
   }
@@ -135,18 +164,30 @@ final class GiveawayCoordinator {
   /// Tap into a giveaway. The tap response carries the authoritative `isWinner`, so the outcome is
   /// resolved and persisted (keyed by the per-airing event id) the instant the POST returns — no
   /// wait for the contest to close. The durable write survives an app kill. One tap per event.
-  /// Stays silent on the expected `.notOpenYet` race; rethrows any genuine failure for the caller.
+  /// Stays silent on a `.notOpenYet` before the event's open time. The server sends the same 400
+  /// once the contest is due to close, so at or after the open time it clears the button and throws
+  /// `.ended`. Rethrows any genuine failure for the caller.
   func tap(event: GiveawayEvent) async throws {
     guard let jwt = auth.jwt else { return }
+    let identity = auth.identity
     guard participations[event.id] == nil, !inFlightTapIds.contains(event.id) else { return }
     inFlightTapIds.insert(event.id)
     defer { inFlightTapIds.remove(event.id) }
     do {
       let response = try await api.tapGiveawayEvent(jwt, event.id)
+      guard auth.identity.isSameAccount(as: identity) else { return }
       persistOutcome(event: event, response: response)
     } catch GiveawayTapError.notOpenYet {
-      log("tap: not-open-yet for \(event.id) — silent (expected race)")
+      if let opensAt = event.opensAt, now < opensAt {
+        log("tap: not-open-yet for \(event.id) — silent (expected race)")
+        return
+      }
+      guard auth.identity.isSameAccount(as: identity) else { return }
+      log("tap: \(event.id) rejected after its open time — ended")
+      $activeGiveaway.withLock { if $0?.id == event.id { $0 = nil } }
+      throw GiveawayTapError.ended
     } catch {
+      guard auth.identity.isSameAccount(as: identity) else { return }
       log("tap: unexpected failure for \(event.id) — \(error)")
       throw error
     }
@@ -176,12 +217,29 @@ final class GiveawayCoordinator {
 
   /// GET the authoritative event (reconciles open on demand) and publish it for the overlay.
   func revealEvent(jwt: String, eventId: String, expectedStationId: String) async {
+    let identity = auth.identity
+    let generation = reconciliationGeneration
+    revealSequence += 1
+    let sequence = revealSequence
     do {
-      let event = try await api.giveawayEvent(jwt, eventId)
+      guard let event = try await api.giveawayEvent(jwt, eventId) else {
+        log("reveal: \(eventId) is gone (404)")
+        $activeGiveaway.withLock { if $0?.id == eventId { $0 = nil } }
+        return
+      }
+      guard auth.identity.isSameAccount(as: identity),
+        generation == reconciliationGeneration
+          || Self.selectEvent(from: lastFeed.filter { $0.stationId == expectedStationId })?.id
+            == eventId,
+        sequence > appliedRevealSequence
+      else {
+        return
+      }
       guard currentPlayolaStationId == expectedStationId else {
         log("reveal: station changed before publish — skipping \(eventId)")
         return
       }
+      appliedRevealSequence = sequence
       $activeGiveaway.withLock { $0 = event }
       if event.status == .open {
         removeUpcomingEntry(stationId: event.stationId, revealedEventId: event.id)
@@ -193,12 +251,15 @@ final class GiveawayCoordinator {
   }
 
   /// Handle the feed having no event for the current station — happens transiently at the open
-  /// transition AND permanently when a contest closes (closed events leave the feed). Never cancels
-  /// an in-flight arm (it self-validates via GET at opensAt). Drops a stale cross-station event;
+  /// transition AND permanently when a contest closes or is cancelled (both leave the feed). Keeps an
+  /// armed reveal unless its GET says the event is gone. Drops a stale cross-station event;
   /// confirms a same-station published event via GET and clears it only once it's no longer open.
   private func handleNoFeedEvent(jwt: String, stationId: String) async {
-    log("reconcile: no feed event for current station — keeping any armed reveal")
-    guard let active = activeGiveaway else { return }
+    log("reconcile: no feed event for current station")
+    guard let active = activeGiveaway else {
+      if let armedEventId { await releaseArmIfGone(jwt: jwt, eventId: armedEventId) }
+      return
+    }
     if active.stationId != stationId {
       $activeGiveaway.withLock { $0 = nil }
     } else {
@@ -206,18 +267,45 @@ final class GiveawayCoordinator {
     }
   }
 
+  /// An armed event has dropped out of the feed. Keep the arm unless the authoritative GET says the
+  /// event was cancelled, deleted (404) or closed; a transient GET failure keeps it too.
+  private func releaseArmIfGone(jwt: String, eventId: String) async {
+    let fresh: GiveawayEvent?
+    do {
+      fresh = try await api.giveawayEvent(jwt, eventId)
+    } catch {
+      return
+    }
+    guard armedEventId == eventId, fresh?.status != .scheduled, fresh?.status != .open else {
+      return
+    }
+    cancelArmedReveal()
+    log("arm: \(eventId) is \(fresh?.status.rawValue ?? "gone") → released")
+  }
+
   /// A published event has dropped out of the feed. Confirm via the authoritative GET: keep it if
   /// it's still open (a transient feed gap at the open transition), clear it once it has closed.
-  /// A transient GET failure keeps it (the next poll retries). On close, run the loss backstop so a
-  /// last-tapper promotion is caught for the in-app user without waiting on the push.
+  /// A cancelled or deleted event (404) is cleared too. A transient GET failure keeps it (the next
+  /// poll retries). On close, run the loss backstop so a last-tapper promotion is caught for the
+  /// in-app user without waiting on the push.
   func clearActiveIfNoLongerOpen(jwt: String, event: GiveawayEvent, stationId: String) async {
-    guard let fresh = try? await api.giveawayEvent(jwt, event.id) else { return }
-    guard currentPlayolaStationId == stationId else { return }
-    if fresh.status != .open {
-      $activeGiveaway.withLock { $0 = nil }
-      log("active event \(event.id) is now \(fresh.status.rawValue) → cleared")
-      await reconcileResolvedLoss(jwt: jwt, eventId: event.id)
+    let identity = auth.identity
+    let generation = reconciliationGeneration
+    let fresh: GiveawayEvent?
+    do {
+      fresh = try await api.giveawayEvent(jwt, event.id)
+    } catch {
+      return
     }
+    guard auth.identity.isSameAccount(as: identity), fresh?.status != .open else { return }
+    if currentPlayolaStationId == stationId,
+      generation == reconciliationGeneration || activeGiveaway?.id == event.id
+    {
+      if armedEventId == event.id { cancelArmedReveal() } else { reconciliationGeneration += 1 }
+      $activeGiveaway.withLock { $0 = nil }
+      log("active event \(event.id) is now \(fresh?.status.rawValue ?? "gone") → cleared")
+    }
+    if fresh != nil { await reconcileResolvedLoss(jwt: jwt, eventId: event.id) }
   }
 
   /// Backstop for the last-tapper promotion: when a contest the user provisionally lost has closed,
@@ -225,8 +313,11 @@ final class GiveawayCoordinator {
   /// No-op on a still-open contest, a confirmed loss, or a transient failure.
   func reconcileResolvedLoss(jwt: String, eventId: String) async {
     guard case .resolvedLost = participations[eventId]?.status else { return }
+    let identity = auth.identity
     guard let result = try? await api.giveawayEventMyResult(jwt, eventId) else { return }
-    guard result.isResolved, result.isWinner else { return }
+    guard auth.identity.isSameAccount(as: identity), result.isResolved, result.isWinner else {
+      return
+    }
     $participations.withLock {
       // Re-check inside the lock: a push or a claim may have changed the state during the GET, and we
       // must not reset a now-won/claimed participation back to an unsubmitted win.
@@ -242,6 +333,7 @@ final class GiveawayCoordinator {
   /// recent `.resolvedLost` once. Bounded by `lossReconcileWindow` so old losses aren't polled forever.
   func reconcileRecentResolvedLosses() async {
     guard let jwt = auth.jwt else { return }
+    let identity = auth.identity
     let losses = participations.values.filter {
       if case .resolvedLost = $0.status { return true }
       return false
@@ -250,6 +342,7 @@ final class GiveawayCoordinator {
     let cutoff = now.addingTimeInterval(-Self.lossReconcileWindow)
     let recentLossIds = losses.compactMap { $0.tappedAt >= cutoff ? $0.id : nil }
     for eventId in recentLossIds {
+      guard auth.identity.isSameAccount(as: identity) else { return }
       await reconcileResolvedLoss(jwt: jwt, eventId: eventId)
     }
   }
@@ -291,23 +384,31 @@ final class GiveawayCoordinator {
   }
 
   private func armRevealIfNeeded(jwt: String, item: GiveawayEvent, stationId: String) {
-    guard armedEventId != item.id else { return }
+    let identity = auth.identity
+    guard
+      armedEventId != item.id || armedOpensAt != item.opensAt
+        || !(armedIdentity?.isSameAccount(as: identity) ?? false)
+    else {
+      return
+    }
     cancelArmedReveal()
     armedEventId = item.id
+    armedOpensAt = item.opensAt
+    armedIdentity = identity
     generation += 1
     let gen = generation
     revealTask = Task { [weak self] in
       await self?.armAndReveal(
-        jwt: jwt, eventId: item.id, stationId: stationId, generation: gen)
+        jwt: jwt, eventId: item.id, stationId: stationId, generation: gen, identity: identity)
     }
   }
 
-  private func armAndReveal(jwt: String, eventId: String, stationId: String, generation gen: Int)
-    async
-  {
+  private func armAndReveal(
+    jwt: String, eventId: String, stationId: String, generation gen: Int, identity: AuthIdentity
+  ) async {
     let rttClock = ContinuousClock()
     let start = rttClock.now
-    let event: GiveawayEvent
+    let event: GiveawayEvent?
     do {
       event = try await api.giveawayEvent(jwt, eventId)
     } catch {
@@ -317,21 +418,24 @@ final class GiveawayCoordinator {
       return
     }
     guard gen == generation else { return }  // superseded by a newer arm
-    guard currentPlayolaStationId == stationId else {
+    guard auth.identity.isSameAccount(as: identity), currentPlayolaStationId == stationId else {
       armedEventId = nil
       return
     }
     // The GET may have already reconciled to open (e.g. opensAt just passed) → reveal now.
-    if event.status == .open {
+    if let event, event.status == .open {
       $activeGiveaway.withLock { $0 = event }
       removeUpcomingEntry(stationId: event.stationId, revealedEventId: event.id)
       armedEventId = nil
       log("arm: \(eventId) already open on GET → revealed now")
       return
     }
-    guard let opensAt = event.opensAt, let serverTime = event.serverTime else {
+    // Only a still-scheduled event may be revealed later; a closed, cancelled or deleted one never.
+    guard let event, event.status == .scheduled, let opensAt = event.opensAt,
+      let serverTime = event.serverTime
+    else {
       armedEventId = nil
-      log("arm: \(eventId) missing opensAt/serverTime — cannot arm")
+      log("arm: \(eventId) not armable (\(event?.status.rawValue ?? "gone")) — not arming")
       return
     }
     let delay = Self.revealDelay(
@@ -340,6 +444,10 @@ final class GiveawayCoordinator {
     try? await clock.sleep(for: delay)
     guard gen == generation, currentPlayolaStationId == stationId else {
       log("arm: \(eventId) stale after sleep (gen/station changed) — skipping")
+      return
+    }
+    guard auth.identity.isSameAccount(as: identity) else {
+      armedEventId = nil
       return
     }
     // Reveal the button the instant we reach opensAt, straight from the event we already hold — no

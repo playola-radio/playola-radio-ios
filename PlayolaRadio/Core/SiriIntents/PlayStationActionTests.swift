@@ -80,6 +80,20 @@ struct PlayStationActionTests {
     #expect(player.callsToPlay.map(\.id) == ["koke-fm-id"])
   }
 
+  @Test
+  func testRunReturnsCouldNotStartWhenPlayFails() async {
+    @Shared(.auth) var auth = Auth(jwt: "jwt")
+    @Shared(.stationLists) var stationLists = makeStationLists()
+    let player = StationPlayerMock()
+    player.playResult = false
+    let outcome = await withDependencies {
+      $0.stationPlayer = player
+    } operation: {
+      await PlayStationAction().run(stationID: "koke-fm-id")
+    }
+    expectNoDifference(outcome, .couldNotStart(stationName: "KOKE FM"))
+  }
+
   // A Playola (artist) station's `stationName` is the internal show name
   // ("Bordertown Radio"), but Siri must confirm the curator-possessive label
   // ("Radney Foster's Station") that the entity/suggestions surfaced. This drives

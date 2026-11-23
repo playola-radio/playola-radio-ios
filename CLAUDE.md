@@ -24,6 +24,24 @@ Reviewers (including Greptile): flag any PR that clearly advances or completes a
 flag *obvious* advancement of an *already-tracked* task; whether something new
 *should* be tracked is a human judgment call, not a review gate.
 
+## Release Notes (changelog.d/)
+
+**Never edit `CHANGELOG.md` in a pull request.** A PR with a user-facing change
+adds one new file, `changelog.d/<short-kebab-description>.md`, holding a
+`### Changes` heading and plain-English `- ` bullets (format and strict rules
+in `changelog.d/README.md`; check with `make changelog-check`). Pure chores add
+no file and say so in the PR's Changelog section. `scripts/release.sh` collects
+the files into `CHANGELOG.md` at release time.
+
+## UX evidence
+
+- The tool lives in `playola-radio/ai-skills`; clone it to `~/playola/playola-skills` (or set `UX_EVIDENCE_HOME` to its `ux-evidence/tool` folder). First time on a machine: `make ux-evidence-setup`, then sign in to the Staging app in a simulator and run `make ux-evidence-ios-login` (add `DEVICE=<udid>` when more than one booted simulator has it).
+- If the branch changes anything under `PlayolaRadio/` or `PlayolaRadio.xcodeproj/`, then before the PR is opened either `make ux-evidence-verify` passes or the PR body contains `UX evidence: none — <reason>`.
+- The agent that implemented the change writes the case under `qa/ux/` and runs `make ux-evidence CASE=<case-id>`. Create it with `make ux-evidence-new CASE=<case-id> CLASSIFICATION=<visual|functional> BEFORE=<required|not-applicable>` (visual = screenshots, functional = a video of `flow.yaml` only), then edit `setup.yaml` and `flow.yaml`; `qa/ux/example-stations/` and `qa/ux/example-navigation/` are examples. The session is the owner's own staging account, so a flow may open the profile tab, switch to broadcasting mode, and create or change things on staging.
+- Right after the PR is created, run `make ux-evidence-publish PR=<number>`. After any later push, run `make ux-evidence-verify`; if stale, re-record and publish again. Both steps apply only when the branch has evidence cases; a PR using `UX evidence: none — <reason>` skips both.
+- A failed "before" run is a failure to fix, never a reason to switch to `not-applicable`.
+- See `qa/ux/README.md`.
+
 ## NEVER NEVER NEVER gate a feature to an environment
 
 **Do not gate any user-facing feature so that it behaves differently in production than in staging/development.** Absolutely never write code of the form `Config.shared.environment != .production` (or any equivalent) to turn a feature on in staging while leaving it dark in production.
@@ -35,6 +53,21 @@ flag *obvious* advancement of an *already-tracked* task; whether something new
 - If a feature is NOT ready, keep it on a feature branch, or behind a build-time `#if DEBUG` guard for dev-only tooling — never behind a runtime environment check that a production build evaluates to "off".
 - If you truly need staged rollout, use a *server-driven* flag that is explicitly turned on for production when the feature launches — and make turning it on part of the launch checklist. The default must never be "production is the disabled environment."
 - Production must never be the environment where a feature is the most disabled.
+
+## Mockups are the spec
+
+**When a screen has a mockup, the built screen must match it.** Mockups live in
+`design/features/<slug>/exports/` (PNG + JSON) and `design/exports/`. We spend a lot of time
+getting them right; they are not suggestions.
+
+- Before calling a screen done, screenshot every mockup state (with fixture data that matches
+  the mockup's content) and compare side by side: layout, copy, icons, colors, number
+  formatting. Only iOS system chrome (status bar, glass nav buttons, system tab bar) may differ.
+- A difference is a defect to fix before the PR, not a note to list in it.
+- Placeholders stand for real content. Grey image tiles and sample names or numbers mean "the
+  real thing goes here": show the real album art or photo, with the placeholder as the fallback.
+- If a request conflicts with a mockup, point out the conflict before building it. If a mockup
+  can't be matched or is ambiguous, stop and ask; never quietly pick a different look.
 
 ## ALWAYS use the Point-Free Workflow (pfw-*) skills
 
@@ -254,7 +287,7 @@ PlayolaRadio/
 
 - All view models inherit from `ViewModel` base class
 - All view models and tests are `@MainActor`
-- Use `async/await`, no completion handlers
+- Use `async/await` for asynchronous work, never completion-handler APIs (`func load(completion:)`). Closure properties a child model uses to tell its parent about an event (`onSaved`, `onClose`, `onRecordingAccepted`) are fine.
 - Use `PlayolaAlert` for failed user actions; use toasts or inline errors for failed loads.
 - Always report caught errors, except cancellations and classified connectivity blips.
 - Navigation via `PlayolaSheet` enum and navigation coordinator (see `.claude/NAVIGATION.md`)

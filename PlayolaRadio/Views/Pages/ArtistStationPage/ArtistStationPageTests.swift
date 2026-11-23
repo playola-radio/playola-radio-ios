@@ -122,12 +122,13 @@ struct ArtistStationPageTests {
     expectNoDifference(model.viewFullScheduleLabel, "View Full Schedule")
   }
 
-  @Test func displaysPlaceholderLinks() {
+  @Test func stationTabShowsSectionsShowsAndLibrary() {
     let model = ArtistStationPageModel()
 
-    expectNoDifference(model.showsLinkTitle, "Shows")
-    expectNoDifference(model.musicLibraryLinkTitle, "Music Library")
-    expectNoDifference(model.breakersLibraryLinkTitle, "Breakers Library")
+    expectNoDifference(model.showsSectionTitle, "SHOWS")
+    expectNoDifference([model.liveLinkTitle, model.upcomingLinkTitle], ["Live", "Upcoming"])
+    expectNoDifference(model.librarySectionTitle, "LIBRARY")
+    expectNoDifference([model.musicLinkTitle, model.breakersLinkTitle], ["Music", "Breakers"])
   }
 
   // MARK: - Now Playing / Up Next Wiring
@@ -349,7 +350,7 @@ struct ArtistStationPageTests {
     #expect(coordinator.path.isEmpty)
   }
 
-  @Test func showsRowTappedPushesShowsPage() async {
+  @Test func liveRowPushesShowsPage() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     coordinator.switchToBroadcastMode(stationId: testStationId)
@@ -361,7 +362,7 @@ struct ArtistStationPageTests {
       ArtistStationPageModel()
     }
 
-    model.showsRowTapped()
+    model.liveRowTapped()
 
     guard case .showsPage(let pushedModel) = coordinator.path.last else {
       Issue.record("Expected a showsPage to be pushed")
@@ -370,23 +371,7 @@ struct ArtistStationPageTests {
     expectNoDifference(pushedModel.stationId, testStationId)
   }
 
-  @Test func showsRowTappedIsNoOpWhenNotBroadcasting() async {
-    @Shared(.mainContainerNavigationCoordinator) var coordinator =
-      MainContainerNavigationCoordinator()
-
-    let model = withDependencies {
-      $0.date.now = fixedNow
-      $0.api.fetchSchedule = { _, _ in [] }
-    } operation: {
-      ArtistStationPageModel()
-    }
-
-    model.showsRowTapped()
-
-    #expect(coordinator.path.isEmpty)
-  }
-
-  @Test func breakersLibraryRowTappedPushesBreakersLibraryPage() async {
+  @Test func upcomingRowPushesUpcomingShowsPage() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     coordinator.switchToBroadcastMode(stationId: testStationId)
@@ -398,7 +383,92 @@ struct ArtistStationPageTests {
       ArtistStationPageModel()
     }
 
-    model.breakersLibraryRowTapped()
+    model.upcomingRowTapped()
+
+    guard case .upcomingShowsPage(let pushedModel) = coordinator.path.last else {
+      Issue.record("Expected an upcomingShowsPage to be pushed")
+      return
+    }
+    expectNoDifference(pushedModel.stationId, testStationId)
+  }
+
+  @Test func upcomingRowTappedIsNoOpWhenNotBroadcasting() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      ArtistStationPageModel()
+    }
+
+    model.upcomingRowTapped()
+
+    #expect(coordinator.path.isEmpty)
+  }
+
+  @Test func everyDestinationTitleMatchesItsLink() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+
+    let model = withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      ArtistStationPageModel()
+    }
+
+    model.liveRowTapped()
+    model.upcomingRowTapped()
+    model.musicRowTapped()
+    model.breakersRowTapped()
+
+    let destinationTitles: [String] = coordinator.path.compactMap { path in
+      switch path {
+      case .showsPage(let pushed): return pushed.navigationTitle
+      case .upcomingShowsPage(let pushed): return pushed.navigationTitle
+      case .musicLibraryPage(let pushed): return pushed.navigationTitle
+      case .breakersLibraryPage(let pushed): return pushed.navigationTitle
+      default: return nil
+      }
+    }
+    expectNoDifference(
+      destinationTitles,
+      [model.liveLinkTitle, model.upcomingLinkTitle, model.musicLinkTitle, model.breakersLinkTitle]
+    )
+  }
+
+  @Test func liveRowTappedIsNoOpWhenNotBroadcasting() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+
+    let model = withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      ArtistStationPageModel()
+    }
+
+    model.liveRowTapped()
+
+    #expect(coordinator.path.isEmpty)
+  }
+
+  @Test func breakersRowPushesBreakersLibraryPage() async {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    coordinator.switchToBroadcastMode(stationId: testStationId)
+
+    let model = withDependencies {
+      $0.date.now = fixedNow
+      $0.api.fetchSchedule = { _, _ in [] }
+    } operation: {
+      ArtistStationPageModel()
+    }
+
+    model.breakersRowTapped()
 
     guard case .breakersLibraryPage(let pushedModel) = coordinator.path.last else {
       Issue.record("Expected a breakersLibraryPage to be pushed")
@@ -407,7 +477,7 @@ struct ArtistStationPageTests {
     expectNoDifference(pushedModel.stationId, testStationId)
   }
 
-  @Test func breakersLibraryRowTappedIsNoOpWhenNotBroadcasting() async {
+  @Test func breakersRowTappedIsNoOpWhenNotBroadcasting() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
 
@@ -418,12 +488,12 @@ struct ArtistStationPageTests {
       ArtistStationPageModel()
     }
 
-    model.breakersLibraryRowTapped()
+    model.breakersRowTapped()
 
     #expect(coordinator.path.isEmpty)
   }
 
-  @Test func musicLibraryRowTappedPushesMusicLibraryPage() async {
+  @Test func musicRowPushesMusicLibraryPage() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
     coordinator.switchToBroadcastMode(stationId: testStationId)
@@ -435,7 +505,7 @@ struct ArtistStationPageTests {
       ArtistStationPageModel()
     }
 
-    model.musicLibraryRowTapped()
+    model.musicRowTapped()
 
     guard case .musicLibraryPage(let pushedModel) = coordinator.path.last else {
       Issue.record("Expected a musicLibraryPage to be pushed")
@@ -444,7 +514,7 @@ struct ArtistStationPageTests {
     expectNoDifference(pushedModel.stationId, testStationId)
   }
 
-  @Test func musicLibraryRowTappedIsNoOpWhenNotBroadcasting() async {
+  @Test func musicRowTappedIsNoOpWhenNotBroadcasting() async {
     @Shared(.mainContainerNavigationCoordinator) var coordinator =
       MainContainerNavigationCoordinator()
 
@@ -455,7 +525,7 @@ struct ArtistStationPageTests {
       ArtistStationPageModel()
     }
 
-    model.musicLibraryRowTapped()
+    model.musicRowTapped()
 
     #expect(coordinator.path.isEmpty)
   }

@@ -21,6 +21,7 @@ class PlayerPageModel: ViewModel {
   @ObservationIgnored @Shared(.mainContainerNavigationCoordinator)
   var mainContainerNavigationCoordinator
   @ObservationIgnored @Dependency(\.likesManager) var likesManager
+  var presentedAlert: PlayolaAlert?
   var nowPlayingText: String {
     switch nowPlaying?.playbackStatus {
     case .playing, .paused:

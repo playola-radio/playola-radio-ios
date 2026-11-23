@@ -1,0 +1,11 @@
+appId: fm.playola.playolaradio.staging
+---
+# Tab navigation only: nothing is played, liked or changed, and the profile tab is never opened.
+- tapOn: "Your Library"
+- extendedWaitUntil:
+    visible: "Listening History"
+    timeout: 30000
+- tapOn: "Radio Stations"
+- extendedWaitUntil:
+    visible: "Search stations"
+    timeout: 30000

@@ -1,0 +1,17 @@
+name: Changelog
+
+on:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test the changelog script
+        run: make test-scripts
+
+      - name: Check release notes in changelog.d/
+        run: make changelog-check

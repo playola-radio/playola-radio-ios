@@ -504,6 +504,30 @@ struct MainContainerTests {
     #expect(mainContainerModel.mainContainerNavigationCoordinator.presentedSheet == nil)
   }
 
+  // MARK: - Giveaway Tap Alert Tests
+
+  @Test
+  func testGiveawayTapAfterContestEndedShowsGiveawayEndedAlertOnPlayer() async {
+    let mainContainerModel = withDependencies {
+      $0.stationPlayer = StationPlayerMock.mockPlayingPlayer()
+    } operation: {
+      MainContainerModel()
+    }
+    mainContainerModel.onSmallPlayerTapped()
+    guard
+      case .player(let playerPageModel) = mainContainerModel.mainContainerNavigationCoordinator
+        .presentedSheet
+    else {
+      Issue.record("Expected player sheet to be presented")
+      return
+    }
+
+    await playerPageModel.giveawayOverlayModel.onError?(GiveawayTapError.ended)
+
+    #expect(playerPageModel.presentedAlert == .giveawayEnded)
+    #expect(mainContainerModel.presentedAlert == nil)
+  }
+
   // MARK: - Playola Station Player Configuration Tests
 
   @Test
@@ -1772,5 +1796,165 @@ extension MainContainerTests {
 
     expectNoDifference(isBroadcasterValues.value, [])
     #expect(!isBroadcaster)
+  }
+}
+
+// MARK: - Series Picker Dismissal Tests
+
+extension MainContainerTests {
+  private func makeSeriesPicker(dismissals: LockIsolated<Int>) -> SeriesPickerSheetModel {
+    let picker = SeriesPickerSheetModel(
+      stationId: "station-1", showTitle: "Tour Stories", currentSeries: nil, timeZone: .gmt)
+    picker.onDismissed = { dismissals.withValue { $0 += 1 } }
+    return picker
+  }
+
+  @Test func seriesPickerIsNotifiedOnlyWhenItsSheetIsGone() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let dismissals = LockIsolated(0)
+    let picker = makeSeriesPicker(dismissals: dismissals)
+    let model = MainContainerModel()
+    coordinator.presentedSheet = .seriesPicker(picker)
+    model.standardSheetAppeared(.seriesPicker(picker))
+
+    $coordinator.withLock { $0.presentedSheet = nil }
+    expectNoDifference(dismissals.value, 0)
+
+    model.standardSheetDismissed()
+    expectNoDifference(dismissals.value, 1)
+  }
+
+  @Test func swipingTheSeriesPickerAwayNotifiesItOnce() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let dismissals = LockIsolated(0)
+    let picker = makeSeriesPicker(dismissals: dismissals)
+    let model = MainContainerModel()
+    coordinator.presentedSheet = .seriesPicker(picker)
+    model.standardSheetAppeared(.seriesPicker(picker))
+    model.standardSheetAppeared(.seriesPicker(picker))
+
+    model.presentedSheetChanged(to: nil)
+    model.standardSheetDismissed()
+    model.standardSheetDismissed()
+
+    expectNoDifference(dismissals.value, 1)
+    #expect(coordinator.presentedSheet == nil)
+  }
+
+  @Test func replacingTheSeriesPickerNotifiesOnlyTheReplacedPicker() {
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let olderDismissals = LockIsolated(0)
+    let newerDismissals = LockIsolated(0)
+    let older = makeSeriesPicker(dismissals: olderDismissals)
+    let newer = makeSeriesPicker(dismissals: newerDismissals)
+    let model = MainContainerModel()
+    coordinator.presentedSheet = .seriesPicker(older)
+    model.standardSheetAppeared(.seriesPicker(older))
+
+    coordinator.presentedSheet = .seriesPicker(newer)
+    model.standardSheetAppeared(.seriesPicker(newer))
+    model.standardSheetDismissed()
+
+    expectNoDifference(olderDismissals.value, 1)
+    expectNoDifference(newerDismissals.value, 0)
+  }
+}
+
+// MARK: - Add a Show Dismissal Tests
+
+extension MainContainerTests {
+  private func makeAddShowSheet(
+    finishes: LockIsolated<Int>, slot: Date, now: Date? = nil
+  ) -> AddShowToSeriesSheetModel {
+    withDependencies {
+      $0.date.now = now ?? slot.addingTimeInterval(-3600)
+    } operation: {
+      AddShowToSeriesSheetModel(
+        stationId: "station-1",
+        series: CuratorSeries(
+          id: "s1", stationId: "station-1", title: "This One\u{2019}s For You", isOneTime: false,
+          rrule: "FREQ=WEEKLY;BYDAY=SU;BYHOUR=19;BYMINUTE=0"),
+        slot: slot,
+        settings: StationSchedulingSettings(
+          timezone: "America/Chicago", airingEditLockMS: 6 * 60 * 60 * 1000),
+        airings: [],
+        onAddFinished: { _ in finishes.withValue { $0 += 1 } })
+    }
+  }
+
+  @Test func theBridgeNotifiesTheAddShowSheetAndTheScheduleSheetItHandsOffTo() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    // Sunday, Nov 22 2026 at 7:00 PM in Chicago; an hour away, inside the six-hour lock.
+    let slot = Date(timeIntervalSince1970: 1_795_395_600)
+    let finishes = LockIsolated(0)
+    let draft = CuratorEpisode(
+      id: "draft", showId: "other", title: "Tour Stories", durationMS: 18 * 60_000, show: nil,
+      segments: [], airings: [])
+    let addShow = withDependencies {
+      $0.api.getCuratorEpisodes = { _, _, _ in [draft] }
+      $0.api.scheduleEpisode = { _, _, _, _ in }
+      $0.api.updateEpisode = { _, _, _ in draft }
+      $0.notificationCenter = NotificationCenter()
+    } operation: {
+      makeAddShowSheet(finishes: finishes, slot: slot)
+    }
+    let model = MainContainerModel()
+    await addShow.viewAppeared()
+    coordinator.presentedSheet = .addShowToSeries(addShow)
+    model.standardSheetAppeared(.addShowToSeries(addShow))
+
+    await addShow.addButtonTapped("draft")
+    guard case .scheduleShow(let schedule) = coordinator.presentedSheet else {
+      Issue.record("Expected the Schedule sheet")
+      return
+    }
+    model.standardSheetAppeared(.scheduleShow(schedule))
+    model.standardSheetDismissed()
+    expectNoDifference(finishes.value, 0)
+
+    await schedule.scheduleButtonTapped()
+    #expect(coordinator.presentedSheet == nil)
+    expectNoDifference(finishes.value, 0)
+    model.standardSheetDismissed()
+    model.standardSheetDismissed()
+
+    expectNoDifference(finishes.value, 1)
+  }
+
+  @Test func theBridgeNotifiesAnAddShowSheetOnce() async {
+    @Shared(.auth) var auth = Auth(jwt: "test-jwt")
+    @Shared(.mainContainerNavigationCoordinator) var coordinator =
+      MainContainerNavigationCoordinator()
+    let slot = Date(timeIntervalSince1970: 1_795_395_600)
+    let finishes = LockIsolated(0)
+    let draft = CuratorEpisode(
+      id: "draft", showId: "other", title: "Tour Stories", durationMS: 18 * 60_000, show: nil,
+      segments: [], airings: [])
+    let addShow = withDependencies {
+      $0.api.getCuratorEpisodes = { _, _, _ in [draft] }
+      $0.api.scheduleEpisode = { _, _, _, _ in }
+      $0.api.updateEpisode = { _, _, _ in draft }
+      $0.notificationCenter = NotificationCenter()
+    } operation: {
+      makeAddShowSheet(finishes: finishes, slot: slot, now: slot.addingTimeInterval(-2 * 86_400))
+    }
+    let model = MainContainerModel()
+    await addShow.viewAppeared()
+    coordinator.presentedSheet = .addShowToSeries(addShow)
+    model.standardSheetAppeared(.addShowToSeries(addShow))
+    model.standardSheetAppeared(.addShowToSeries(addShow))
+
+    await addShow.addButtonTapped("draft")
+    #expect(coordinator.presentedSheet == nil)
+    expectNoDifference(finishes.value, 0)
+    model.standardSheetDismissed()
+    model.standardSheetDismissed()
+
+    expectNoDifference(finishes.value, 1)
   }
 }

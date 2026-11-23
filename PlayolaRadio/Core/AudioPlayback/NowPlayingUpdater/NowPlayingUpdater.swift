@@ -217,10 +217,11 @@ class NowPlayingUpdater {
 
   private func updatePlaybackState(for status: StationPlayer.PlaybackStatus) {
     // Track listening sessions based on state transitions
+    let previousStatus = lastPlaybackStatus
     Task {
       await trackListeningSession(
         currentStatus: status,
-        previousStatus: lastPlaybackStatus
+        previousStatus: previousStatus
       )
     }
     lastPlaybackStatus = status
@@ -558,13 +559,13 @@ extension NowPlayingUpdater {
       (.paused(let station), .startingNewStation):
       if let startTime = sessionStartTime {
         let duration = now.timeIntervalSince(startTime)
+        sessionStartTime = nil
         await analytics.track(
           .listeningSessionEnded(
             station: StationInfo(from: station),
             sessionLengthSec: Int(duration)
           )
         )
-        sessionStartTime = nil
       }
 
     // Track errors

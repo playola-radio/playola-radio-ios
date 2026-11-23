@@ -22,7 +22,7 @@ struct ShowsPageTests {
   @Test func displaysIntroCopy() {
     let model = ShowsPageModel(stationId: testStationId)
 
-    expectNoDifference(model.navigationTitle, "Shows")
+    expectNoDifference(model.navigationTitle, "Live")
     expectNoDifference(model.introTitle, "Go live on your station")
     expectNoDifference(model.introBody, "Start a new show now.")
     expectNoDifference(model.sectionLabel, "GET STARTED")

@@ -17,6 +17,8 @@ struct PlayStationIntent: AppIntent {
       return .result(dialog: "I couldn't find that station on Playola")
     case .playing(let name):
       return .result(dialog: "Playing \(name)")
+    case .couldNotStart(let name):
+      return .result(dialog: "I couldn't confirm that \(name) started playing")
     }
   }
 }

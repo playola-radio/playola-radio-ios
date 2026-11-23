@@ -1,0 +1,133 @@
+appId: fm.playola.playolaradio.staging
+---
+# Upcoming → Series: the cards show each Series' next three Shows and open slots. Creates a Series
+# with no schedule (its card appears, with "No upcoming shows."), opens its page (both empty-section
+# messages) and its Edit Series (clearing the name disables Save; a too-long name fails with the
+# server's message and keeps the input; a new name saves and shows on the page). Then opens the weekly
+# Series' page (drafts, Shows, open slots, a twice-airing Show listed once) and edits its schedule:
+# Save is disabled with no day, then saving Wednesday and Sunday updates the badge and slots.
+- tapOn: "Series"
+- extendedWaitUntil:
+    visible: "Create a New Series"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "2 shows · 1 open"
+    direction: DOWN
+- tapOn: "Create a New Series"
+- extendedWaitUntil:
+    visible: "REPEATS"
+    timeout: 30000
+# Each run names its Series apart, since earlier runs' Series stay on staging.
+- evalScript: ${output.seriesName = 'Porch Sessions ' + Date.now() % 100000}
+- tapOn: "Series name"
+- inputText: ${output.seriesName}
+- tapOn: "No schedule"
+- tapOn: "Save"
+- scrollUntilVisible:
+    element: ${output.seriesName}
+    direction: UP
+- scrollUntilVisible:
+    element: "No upcoming shows."
+    direction: DOWN
+# A tap while the list still glides only stops it.
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: ${output.seriesName}
+- extendedWaitUntil:
+    visible: "No drafts in this series."
+    timeout: 30000
+- assertVisible: "No upcoming shows."
+- tapOn: "Edit"
+- extendedWaitUntil:
+    visible: "Edit Series"
+    timeout: 30000
+- tapOn:
+    below: "NAME"
+- eraseText: 30
+- assertVisible:
+    text: "Save"
+    enabled: false
+# A name over 255 characters is refused by the server: its message shows and the input stays.
+- inputText: ${'Porch '.repeat(43)}
+- tapOn: "Save"
+- extendedWaitUntil:
+    visible: ".*at most 255 characters.*"
+    timeout: 30000
+- tapOn: "OK"
+- assertVisible: "Edit Series"
+- assertVisible: "Porch Porch Porch.*"
+- tapOn: "Cancel"
+- tapOn: "Edit"
+- extendedWaitUntil:
+    visible: "Edit Series"
+    timeout: 30000
+- tapOn:
+    below: "NAME"
+- eraseText: 40
+- inputText: ${output.seriesName + ' Live'}
+- tapOn: "Save"
+- extendedWaitUntil:
+    visible: ${output.seriesName + ' Live'}
+    timeout: 30000
+- assertNotVisible: "Edit Series"
+# Back to Upcoming and in again, so the list starts at the top whatever earlier runs added to it.
+- tapOn: "Series"
+- extendedWaitUntil:
+    visible: "Create a New Series"
+    timeout: 30000
+- tapOn: "Upcoming"
+- extendedWaitUntil:
+    visible: "Individual Shows"
+    timeout: 30000
+- tapOn: "Series"
+- extendedWaitUntil:
+    visible: "Create a New Series"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "This One.s For You"
+    direction: DOWN
+    centerElement: true
+# A tap while the list still glides only stops it.
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "This One.s For You"
+- extendedWaitUntil:
+    visible: "NOT SCHEDULED YET"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "Hymn Request Night"
+    timeout: 30000
+# A previous run leaves the schedule on Wednesday and Sunday; put it back to Sundays first.
+- runFlow:
+    when:
+      visible: "Every Wednesday and Sunday at 7pm"
+    commands:
+      - tapOn: "Edit"
+      - extendedWaitUntil:
+          visible: "Edit Series"
+          timeout: 30000
+      - tapOn: "Wednesday"
+      - tapOn: "Save"
+      - extendedWaitUntil:
+          visible: "Every Sunday at 7pm"
+          timeout: 30000
+- scrollUntilVisible:
+    element: "Christmas Hymns"
+    direction: DOWN
+- tapOn: "Edit"
+- extendedWaitUntil:
+    visible: "Edit Series"
+    timeout: 30000
+- tapOn: "Sunday"
+- assertVisible:
+    text: "Save"
+    enabled: false
+- tapOn: "Wednesday"
+- tapOn: "Sunday"
+- tapOn: "Save"
+- extendedWaitUntil:
+    visible: "Every Wednesday and Sunday at 7pm"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "Wednesday · 7:00 PM"
+    direction: DOWN

@@ -85,7 +85,7 @@ class ShowsPageModel: ViewModel {
       : "Checking for an active show…"
   }
   var retryTitles: [String] { hasLoadFailed ? ["Retry"] : [] }
-  var navigationTitle: String { "Shows" }
+  var navigationTitle: String { "Live" }
   var introTitle: String { "Go live on your station" }
   var introBody: String { "Start a new show now." }
   var sectionLabel: String { "GET STARTED" }

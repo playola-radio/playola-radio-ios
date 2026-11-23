@@ -70,9 +70,13 @@ class ArtistStationPageModel: ViewModel {
   var lastWentLiveLabel: String { "Last went live 4 days ago" }
   var viewFullScheduleLabel: String { "View Full Schedule" }
 
-  var showsLinkTitle: String { "Shows" }
-  var musicLibraryLinkTitle: String { "Music Library" }
-  var breakersLibraryLinkTitle: String { "Breakers Library" }
+  var showsSectionTitle: String { "SHOWS" }
+  var liveLinkTitle: String { "Live" }
+  var upcomingLinkTitle: String { "Upcoming" }
+
+  var librarySectionTitle: String { "LIBRARY" }
+  var musicLinkTitle: String { "Music" }
+  var breakersLinkTitle: String { "Breakers" }
 
   // MARK: - View Helpers
 
@@ -120,17 +124,22 @@ class ArtistStationPageModel: ViewModel {
     navigationCoordinator.push(.broadcastPage(BroadcastPageModel(stationId: stationId)))
   }
 
-  func showsRowTapped() {
+  func liveRowTapped() {
     guard let stationId else { return }
     navigationCoordinator.push(.showsPage(ShowsPageModel(stationId: stationId)))
   }
 
-  func musicLibraryRowTapped() {
+  func upcomingRowTapped() {
+    guard let stationId else { return }
+    navigationCoordinator.push(.upcomingShowsPage(UpcomingShowsPageModel(stationId: stationId)))
+  }
+
+  func musicRowTapped() {
     guard let stationId else { return }
     navigationCoordinator.push(.musicLibraryPage(MusicLibraryPageModel(stationId: stationId)))
   }
 
-  func breakersLibraryRowTapped() {
+  func breakersRowTapped() {
     guard let stationId else { return }
     navigationCoordinator.push(.breakersLibraryPage(BreakersLibraryPageModel(stationId: stationId)))
   }
