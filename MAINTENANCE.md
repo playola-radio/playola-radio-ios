@@ -15,7 +15,7 @@ Recurring upkeep tasks for this repo. Ask "What maintenance needs to be done?"
 | Item | Cadence | Last completed | Next due |
 |------|---------|----------------|----------|
 | [Dependency updates](#dependency-updates) | Monthly | In progress (sweep started 2026-08-27) | 2026-09-03 (finish current sweep) |
-| [CI Xcode version check](#ci-xcode-version-check) | Quarterly | Never | 2026-11-27 |
+| [CI Xcode version check](#ci-xcode-version-check) | Quarterly | 2026-11-23 | 2027-02-23 |
 | [Certificates & provisioning check](#certificates--provisioning-check) | Quarterly | Never | 2026-09-10 (first audit) |
 | [LONG_RUNNING.md review](#long_runningmd-review) | Monthly | 2026-08-26 | 2026-09-26 |
 
@@ -106,7 +106,7 @@ swift-identified-collections, swift-custom-dump, SwiftLintPlugins have one.)
 
 ## CI Xcode version check
 
-CircleCI jobs pin a macOS Xcode image (`xcode: 26.5`, five places in
+CircleCI jobs pin a macOS Xcode image (`xcode: 27.1.0`, five places in
 `.circleci/config.yml`). Quarterly:
 
 1. Check what Xcode versions CircleCI offers and what the App Store currently
