@@ -1,5 +1,4 @@
 {
-  "excludeBranches": ["main"],
   "rules": [
     {
       "id": "no-hardcoded-strings-in-views",
