@@ -191,6 +191,16 @@ struct CarPlaySceneDelegateTests {
     expectNoDifference(controller.presentedAlertTitles.count, 1)
   }
 
+  @Test
+  func testMiniPlayerIsTurnedOff() {
+    guard #available(iOS 27.0, *) else { return }
+    CPNowPlayingTemplate.shared.allowsMiniPlayer = true
+
+    _ = CarPlaySceneDelegate()
+
+    expectNoDifference(CPNowPlayingTemplate.shared.allowsMiniPlayer, false)
+  }
+
   private func delegate(using player: StationPlayerMock) -> CarPlaySceneDelegate {
     withDependencies {
       $0.stationPlayer = player
