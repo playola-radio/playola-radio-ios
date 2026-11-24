@@ -208,6 +208,11 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   private func setupNowPlayingTemplate() {
     @Dependency(\.nowPlayingUpdater) var nowPlayingUpdater
     _ = nowPlayingUpdater
+    // iOS 27's CarPlay mini player took over the Now Playing button and stopped
+    // opening the full Now Playing screen, leaving listeners no way to stop playback.
+    if #available(iOS 27.0, *) {
+      CPNowPlayingTemplate.shared.allowsMiniPlayer = false
+    }
   }
 
   /// Installed on every connect: a disconnect cancels it, and this delegate instance is reused.
