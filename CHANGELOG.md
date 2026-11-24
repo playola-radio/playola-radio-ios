@@ -28,5 +28,6 @@ Don't edit this file in a pull request; add a file to changelog.d/ (see changelo
 - Curators can now schedule a recorded show for a day and time, move it to a new time, and unschedule it from the show builder.
 - Curators can now put a show in a series, move it to a different series, take it out of a series, or start a brand-new series right from the show builder.
 - Siri no longer says a station is playing when it couldn't start; it now says it couldn't confirm the station started.
+- In CarPlay on iOS 27, the Now Playing button opens the full Now Playing screen again, so you can stop playback from the car.
 - The Station tab now groups its links into Shows (Live and Upcoming) and Library (Music and Breakers), and the Upcoming page lists how many series and individual shows are coming up.
 - Fixed a song you unliked sometimes coming back as liked after your connection dropped while you were liking it.
