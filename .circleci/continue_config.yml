@@ -82,6 +82,11 @@ jobs:
     environment:
       FL_OUTPUT_DIR: output
       FASTLANE_LANE: test
+      # Gems, Swift packages and DerivedData live in fixed folders so they can be cached
+      # between runs.
+      BUNDLE_PATH: vendor/bundle
+      SCAN_CLONED_SOURCE_PACKAGES_PATH: /Users/distiller/SourcePackages
+      SCAN_DERIVED_DATA_PATH: /Users/distiller/DerivedData
     steps:
       - checkout
       - run: brew install xcbeautify xcresultparser
@@ -89,13 +94,53 @@ jobs:
       - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Development.xcconfig
       - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
       - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Staging.xcconfig
+      - restore_cache:
+          keys:
+            - gems-v1-{{ checksum "Gemfile.lock" }}
       - run: bundle install
+      - save_cache:
+          key: gems-v1-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+      # Package.resolved is gitignored and SwiftPM keeps restored checkouts' versions,
+      # so the cache is rebuilt from a fresh resolve each week to keep CI within a week
+      # of what a fresh build picks.
+      - run:
+          name: Compute Swift package cache week
+          command: date +%G-W%V > /tmp/spm-week
+      - restore_cache:
+          keys:
+            - spm-v1-{{ checksum "/tmp/spm-week" }}-
       - run:
           name: Resolve Swift Package Dependencies
-          command: xcodebuild -resolvePackageDependencies -project PlayolaRadio.xcodeproj
+          command: |
+            xcodebuild -resolvePackageDependencies -project PlayolaRadio.xcodeproj -clonedSourcePackagesDirPath "$SCAN_CLONED_SOURCE_PACKAGES_PATH"
+            { xcodebuild -version; cat PlayolaRadio.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved; } > /tmp/build-cache-key
+      - save_cache:
+          key: spm-v1-{{ checksum "/tmp/spm-week" }}-{{ checksum "PlayolaRadio.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" }}
+          paths:
+            - /Users/distiller/SourcePackages
+      # The reusable part of DerivedData is the package and SDK module builds, which depend
+      # on the exact package versions and Xcode. App sources get fresh timestamps on checkout
+      # and always rebuild.
+      - restore_cache:
+          keys:
+            - dd-v3-{{ checksum "/tmp/build-cache-key" }}
       - run:
           name: Fastlane
           command: bundle exec fastlane $FASTLANE_LANE
+      - run:
+          name: Drop logs and app builds from DerivedData before caching
+          # The app and test bundles rebuild every run anyway; caching them could let a deleted
+          # resource linger in the bundle and hide a missing file.
+          command: |
+            rm -rf "$SCAN_DERIVED_DATA_PATH"/Logs "$SCAN_DERIVED_DATA_PATH"/Index.noindex \
+              "$SCAN_DERIVED_DATA_PATH"/Build/Products/*/PlayolaRadio* \
+              "$SCAN_DERIVED_DATA_PATH"/Build/Intermediates.noindex/PlayolaRadio.build
+      - save_cache:
+          key: dd-v3-{{ checksum "/tmp/build-cache-key" }}
+          paths:
+            - /Users/distiller/DerivedData
       - store_artifacts:
           path: output
       - store_test_results:
@@ -175,28 +220,6 @@ jobs:
       - store_artifacts:
           path: build
 
-  adhoc:
-    macos:
-      xcode: 27.1.0
-    resource_class: m4pro.medium
-    environment:
-      FL_OUTPUT_DIR: output
-      FASTLANE_LANE: adhoc
-    steps:
-      - checkout
-      - run: brew install xcbeautify
-      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets.xcconfig
-      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Development.xcconfig
-      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
-      - run: bundle install
-      - run:
-          name: Fastlane
-          command: bundle exec fastlane $FASTLANE_LANE
-      - store_artifacts:
-          path: output
-      - store_test_results:
-          path: test-results
-
 workflows:
   lint-codebase:
     # Skip when nothing that affects the app changed, and on the nightly pipeline — it only
@@ -219,12 +242,6 @@ workflows:
         - not: << pipeline.parameters.run_nightly_staging >>
     jobs:
       - build-and-test
-      - adhoc:
-          filters:
-            branches:
-              only: development
-          requires:
-            - build-and-test
 
   nightly-staging:
     # Triggered only by .github/workflows/nightly-staging.yml, which POSTs this pipeline on
