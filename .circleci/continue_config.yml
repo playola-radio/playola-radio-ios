@@ -1,0 +1,260 @@
+version: 2.1
+
+# Continuation config. .circleci/config.yml is the setup config: a small Linux job decides
+# whether this push needs the app checks, then continues the pipeline with this file.
+#
+# run_release and run_nightly_staging are declared here AND in the setup config: the values the
+# GitHub Actions POST at trigger time carry into this config automatically. The setup job must
+# NOT pass them again — CircleCI rejects that with "Conflicting pipeline parameters".
+parameters:
+  # Passed by the setup config. True when the push changed something that can affect the app
+  # build or lint, and always on develop, main and release pipelines. False skips lint and the
+  # Mac build-and-test.
+  build_app:
+    type: boolean
+    default: false
+
+  # Set to true only by the auto-tag GitHub Action's API trigger (see
+  # .github/workflows/auto-tag-release.yml). CircleCI's native tag webhook is
+  # unreliable — it fires on some release tags and not others — so the API POST is
+  # the real release trigger. Gating the release workflow on this parameter makes
+  # the API-triggered pipeline the SINGLE deterministic release path: a webhook tag
+  # pipeline arrives without the parameter (default false) and skips the release,
+  # instead of racing the API pipeline and double-uploading the same build (ITMS-90189).
+  run_release:
+    type: boolean
+    default: false
+
+  # Set to true only by the nightly GitHub Action (.github/workflows/nightly-staging.yml),
+  # which POSTs this pipeline on develop. Gates the nightly-staging workflow ON and gates the
+  # ordinary lint/build-test workflows OFF, so a scheduled run does exactly one thing: build
+  # the develop tip to the STAGING TestFlight app. An ordinary develop push lacks the
+  # parameter (default false) and behaves as before.
+  run_nightly_staging:
+    type: boolean
+    default: false
+
+jobs:
+  # Code-style checks run on Linux Docker, not a Mac: they only read source files, and a
+  # Mac costs ~20x more per minute. The fastlane lint_code / format_check lanes stay for
+  # local use. Each check gets its own official image, so nothing is installed per run.
+  swiftlint_check:
+    docker:
+      # Keep this tag equal to .swiftlint-version (enforced by the first step) and to the
+      # SwiftLintPlugins version in Package.resolved. The image bundles its own SourceKit.
+      - image: ghcr.io/realm/swiftlint:0.63.2
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Check image matches .swiftlint-version
+          command: |
+            expected="$(cat .swiftlint-version)"
+            actual="$(swiftlint version)"
+            if [ "$expected" != "$actual" ]; then
+              echo "Image runs SwiftLint $actual but .swiftlint-version says $expected; update the image tag."
+              exit 1
+            fi
+      - run:
+          name: Run SwiftLint (strict)
+          command: swiftlint lint --strict --config .swiftlint.yml
+
+  swift_format_check:
+    docker:
+      # Match the Swift toolchain in the Xcode our Macs use (Xcode 27.1 = Swift 6.4), so
+      # this swift-format agrees with `make format-check` locally. Pinned to a patch release
+      # so the formatter only changes when this line does; bump it with Xcode.
+      - image: swift:6.4.3
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Run swift-format lint (strict)
+          # Same file set and flags as `make format-check`, minus `xcrun`.
+          command: |
+            find PlayolaRadio PlayolaRadioTests -name '*.swift' -not -path '*/Vendor/*' -print0 \
+              | xargs -0 swift-format lint --strict
+
+  build-and-test:
+    macos:
+      xcode: 27.1.0
+    resource_class: m4pro.medium
+    environment:
+      FL_OUTPUT_DIR: output
+      FASTLANE_LANE: test
+    steps:
+      - checkout
+      - run: brew install xcbeautify xcresultparser
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Development.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Staging.xcconfig
+      - run: bundle install
+      - run:
+          name: Resolve Swift Package Dependencies
+          command: xcodebuild -resolvePackageDependencies -project PlayolaRadio.xcodeproj
+      - run:
+          name: Fastlane
+          command: bundle exec fastlane $FASTLANE_LANE
+      - store_artifacts:
+          path: output
+      - store_test_results:
+          path: "./fastlane/test_output"
+      - store_test_results:
+          path: test-results
+
+  release_build:
+    macos:
+      xcode: 27.1.0
+    resource_class: m4pro.medium
+    steps:
+      - checkout
+      - run:
+          name: Set up SSH for match (fastlane-match-certs-and-profiles)
+          command: |
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            printf '%s' "$MATCH_GIT_PRIVATE_KEY_B64" | base64 --decode > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - run:
+          name: Install Bundler
+          command: gem install bundler
+      - run:
+          name: Install Fastlane
+          command: bundle install
+      - run:
+          name: Install xcbeautify and xcresultparser
+          command: brew install xcbeautify xcresultparser
+      - run:
+          name: Decode xcconfig secrets
+          command: bash scripts/ci-write-secrets.sh
+      - run:
+          name: Resolve Swift Package Dependencies
+          command: xcodebuild -resolvePackageDependencies -project PlayolaRadio.xcodeproj
+      - run:
+          name: Fastlane release_production (build + upload to TestFlight + Sentry dSYMs)
+          command: bundle exec fastlane release_production
+      - store_artifacts:
+          path: build
+      - store_test_results:
+          path: fastlane/test_output
+
+  release_staging_build:
+    macos:
+      xcode: 27.1.0
+    resource_class: m4pro.medium
+    steps:
+      - checkout
+      - run:
+          name: Set up SSH for match (fastlane-match-certs-and-profiles)
+          command: |
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            printf '%s' "$MATCH_GIT_PRIVATE_KEY_B64" | base64 --decode > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - run:
+          name: Install Bundler
+          command: gem install bundler
+      - run:
+          name: Install Fastlane
+          command: bundle install
+      - run:
+          name: Install xcbeautify and xcresultparser
+          command: brew install xcbeautify xcresultparser
+      - run:
+          name: Decode xcconfig secrets
+          command: bash scripts/ci-write-secrets.sh
+      - run:
+          name: Resolve Swift Package Dependencies
+          command: xcodebuild -resolvePackageDependencies -project PlayolaRadio.xcodeproj
+      - run:
+          name: Fastlane release_staging (build + upload to staging TestFlight + Sentry dSYMs)
+          command: bundle exec fastlane release_staging
+      - store_artifacts:
+          path: build
+
+  adhoc:
+    macos:
+      xcode: 27.1.0
+    resource_class: m4pro.medium
+    environment:
+      FL_OUTPUT_DIR: output
+      FASTLANE_LANE: adhoc
+    steps:
+      - checkout
+      - run: brew install xcbeautify
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Development.xcconfig
+      - run: cp ./PlayolaRadio/Config/Secrets-Example.xcconfig ./PlayolaRadio/Config/Secrets-Local.xcconfig
+      - run: bundle install
+      - run:
+          name: Fastlane
+          command: bundle exec fastlane $FASTLANE_LANE
+      - store_artifacts:
+          path: output
+      - store_test_results:
+          path: test-results
+
+workflows:
+  lint-codebase:
+    # Skip when nothing that affects the app changed, and on the nightly pipeline — it only
+    # builds the staging app, nothing to lint.
+    when:
+      and:
+        - << pipeline.parameters.build_app >>
+        - not: << pipeline.parameters.run_nightly_staging >>
+    jobs:
+      - swiftlint_check
+      - swift_format_check
+
+  build-test-adhoc:
+    # Skip when nothing that affects the app changed. Skip on the nightly pipeline so a
+    # scheduled run does exactly one thing (staging build); develop is already kept green by
+    # per-PR CI, so re-running the full suite nightly is redundant.
+    when:
+      and:
+        - << pipeline.parameters.build_app >>
+        - not: << pipeline.parameters.run_nightly_staging >>
+    jobs:
+      - build-and-test
+      - adhoc:
+          filters:
+            branches:
+              only: development
+          requires:
+            - build-and-test
+
+  nightly-staging:
+    # Triggered only by .github/workflows/nightly-staging.yml, which POSTs this pipeline on
+    # develop with run_nightly_staging: true. Builds the develop tip to the STAGING TestFlight
+    # app (internal only — the release_staging lane sets distribute_external: false and
+    # notify_external_testers: false). Reuses the same job as the release-time staging build.
+    when: << pipeline.parameters.run_nightly_staging >>
+    jobs:
+      - release_staging_build:
+          context: ios-release
+
+  release:
+    # Only run on the API-triggered pipeline that carries run_release: true. A native
+    # tag webhook pipeline lacks the parameter and is skipped, so exactly one pipeline
+    # per tag uploads a build. See the run_release parameter definition above.
+    when: << pipeline.parameters.run_release >>
+    jobs:
+      - release_build:
+          context: ios-release
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - release_staging_build:
+          context: ios-release
+          requires:
+            - release_build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
