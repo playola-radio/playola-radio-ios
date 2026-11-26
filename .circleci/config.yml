@@ -22,36 +22,45 @@ parameters:
     default: false
 
 jobs:
+  # Code-style checks run on Linux Docker, not a Mac: they only read source files, and a
+  # Mac costs ~20x more per minute. The fastlane lint_code / format_check lanes stay for
+  # local use. Each check gets its own official image, so nothing is installed per run.
   swiftlint_check:
-    macos:
-      xcode: 27.1.0
-    resource_class: m4pro.medium
+    docker:
+      # Keep this tag equal to .swiftlint-version (enforced by the first step) and to the
+      # SwiftLintPlugins version in Package.resolved. The image bundles its own SourceKit.
+      - image: ghcr.io/realm/swiftlint:0.63.2
+    resource_class: small
     steps:
       - checkout
       - run:
-          name: Install Bundler
-          command: gem install bundler
-      - run:
-          name: Install Fastlane
-          command: bundle install
-      - run:
-          name: Install SwiftLint (pinned)
+          name: Check image matches .swiftlint-version
           command: |
-            # Pinned deliberately: `brew install swiftlint` floats to latest, so a new
-            # SwiftLint release adds rules and fails builds nobody touched. Keep this in
-            # sync with the SwiftLintPlugins version in Package.resolved.
-            SWIFTLINT_VERSION="$(cat .swiftlint-version)"
-            curl -sSfL -o /tmp/swiftlint.zip \
-              "https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/portable_swiftlint.zip"
-            unzip -q -o /tmp/swiftlint.zip -d /tmp/swiftlint
-            sudo install -m 0755 /tmp/swiftlint/swiftlint /usr/local/bin/swiftlint
-            swiftlint version
+            expected="$(cat .swiftlint-version)"
+            actual="$(swiftlint version)"
+            if [ "$expected" != "$actual" ]; then
+              echo "Image runs SwiftLint $actual but .swiftlint-version says $expected; update the image tag."
+              exit 1
+            fi
       - run:
-          name: Run SwiftLint via Fastlane
-          command: bundle exec fastlane lint_code
+          name: Run SwiftLint (strict)
+          command: swiftlint lint --strict --config .swiftlint.yml
+
+  swift_format_check:
+    docker:
+      # Match the Swift toolchain in the Xcode our Macs use (Xcode 27.1 = Swift 6.4), so
+      # this swift-format agrees with `make format-check` locally. Pinned to a patch release
+      # so the formatter only changes when this line does; bump it with Xcode.
+      - image: swift:6.4.3
+    resource_class: small
+    steps:
+      - checkout
       - run:
-          name: Run Swift Format Check
-          command: bundle exec fastlane format_check
+          name: Run swift-format lint (strict)
+          # Same file set and flags as `make format-check`, minus `xcrun`.
+          command: |
+            find PlayolaRadio PlayolaRadioTests -name '*.swift' -not -path '*/Vendor/*' -print0 \
+              | xargs -0 swift-format lint --strict
 
   build-and-test:
     macos:
@@ -182,6 +191,7 @@ workflows:
       not: << pipeline.parameters.run_nightly_staging >>
     jobs:
       - swiftlint_check
+      - swift_format_check
 
   build-test-adhoc:
     # Skip on the nightly pipeline so a scheduled run does exactly one thing (staging build).
