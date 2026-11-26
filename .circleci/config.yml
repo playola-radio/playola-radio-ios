@@ -49,8 +49,9 @@ jobs:
   swift_format_check:
     docker:
       # Match the Swift toolchain in the Xcode our Macs use (Xcode 27.1 = Swift 6.4), so
-      # this swift-format agrees with `make format-check` locally.
-      - image: swift:6.4
+      # this swift-format agrees with `make format-check` locally. Pinned to a patch release
+      # so the formatter only changes when this line does; bump it with Xcode.
+      - image: swift:6.4.3
     resource_class: small
     steps:
       - checkout
