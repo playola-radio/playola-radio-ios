@@ -60,7 +60,7 @@ swift-identified-collections, swift-custom-dump, SwiftLintPlugins have one.)
    - the `SwiftLintPlugins` exact pin in `project.pbxproj` (build-tool plugin;
      fails the local/CI build on violations), and
    - **`.swiftlint-version`** at the repo root — CI's `swiftlint_check` job
-     downloads exactly that SwiftLint release (see `.circleci/config.yml`).
+     runs exactly that SwiftLint release (see `.circleci/continue_config.yml`).
 
    Use the same version number in both. After bumping, run `make lint` locally:
    new SwiftLint releases add rules that can fail builds nobody touched
@@ -106,12 +106,12 @@ swift-identified-collections, swift-custom-dump, SwiftLintPlugins have one.)
 
 ## CI Xcode version check
 
-CircleCI jobs pin a macOS Xcode image (`xcode: 27.1.0`, five places in
-`.circleci/config.yml`). Quarterly:
+CircleCI jobs pin a macOS Xcode image (`xcode: 27.1.0`, four places in
+`.circleci/continue_config.yml`). Quarterly:
 
 1. Check what Xcode versions CircleCI offers and what the App Store currently
    requires for submission (Apple periodically raises the minimum SDK).
-2. If moving: bump all `xcode:` entries in `.circleci/config.yml` together, and
+2. If moving: bump all `xcode:` entries in `.circleci/continue_config.yml` together, and
    keep the local build instruction in sync (we build via
    `DEVELOPER_DIR=/Applications/Xcode-<version>.app` to match CI — see
    memory/docs about local Xcode beta mismatch).
