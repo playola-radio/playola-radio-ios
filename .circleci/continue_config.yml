@@ -102,18 +102,22 @@ jobs:
           key: gems-v1-{{ checksum "Gemfile.lock" }}
           paths:
             - vendor/bundle
-      # Package.resolved is gitignored, so restore the newest package cache and let resolve
-      # bring it up to date, then save it under the versions resolve actually picked.
+      # Package.resolved is gitignored and SwiftPM keeps restored checkouts' versions,
+      # so the cache is rebuilt from a fresh resolve each week to keep CI within a week
+      # of what a fresh build picks.
+      - run:
+          name: Compute Swift package cache week
+          command: date +%G-W%V > /tmp/spm-week
       - restore_cache:
           keys:
-            - spm-v1-
+            - spm-v1-{{ checksum "/tmp/spm-week" }}-
       - run:
           name: Resolve Swift Package Dependencies
           command: |
             xcodebuild -resolvePackageDependencies -project PlayolaRadio.xcodeproj -clonedSourcePackagesDirPath "$SCAN_CLONED_SOURCE_PACKAGES_PATH"
             { xcodebuild -version; cat PlayolaRadio.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved; } > /tmp/build-cache-key
       - save_cache:
-          key: spm-v1-{{ checksum "PlayolaRadio.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" }}
+          key: spm-v1-{{ checksum "/tmp/spm-week" }}-{{ checksum "PlayolaRadio.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" }}
           paths:
             - /Users/distiller/SourcePackages
       # The reusable part of DerivedData is the package and SDK module builds, which depend
